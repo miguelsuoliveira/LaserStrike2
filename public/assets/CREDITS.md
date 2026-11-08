@@ -1,0 +1,200 @@
+# Credits
+
+All assets are CC0 (public domain) unless a line says otherwise.
+
+- assets/models/characters/robot.glb: by Tomás Laulhé (Quaternius), modified by Don McCurdy, CC0, https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/RobotExpressive/RobotExpressive.glb
+- assets/models/characters/knight.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb
+- assets/models/characters/mage.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb
+- assets/models/characters/rogue.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb
+- assets/models/characters/barbarian.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb
+- assets/models/characters/skeleton_minion.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0/main/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Minion.glb
+- assets/models/characters/skeleton_warrior.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0/main/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Warrior.glb
+- assets/models/platformer/block_coin.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/block-coin.glb
+- assets/models/platformer/brick.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/brick.glb
+- assets/models/platformer/character.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/character.glb
+- assets/models/platformer/cloud.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/cloud.glb
+- assets/models/platformer/coin.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/coin.glb
+- assets/models/platformer/flag.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/flag.glb
+- assets/models/platformer/grass_small.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/grass-small.glb
+- assets/models/platformer/grass.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/grass.glb
+- assets/models/platformer/platform_falling.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/platform-falling.glb
+- assets/models/platformer/platform_grass_large_round.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/platform-grass-large-round.glb
+- assets/models/platformer/platform_large.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/platform-large.glb
+- assets/models/platformer/platform_medium.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/platform-medium.glb
+- assets/models/platformer/platform.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/models/platform.glb
+- assets/models/shooter/blaster_repeater.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/models/blaster-repeater.glb
+- assets/models/shooter/blaster.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/models/blaster.glb
+- assets/models/shooter/enemy_flying.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/models/enemy-flying.glb
+- assets/models/shooter/wall_high.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/models/wall-high.glb
+- assets/models/shooter/wall_low.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/models/wall-low.glb
+- assets/models/racing/decoration_empty.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/decoration-empty.glb
+- assets/models/racing/decoration_forest.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/decoration-forest.glb
+- assets/models/racing/decoration_tents.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/decoration-tents.glb
+- assets/models/racing/track_bump.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/track-bump.glb
+- assets/models/racing/track_corner.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/track-corner.glb
+- assets/models/racing/track_finish.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/track-finish.glb
+- assets/models/racing/track_straight.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/track-straight.glb
+- assets/models/racing/vehicle_motorcycle.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/vehicle-motorcycle.glb
+- assets/models/racing/vehicle_truck_green.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/vehicle-truck-green.glb
+- assets/models/racing/vehicle_truck_purple.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/vehicle-truck-purple.glb
+- assets/models/racing/vehicle_truck_red.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/vehicle-truck-red.glb
+- assets/models/racing/vehicle_truck_yellow.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/models/vehicle-truck-yellow.glb
+- assets/models/city/building_garage.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-garage.glb
+- assets/models/city/building_small_a.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-a.glb
+- assets/models/city/building_small_b.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-b.glb
+- assets/models/city/building_small_c.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-c.glb
+- assets/models/city/building_small_d.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-d.glb
+- assets/models/city/grass_trees_tall.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/grass-trees-tall.glb
+- assets/models/city/grass_trees.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/grass-trees.glb
+- assets/models/city/pavement_fountain.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/pavement-fountain.glb
+- assets/models/city/road_corner.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-corner.glb
+- assets/models/city/road_intersection.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-intersection.glb
+- assets/models/city/road_split.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-split.glb
+- assets/models/city/road_straight_lightposts.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-straight-lightposts.glb
+- assets/models/city/road_straight.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-straight.glb
+- assets/sounds/kenney/break.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/break.ogg
+- assets/sounds/kenney/coin.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/coin.ogg
+- assets/sounds/kenney/fall.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/fall.ogg
+- assets/sounds/kenney/jump.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/jump.ogg
+- assets/sounds/kenney/land.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/land.ogg
+- assets/sounds/kenney/walking.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-3D-Platformer/main/sounds/walking.ogg
+- assets/sounds/kenney/blaster.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/blaster.ogg
+- assets/sounds/kenney/blaster_repeater.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/blaster_repeater.ogg
+- assets/sounds/kenney/enemy_attack.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/enemy_attack.ogg
+- assets/sounds/kenney/enemy_destroy.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/enemy_destroy.ogg
+- assets/sounds/kenney/enemy_hurt.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/enemy_hurt.ogg
+- assets/sounds/kenney/weapon_change.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-FPS/main/sounds/weapon_change.ogg
+- assets/sounds/kenney/engine.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/audio/engine.ogg
+- assets/sounds/kenney/impact.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/audio/impact.ogg
+- assets/sounds/kenney/skid.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Racing/main/audio/skid.ogg
+- assets/sounds/kenney/placement_a.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/sounds/placement-a.ogg
+- assets/sounds/kenney/removal_a.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/sounds/removal-a.ogg
+- assets/sounds/kenney/rotate.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/sounds/rotate.ogg
+- assets/sounds/kenney/toggle.ogg: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/sounds/toggle.ogg
+- assets/models/dungeon/barrel_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/barrel_large.gltf.glb
+- assets/models/dungeon/box_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/box_large.gltf.glb
+- assets/models/dungeon/chest.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/chest.glb
+- assets/models/dungeon/chest_gold.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/chest_gold.glb
+- assets/models/dungeon/coin.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/coin.gltf.glb
+- assets/models/dungeon/coin_stack_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/coin_stack_large.gltf.glb
+- assets/models/dungeon/column.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/column.gltf.glb
+- assets/models/dungeon/crates_stacked.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/crates_stacked.gltf.glb
+- assets/models/dungeon/floor_tile_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/floor_tile_large.gltf.glb
+- assets/models/dungeon/floor_tile_big_spikes.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/floor_tile_big_spikes.glb
+- assets/models/dungeon/floor_wood_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/floor_wood_large.gltf.glb
+- assets/models/dungeon/key.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/key.gltf.glb
+- assets/models/dungeon/pillar.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/pillar.gltf.glb
+- assets/models/dungeon/stairs.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/stairs.gltf.glb
+- assets/models/dungeon/sword_shield.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/sword_shield.gltf.glb
+- assets/models/dungeon/table_medium.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/table_medium.gltf.glb
+- assets/models/dungeon/chair.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/chair.gltf.glb
+- assets/models/dungeon/torch_lit.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/torch_lit.gltf.glb
+- assets/models/dungeon/torch_mounted.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/torch_mounted.gltf.glb
+- assets/models/dungeon/wall.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/wall.gltf.glb
+- assets/models/dungeon/wall_corner.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/wall_corner.gltf.glb
+- assets/models/dungeon/wall_doorway.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/wall_doorway.glb
+- assets/models/dungeon/wall_window_open.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/wall_window_open.gltf.glb
+- assets/models/dungeon/wall_broken.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/wall_broken.gltf.glb
+- assets/models/dungeon/rubble_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf/rubble_large.gltf.glb
+- assets/models/spooky/arch_gate.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/arch_gate.gltf
+- assets/models/spooky/bench.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/bench.gltf
+- assets/models/spooky/bone_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/bone_A.gltf
+- assets/models/spooky/candle_triple.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/candle_triple.gltf
+- assets/models/spooky/coffin.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/coffin.gltf
+- assets/models/spooky/crypt.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/crypt.gltf
+- assets/models/spooky/fence.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/fence.gltf
+- assets/models/spooky/fence_gate.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/fence_gate.gltf
+- assets/models/spooky/grave_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/grave_A.gltf
+- assets/models/spooky/gravestone.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/gravestone.gltf
+- assets/models/spooky/lantern_standing.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/lantern_standing.gltf
+- assets/models/spooky/post_lantern.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/post_lantern.gltf
+- assets/models/spooky/pumpkin_orange.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/pumpkin_orange.gltf
+- assets/models/spooky/pumpkin_orange_jackolantern.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/pumpkin_orange_jackolantern.gltf
+- assets/models/spooky/shrine_candles.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/shrine_candles.gltf
+- assets/models/spooky/skull.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/skull.gltf
+- assets/models/spooky/tree_dead_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_dead_large.gltf
+- assets/models/spooky/tree_dead_medium.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_dead_medium.gltf
+- assets/models/spooky/tree_pine_orange_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_pine_orange_large.gltf
+- assets/models/space/basemodule_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/basemodule_A.gltf
+- assets/models/space/basemodule_garage.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/basemodule_garage.gltf
+- assets/models/space/cargo_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/cargo_A.gltf
+- assets/models/space/containers_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/containers_A.gltf
+- assets/models/space/drill_structure.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/drill_structure.gltf
+- assets/models/space/lander_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/lander_A.gltf
+- assets/models/space/landingpad_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/landingpad_large.gltf
+- assets/models/space/rock_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/rock_A.gltf
+- assets/models/space/rocks_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/rocks_A.gltf
+- assets/models/space/solarpanel.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/solarpanel.gltf
+- assets/models/space/spacetruck.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/spacetruck.gltf
+- assets/models/space/structure_tall.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/structure_tall.gltf
+- assets/models/space/terrain_low.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/terrain_low.gltf
+- assets/models/space/terrain_slope.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/terrain_slope.gltf
+- assets/models/space/tunnel_straight_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/tunnel_straight_A.gltf
+- assets/models/space/windturbine_tall.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/windturbine_tall.gltf
+- assets/models/obstacle_course/barrel_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Barrel_A.gltf
+- assets/models/obstacle_course/box_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Box_A.gltf
+- assets/models/obstacle_course/coin_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Coin_A.gltf
+- assets/models/obstacle_course/door_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Door_A.gltf
+- assets/models/obstacle_course/dummy_base.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Dummy_Base.gltf
+- assets/models/obstacle_course/pallet_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Pallet_Large.gltf
+- assets/models/obstacle_course/primitive_beam.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Beam.gltf
+- assets/models/obstacle_course/primitive_cube.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Cube.gltf
+- assets/models/obstacle_course/primitive_floor.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Floor.gltf
+- assets/models/obstacle_course/primitive_pillar.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Pillar.gltf
+- assets/models/obstacle_course/primitive_slope.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Slope.gltf
+- assets/models/obstacle_course/primitive_stairs.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Stairs.gltf
+- assets/models/obstacle_course/primitive_wall.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/Primitive_Wall.gltf
+- assets/models/obstacle_course/target.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/target.gltf
+- assets/models/obstacle_course/target_stand_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/target_stand_A.gltf
+- assets/models/nature/cloud_big.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/cloud_big.gltf
+- assets/models/nature/mountain_a_grass_trees.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/mountain_A_grass_trees.gltf
+- assets/models/nature/hills_a_trees.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/hills_A_trees.gltf
+- assets/models/nature/rock_single_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/rock_single_A.gltf
+- assets/models/nature/rock_single_c.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/rock_single_C.gltf
+- assets/models/nature/tree_single_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/tree_single_A.gltf
+- assets/models/nature/tree_single_b.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/tree_single_B.gltf
+- assets/models/nature/trees_a_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_A_large.gltf
+- assets/models/nature/trees_b_medium.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_B_medium.gltf
+- assets/models/nature/trees_a_small.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_A_small.gltf
+- assets/models/nature/waterlily_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/waterlily_A.gltf
+- assets/models/medieval/barrel.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/barrel.gltf
+- assets/models/medieval/crate_a_big.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/crate_A_big.gltf
+- assets/models/medieval/flag_red.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/flag_red.gltf
+- assets/models/medieval/ladder.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/ladder.gltf
+- assets/models/medieval/sack.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/sack.gltf
+- assets/models/medieval/tent.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/tent.gltf
+- assets/models/medieval/weaponrack.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/weaponrack.gltf
+- assets/models/medieval/wheelbarrow.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/wheelbarrow.gltf
+- assets/models/medieval/building_castle.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_castle_blue.gltf
+- assets/models/medieval/building_home_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_home_A_blue.gltf
+- assets/models/medieval/building_tavern.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_tavern_blue.gltf
+- assets/models/medieval/building_tower_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_tower_A_blue.gltf
+- assets/models/medieval/building_windmill.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_windmill_blue.gltf
+- assets/models/medieval/building_well.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue/building_well_blue.gltf
+- assets/models/realistic/wooden_crate_01.glb: "Wooden Crate 01" by James Ray Cock, CC0, https://polyhaven.com/a/wooden_crate_01
+- assets/models/realistic/barrel_01.glb: "Barrel_01" by Jorge Camacho, CC0, https://polyhaven.com/a/Barrel_01
+- assets/models/realistic/lantern_01.glb: "Lantern 01" by Rajil Jose Macatangay, CC0, https://polyhaven.com/a/Lantern_01
+- assets/models/realistic/fern_02.glb: "Fern 02" by Rob Tuytel, Rico Cilliers, CC0, https://polyhaven.com/a/fern_02
+- assets/models/realistic/rock_moss_set_01.glb: "Rock Moss Set 01" by Kless Gyzen, CC0, https://polyhaven.com/a/rock_moss_set_01
+- assets/models/realistic/treasure_chest.glb: "Treasure Chest" by Rico Cilliers, CC0, https://polyhaven.com/a/treasure_chest
+- assets/models/realistic/stone_fire_pit.glb: "Stone Fire Pit" by Sebastian Platen, CC0, https://polyhaven.com/a/stone_fire_pit
+- assets/models/realistic/tree_stump_01.glb: "Tree Stump 01" by Rob Tuytel, CC0, https://polyhaven.com/a/tree_stump_01
+- assets/models/realistic/food_apple_01.glb: "Food Apple 01" by Oliver Harries, CC0, https://polyhaven.com/a/food_apple_01
+- assets/models/realistic/rubber_duck_toy.glb: "Rubber Duck Toy" by Plat251, CC0, https://polyhaven.com/a/rubber_duck_toy
+- assets/hdri/day.hdr: "Kloofendal 48d Partly Cloudy (Pure Sky)" by Greg Zaal, Jarod Guest, CC0, https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+- assets/hdri/sunset.hdr: "Belfast Sunset (Pure Sky)" by Greg Zaal, Dimitrios Savva, Jarod Guest, CC0, https://polyhaven.com/a/belfast_sunset_puresky
+- assets/hdri/night.hdr: "Moonless Golf" by Greg Zaal, CC0, https://polyhaven.com/a/moonless_golf
+- assets/hdri/cloudy.hdr: "Overcast Soil (Pure Sky)" by Jarod Guest, Sergej Majboroda, CC0, https://polyhaven.com/a/overcast_soil_puresky
+- assets/textures/grass: "Aerial Grass Rock" by Rob Tuytel, CC0, https://polyhaven.com/a/aerial_grass_rock
+- assets/textures/forest_floor: "Forest Ground 01" by Rob Tuytel, CC0, https://polyhaven.com/a/forrest_ground_01
+- assets/textures/snow: "Snow 02" by Rob Tuytel, CC0, https://polyhaven.com/a/snow_02
+- assets/textures/rock: "Rock Face 03" by Dario Barresi, Rico Cilliers, CC0, https://polyhaven.com/a/rock_face_03
+- assets/textures/wood_planks: "Weathered Brown Planks" by Dimitrios Savva, Rico Cilliers, CC0, https://polyhaven.com/a/weathered_brown_planks
+- assets/textures/brick: "Red Brick" by Rob Tuytel, CC0, https://polyhaven.com/a/red_brick
+- assets/textures/asphalt: "Asphalt 02" by Rob Tuytel, CC0, https://polyhaven.com/a/asphalt_02
+- assets/textures/metal: "Metal Plate" by Rob Tuytel, CC0, https://polyhaven.com/a/metal_plate
+- assets/textures/concrete: "Concrete Floor Worn 001" by Dimitrios Savva, Rico Cilliers, CC0, https://polyhaven.com/a/concrete_floor_worn_001
+- assets/textures/mud: "Brown Mud Leaves 01" by Rob Tuytel, CC0, https://polyhaven.com/a/brown_mud_leaves_01
+- assets/textures/marble: "Marble 01" by Rob Tuytel, CC0, https://polyhaven.com/a/marble_01
+- assets/textures/sand: "Aerial Beach 01" by Rob Tuytel, CC0, https://polyhaven.com/a/aerial_beach_01
+

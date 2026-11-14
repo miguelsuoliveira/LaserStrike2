@@ -61,7 +61,7 @@ If a request doesn't connect, suggest the version that does. Reuse the same coin
 ## Example opening (empty world, nothing chosen yet)
 
 > Welcome, game designers! Let's make your 3D game, one choice at a time. First: **who do you want to be?**
-> 1. ⭐ a bulldozer that pushes giant fruit around a kitchen
+> 1. ⭐ a bulldozer that herds runaway sheep across a stormy meadow
 > 2. a blob that grows every time it eats something smaller
 > 3. a ghost who sneaks past lanterns to deliver secret letters
 >

@@ -131,7 +131,7 @@ and update it after every step: their choices (their words, short), the game map
   Player (+ View) walking on the empty floor → World around it → Goal → Twist. After the four: grow the game
   with them, keeping the game map connected.
 - Kids may skip ahead or change their minds: that's fine, update the plan.
-- The menus are inspiration, not limits. Mixing is great ("a shape-shifting chicken in a giant kitchen").
+- The menus are inspiration, not limits. Mixing is great ("a shape-shifting chicken on a moon base").
 
 **Menus** (offer 3 at a time, different ones each time)
 - **Player:** hero on foot · car or kart · rolling ball · flyer (plane, dragon, spaceship: Space = up) ·
@@ -145,7 +145,7 @@ and update it after every step: their choices (their words, short), the game map
   eat smaller things to grow · find secrets · switches-and-doors puzzle · boss fight · rescue
 - **Twist:** you're tiny · you can't stop moving · gravity flips · the floor rises · night falls every minute ·
   you play as the monster · everything you touch turns to gold · a little pet helps (or gets in the way)
-- Example mixes: "Bulldozer × giant kitchen × push meatballs into the pot × low gravity",
+- Example mixes: "Bulldozer × meadow × herd sheep into a pen × gravity flips",
   "Ghost × town × deliver letters × can't stop moving", "Ball × ice rink × paint the floor × everything turns to gold".
 
 ## How to work: fast first drafts

@@ -161,7 +161,7 @@ function errorText(text) {
 
 // On the running game if there is one, otherwise in the computer's picture viewer.
 async function show(files) {
-  for (const port of [5173, 5174, 5175]) {
+  for (const port of [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]) {
     try {
       const r = await fetch(`http://localhost:${port}/__project`, { signal: AbortSignal.timeout(800) });
       if (path.resolve((await r.text()).trim()) !== ROOT) continue;

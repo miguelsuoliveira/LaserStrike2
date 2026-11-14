@@ -34,7 +34,7 @@ const { chromium } = await import('playwright-core');
 let server = null;
 let base = opt('url', null);
 if (!base) {
-  for (const port of [5173, 5174, 5175]) {
+  for (const port of [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]) {
     try {
       const r = await fetch(`http://localhost:${port}/__project`, { signal: AbortSignal.timeout(800) });
       if (r.ok && path.resolve(await r.text()) === ROOT) {

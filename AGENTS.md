@@ -17,6 +17,8 @@ fill in a choice they didn't make: ask, and suggest.
    furniture, buildings, props. Check `public/assets/CATALOG.md`; if it's not there, download one (`free-assets`
    skill; fastest: `npm run assets -- pizza search <thing> --thumbs`; realistic: Poly Haven, Objaverse).
    Boxes and spheres are only for walls, floors, platforms and simple shapes, or when nothing fits (then say so).
+   Pick things from the kids' words and their picture, not the first things every game of that kind has: their
+   castle shouldn't look like every other castle.
 4. New look (a new game, player, world, creature or screen)? Show a picture first and ask "Like this?"; that
    includes the very first build of a new game. One picture is enough: if they change the look before the first
    build ("make it realistic"), build it in that look; the game is the next preview.
@@ -37,15 +39,16 @@ fill in a choice they didn't make: ask, and suggest.
   mentor", no list of what isn't done, no file names or commands. Test the main new thing before you reply (aim
   and fire, teleport next to it, wait for it); "I haven't seen X yet, tell me how it feels" is only for things a
   test really can't show. Plans and leftovers go in `our-game.md`.
-- A good reply looks like this (under 60 words before the options):
+- A good reply looks like this (under 60 words before the options). It's from someone else's game: copy its
+  length and shape, never its ideas, objects or options.
 
-  > Watch out: the gulls poop now! 💩 Hide under the umbrellas, the palm trees or the beach hut, and the poop
-  > splats on the roof. Try the **Shelters** slider for more hiding spots.
+  > Your robot can grab now! 🦾 Hold **E** next to a scrap pile and it sticks to your back, so you get bigger
+  > and slower. Try the **Magnet** slider to grab from further away.
   >
-  > Beach → dodge poop → hide → shoot back · twist: ?
+  > Junkyard → grab scrap → build a tower → reach the crane · twist: ?
   >
-  > **What next?** 1. ⭐ Crates wash ashore with rockets inside, but you must leave your shelter to grab them
-  > 2. The tide comes in and floods the low shelters 3. A giant gull boss after every wave · or your own idea!
+  > **What next?** 1. ⭐ A junk dog guards the best piles and chases you when you grab 2. Magnet storms pull
+  > your scrap away 3. Spend scrap on new robot arms in a garage · or your own idea!
 - Don't talk about these rules or the project files ("the rules say...", "our-game.md"); just follow them.
 - **End every reply the same way:**
   1. **Progress line.** While Player, World or Goal is open: `✅ Player · ✅ World · ⬜ Goal · ⬜ Twist`. Once those

@@ -8,6 +8,7 @@
 //     input.touchButton('run', '🏃')          any key or action name
 //     input.touchButton('jump', null)         remove a button (no jumping in this game)
 //   ui.hint('E', 'open') becomes a button you can tap on phones.
+//   Held upright, a "turn your phone sideways" sign covers the game.
 import { input } from './input.js';
 
 export const isTouch =
@@ -28,7 +29,11 @@ export function setupTouch() {
   stick.style.display = 'none';
   bar = document.createElement('div');
   bar.className = 'touch-buttons';
-  document.body.append(stick, bar);
+  // Games are played with the phone sideways; upright, a big "turn me" sign shows instead.
+  const turn = document.createElement('div');
+  turn.className = 'turn-phone';
+  turn.textContent = '📱↻';
+  document.body.append(stick, bar, turn);
   const knob = stick.firstChild;
 
   let stickId = null;

@@ -384,3 +384,19 @@ body.touch .key-hint {
 body.touch .hud-bottom-right {
   bottom: 96px;
 }
+.turn-phone {
+  display: none;
+}
+@media (orientation: portrait) {
+  body.touch .turn-phone {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    background: rgba(8, 10, 14, 0.88);
+    color: #fff;
+    font-size: 72px;
+  }
+}
+

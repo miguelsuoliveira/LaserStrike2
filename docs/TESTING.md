@@ -88,3 +88,19 @@ weather, shelters, poop, crates, falling birds, ammo and waves) were replayed on
   about 9 minutes and $4.80 for the 6 messages.
 - Test message delivery matters: messages forwarded between Claude Desktop sessions arrive as "another session's
   request" and push the model into developer-report style. Use `claude -p --resume` for prompt tests.
+
+## Codex models with the phone rule (Nov 14, 2026)
+
+Same 6 messages, Codex CLI 0.166 (`codex exec` + `exec resume`), low effort, fresh worktrees at 2d7fb3e.
+Results are online at https://kids-ai-game-jam-test.netlify.app (with the Sonnet run for comparison).
+
+| | Astra | Sol | Luna |
+|---|---|---|---|
+| Time for 6 messages | 20 min | 13 min | 17 min |
+| First playable | message 3 | message 3 | message 5 |
+| Phone buttons | switch, fire | 1-4, fire | gun names, fire |
+| New models | 9 | 2 | 3 |
+| Notes | most creative, connected options | plain replies, repeated "name the game" | asked two questions at once, wordy HUD |
+
+All three Codex models showed a second picture for "make it realistic" instead of building (Sonnet built on
+message 2). Upright phones misplaced first-person guns: the engine now asks players to turn the phone sideways.

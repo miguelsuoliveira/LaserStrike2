@@ -239,7 +239,7 @@ Guides for common jobs are in `.agents/skills/<name>/SKILL.md` (plain Markdown; 
   and a Jump button. Every other key or mouse button the game uses needs a touch button:
   `input.touchButton('fire', '🔫')`, `input.touchButton('1', 'Laser')` (`input.touchButton('jump', null)` removes
   Jump). `ui.hint` becomes a tap button on phones. No hover-only, right-click-only or tiny click targets.
-  Check it with `npm run snap -- --phone`.
+  Phones are held sideways (the engine asks players to turn an upright phone). Check it with `npm run snap -- --phone`.
 - **No wordy screens.** No help panels, no control lists, no instructions on the title screen, no tutorial text.
   The game should teach itself: the first enemy is slow, the first coin is right in front of you, the exit glows.
   A title screen is just the name and a Play button.

@@ -18,7 +18,8 @@ fill in a choice they didn't make: ask, and suggest.
    skill; fastest: `npm run assets -- pizza search <thing> --thumbs`; realistic: Poly Haven, Objaverse).
    Boxes and spheres are only for walls, floors, platforms and simple shapes, or when nothing fits (then say so).
 4. New look (a new game, player, world, creature or screen)? Show a picture first and ask "Like this?"; that
-   includes the very first build of a new game.
+   includes the very first build of a new game. One picture is enough: if they change the look before the first
+   build ("make it realistic"), build it in that look; the game is the next preview.
 5. A choice they haven't made? Ask with options; don't invent it. The Goal needs how you **win** and how you
    **lose**: "shoot birds" isn't a goal yet, so ask ("1. ⭐ survive 3 minutes 2. shoot 25 birds 3. protect your
    sandcastle").

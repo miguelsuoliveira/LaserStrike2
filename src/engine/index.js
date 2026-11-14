@@ -113,4 +113,12 @@ export async function start(game) {
 }
 
 // Exposed for the browser console and the screenshot tool.
-window.game = { world, physics, input, cameraRig, time, setPaused, THREE };
+window.game = { world, physics, input, cameraRig, time, setPaused, THREE, module: gameModule };
+
+// The running game's own copy of a file in src/game/: `await game.module('birds')`.
+// (After an edit the dev server loads it as birds.js?t=..., so a plain import() would load a second, empty copy.)
+function gameModule(name) {
+  const file = `/src/game/${name.replace(/\.js$/, '')}.js`;
+  const loaded = performance.getEntriesByType('resource').map((e) => e.name).filter((n) => new URL(n).pathname === file);
+  return import(/* @vite-ignore */ loaded.at(-1) || file);
+}

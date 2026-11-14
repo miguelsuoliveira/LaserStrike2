@@ -63,7 +63,7 @@ Everything a mentor needs before and during the jam. Kids never need to read thi
 
 | Need | Look at |
 |---|---|
-| What the AI is told | `AGENTS.md` (rules + engine reference), `CLAUDE.md` |
+| What the AI is told | `AGENTS.md` (rules), `ENGINE.md` (engine reference), `CLAUDE.md` |
 | Recipes the AI follows | `.agents/skills/*/SKILL.md`, `.agents/skills/game-recipes/recipes/*.md` |
 | The team's plan | `our-game.md` |
 | What models exist | `public/assets/CATALOG.md` (`npm run assets -- catalog` rebuilds it) |

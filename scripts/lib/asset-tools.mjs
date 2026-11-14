@@ -429,7 +429,10 @@ export function saveModel(buf, { folder, name, credit: creditText, licence: lic 
   credit(`${rel(out)}: ${creditText}`);
   const { text, info } = modelLine(out);
   console.log(`\nSaved public/${rel(out)} (${text})${existed ? ' - replaced the old file' : ''}`);
-  if (buf.length > WARN_MB * 1048576) console.log(`Heads up: ${mb(buf.length)} is big, so the game will take longer to load.`);
+  if (buf.length > WARN_MB * 1048576) {
+    console.log(`Too big for a game (${mb(buf.length)}): shrink it now and use the small copy:`);
+    console.log(`  npm run remix -- shrink public/${rel(out)}`);
+  }
   if (info?.triangles > 150000) console.log(`Heads up: ${num(info.triangles)} triangles is a lot. Fine for one, slow if you place many.`);
   console.log(`Use it:  await loadModel('${rel(out)}', { height: 2 })`);
   if (lic !== 'CC0') console.log(`Licence ${lic}: put the author in the game's credits screen (CREDITS.md has the line).`);

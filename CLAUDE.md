@@ -1,6 +1,10 @@
 @AGENTS.md
+@ENGINE.md
 
 ## Claude Code notes
+
+- Your chat replies are for 12-year-olds, not developers: follow "How to talk" in AGENTS.md even if you usually
+  write detailed reports at the end of a task.
 
 - Skills live in `.agents/skills/` (shared with Codex); `npm install` links them into `.claude/skills/`.
   The kids can type `/idea`, `/explain` and `/bug`.

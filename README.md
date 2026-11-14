@@ -100,7 +100,7 @@ scripts/           check, snap, save points, model inspector, asset downloader, 
 
 ## Using Codex or another agent
 
-`AGENTS.md` holds all the rules and the engine reference, and lists the skills in `.agents/skills/`, which is
+`AGENTS.md` holds all the rules (`ENGINE.md` the engine reference), and lists the skills in `.agents/skills/`, which is
 where Codex looks for repo skills. Claude Code reads `AGENTS.md` through `CLAUDE.md`.
 
 For Codex, trust this folder when it asks: `.codex/config.toml` then lets commands use the internet (model

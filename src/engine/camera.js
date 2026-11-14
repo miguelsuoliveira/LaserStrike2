@@ -7,8 +7,9 @@
 //     'top'    high above, looking down (top-down games)
 //     'side'   from the side (2.5D platformers)
 //     'fixed'  doesn't move; place world.camera yourself
-//   cameraRig.yaw / cameraRig.pitch   where the camera looks (radians)
+//   cameraRig.yaw / cameraRig.pitch   where the camera looks (radians; negative pitch looks up)
 //   cameraRig.forward()               flat direction the camera looks (for aiming)
+//   cameraRig.aimAt(target)           turn the camera to look at a position or object (tests, cutscenes)
 // Sliders: "Camera" (distance, height, mouse sensitivity, field of view).
 import * as THREE from 'three';
 import { world } from './world.js';
@@ -49,6 +50,16 @@ export const cameraRig = {
     if (height !== undefined) this.height = height;
     if (object) this.yaw = object.rotation.y + Math.PI;
     input.wantsPointerLock = mode === 'third' || mode === 'first';
+  },
+
+  aimAt(target) {
+    const to = new THREE.Vector3();
+    if (target?.isObject3D) target.getWorldPosition(to);
+    else if (Array.isArray(target)) to.fromArray(target);
+    else to.copy(target);
+    to.sub(world.camera.getWorldPosition(new THREE.Vector3()));
+    this.yaw = Math.atan2(-to.x, -to.z);
+    this.pitch = -Math.atan2(to.y, Math.hypot(to.x, to.z));
   },
 
   forward() {

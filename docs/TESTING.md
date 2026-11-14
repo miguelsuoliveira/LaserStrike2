@@ -71,3 +71,20 @@ Known limits: 71 of 84 Quaternius pack pages only link Google Drive (single mode
 Pizza); Smithsonian licence checks use the shared DEMO_KEY (about 10 per hour per network) unless a mentor adds
 `SI_API_KEY`; Poly Pizza search sees the first ~27 results; Objaverse is mostly CC-BY (credits are written
 automatically); copying animations needs matching bone names.
+
+## Prompt tests: Codex (gpt-6-astra, low) vs Claude Sonnet (low), Nov 14, 2026
+
+The same 6 kid messages (a first-person beach shooter where birds shoot back, made "super realistic", with
+weather, shelters, poop, crates, falling birds, ammo and waves) were replayed on fresh copies of this branch.
+
+- Astra low followed the rules from the start: picture first, asked how you win, short kid replies, connected
+  options; it built shelters and guns from shapes.
+- Sonnet needed changes: it skipped the skills, built everything from boxes, chose the goal itself and wrote
+  developer reports. Fixed by a 7-step "every message" checklist at the top of AGENTS.md, an example kid reply,
+  "build by the second reply", "never re-offer a skipped option", and test helpers that actually work
+  (`game.module()`, `cameraRig.aimAt()`; a plain `import()` of a game file loaded an empty second copy).
+- Final Sonnet low run (`claude -p` with plain user turns): kid-style replies, picture + win/lose question,
+  playable on the second reply, real models for guns, gulls, palms and umbrellas, all 6 features working;
+  about 9 minutes and $4.80 for the 6 messages.
+- Test message delivery matters: messages forwarded between Claude Desktop sessions arrive as "another session's
+  request" and push the model into developer-report style. Use `claude -p --resume` for prompt tests.

@@ -7,6 +7,9 @@ Your game starts as an empty world. The AI asks you four choices, one at a time:
 After each one you can play it. Answer with a number ("2") or your own idea. Drawing on paper and sending
 a photo is a great answer too!
 
+Tell the AI the **big picture**, not just the next object: "we want it to feel like a cozy decorating game" or
+"like a racing game, but with dragons". It will suggest ways to get there.
+
 ## The recipe for a good prompt
 
 1. **WHAT** I want: "Skeletons climb out of the ground and chase us."

@@ -7,6 +7,12 @@
 - **Goal:** ?
 - **Twist:** ?
 
+## Game map (how the parts connect)
+- **Core loop:** ?
+- **Places:** ?
+- **Progress:** ?
+- **Extras:** ?
+
 ## Steps
 - [ ] 1. Player: walk around the empty world
 - [ ] 2. World

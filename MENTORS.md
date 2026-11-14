@@ -38,6 +38,11 @@ Everything a mentor needs before and during the jam. Kids never need to read thi
 - **How a team starts:** the world is empty. The AI asks four choices one at a time (Player + view, World, Goal,
   Twist), builds a playable draft after each, and keeps the plan and checklist in `our-game.md`. Every reply ends
   with the progress line and 2-3 numbered options, so kids can answer "2".
+- **Big picture:** kids tend to ask for one small thing at a time. The AI is told to read between the lines, offer
+  the bigger version of what they seem to want, and keep every new part (shop, room, loot, mini-game) connected
+  in a "game map" in `our-game.md`. If a team's game turns into a pile of unconnected pieces, ask them what game
+  it should feel like and let the AI suggest how to tie it together.
+- **One player only:** no multiplayer, online or on one keyboard.
 - **Paper first:** give each team paper and pens. A sketch photographed with a phone (AirDrop/email into
   `public/assets/images/`) becomes a preview picture, a texture or a model idea.
 

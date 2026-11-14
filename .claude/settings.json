@@ -11,6 +11,10 @@
       "Bash(npm run saves)",
       "Bash(npm run inspect:*)",
       "Bash(npm run assets:*)",
+      "Bash(npm run remix:*)",
+      "Bash(npm run preview:*)",
+      "Bash(npm run undo)",
+      "Bash(npm run load:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
@@ -27,14 +31,20 @@
       "Bash(yarn:*)",
       "Bash(pnpm:*)",
       "Read(./node_modules/**)",
-      "Read(./dist/**)"
+      "Read(./dist/**)",
+      "Read(./.env)"
     ]
   },
   "hooks": {
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hooks/after-edit.mjs\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hooks/after-edit.mjs\""
+          }
+        ]
       }
     ]
   },

@@ -4,6 +4,8 @@ import path from 'node:path';
 
 const TUNING_FILE = path.resolve('src/tuning.json');
 const LOG_FILE = path.resolve('logs/browser.log');
+const PREVIEW_DIR = path.resolve('.previews');
+const IMAGE_TYPES = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.gif': 'image/gif' };
 const MAX_LOG_LINES = 300;
 
 // Dev-server helpers for the game jam:
@@ -12,6 +14,8 @@ const MAX_LOG_LINES = 300;
 //   so the AI can read what went wrong without anyone copying it.
 // - When the AI edits src/tuning.json, the new numbers are sent to the
 //   running game live instead of reloading the page.
+// - POST /__preview shows images (concept art, sketches, model thumbnails) on top
+//   of the running game; `npm run preview` uses it. /__previews/<file> serves .previews/.
 function gameJamTools() {
   let lastWritten = null;
 
@@ -47,6 +51,33 @@ function gameJamTools() {
         }
       });
 
+      server.middlewares.use('/__previews', (req, res) => {
+        const file = path.join(PREVIEW_DIR, decodeURIComponent(req.url.split('?')[0]));
+        const type = IMAGE_TYPES[path.extname(file).toLowerCase()];
+        if (!type || !file.startsWith(PREVIEW_DIR + path.sep) || !fs.existsSync(file)) {
+          res.statusCode = 404;
+          return res.end();
+        }
+        res.setHeader('Content-Type', type);
+        res.setHeader('Cache-Control', 'no-store');
+        fs.createReadStream(file).pipe(res);
+      });
+
+      // Body: { "images": ["<path from the project folder>", ...] }. Images in public/ are
+      // served as they are; anything else is copied into .previews/ first.
+      server.middlewares.use('/__preview', async (req, res) => {
+        if (req.method !== 'POST') return res.end();
+        try {
+          const { images = [] } = JSON.parse(await readBody(req));
+          const urls = images.map((p) => previewUrl(path.resolve(p)));
+          server.ws.send({ type: 'custom', event: 'preview:show', data: { urls } });
+          res.end(String(server.ws.clients?.size ?? 1));
+        } catch (e) {
+          res.statusCode = 400;
+          res.end(String(e.message || e));
+        }
+      });
+
       server.middlewares.use('/__log', async (req, res) => {
         if (req.method !== 'POST') return res.end();
         const body = await readBody(req);
@@ -77,6 +108,19 @@ function gameJamTools() {
   };
 }
 
+function previewUrl(file) {
+  const pub = path.resolve('public') + path.sep;
+  if (file.startsWith(pub)) return '/' + file.slice(pub.length).split(path.sep).join('/');
+  if (!file.startsWith(PREVIEW_DIR + path.sep)) {
+    fs.mkdirSync(PREVIEW_DIR, { recursive: true });
+    const copy = path.join(PREVIEW_DIR, path.basename(file));
+    fs.copyFileSync(file, copy);
+    file = copy;
+  }
+  const rel = path.relative(PREVIEW_DIR, file).split(path.sep).map(encodeURIComponent).join('/');
+  return `/__previews/${rel}?t=${Date.now()}`;
+}
+
 function time() {
   return new Date().toTimeString().slice(0, 8);
 }
@@ -92,7 +136,7 @@ export default defineConfig({
   base: './',
   plugins: [gameJamTools()],
   server: {
-    watch: { ignored: ['**/logs/**', '**/.screenshots/**', '**/dist/**'] },
+    watch: { ignored: ['**/logs/**', '**/.screenshots/**', '**/dist/**', '**/.previews/**', '**/.cache/**'] },
   },
   build: {
     chunkSizeWarningLimit: 5000,

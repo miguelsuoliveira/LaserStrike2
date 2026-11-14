@@ -17,8 +17,8 @@ Use a car instead of `createPlayer` (no walking player), or both: hide the playe
 ## Ready-made race track and computer cars (copy, don't rewrite)
 
 ```bash
-cp .claude/skills/game-recipes/code/race-track.js src/game/track.js
-cp .claude/skills/game-recipes/code/rivals.js src/game/rivals.js
+cp .agents/skills/game-recipes/code/race-track.js src/game/track.js
+cp .agents/skills/game-recipes/code/rivals.js src/game/rivals.js
 ```
 ```js
 import { buildTrack, startPosition, gates, trackPath, TRACK } from './track.js';

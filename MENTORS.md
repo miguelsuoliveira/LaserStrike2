@@ -20,15 +20,26 @@ Everything a mentor needs before and during the jam. Kids never need to read thi
    - Install Node.js 22 LTS or newer, Git, Google Chrome, and Claude Code (or Codex).
      Windows: Claude Code needs Git for Windows.
    - Clone the repo into a folder named after the team, run `npm install` (needs internet; about 100 MB).
-   - Run `npm run dev` (the game opens), `npm run snap` (should print "No errors."), and `claude` (log in with
-     the team's API key, then ask "what can you do in this project?").
+   - Picture previews: copy `.env.example` to `.env` and add an `OPENAI_API_KEY` (the image AI is gpt-image-2.6,
+     a few cents per picture; set a monthly limit on that key). Without a key, the AI uses the kids' paper
+     sketches (phone photos) and simple sketches it draws itself.
+   - Run `npm run dev` (the game opens), `npm run snap` (should print "No errors."), and `claude` or `codex`
+     (log in with the team's key, then ask "what can you do in this project?").
+   - Codex: trust the folder when asked, so `.codex/config.toml` lets commands reach the internet (downloads,
+     previews). Codex reads `AGENTS.md` and the skills in `.agents/skills/`; kids type `$idea` instead of `/idea`.
    - Leave the game and Claude Code open in two windows side by side.
 4. **Test day**: run all laptops at once on the event Wi-Fi, each asking the AI for one feature. Bring a
    phone hotspot as backup.
 5. **Optional**: download extra asset packs you expect kids to ask for (Kenney zips, see
-   `.claude/skills/free-assets/SKILL.md`), so nobody waits on downloads during the jam.
+   `.agents/skills/free-assets/SKILL.md`), so nobody waits on downloads during the jam.
 
 ## During the jam
+
+- **How a team starts:** the world is empty. The AI asks four choices one at a time (Player + view, World, Goal,
+  Twist), builds a playable draft after each, and keeps the plan and checklist in `our-game.md`. Every reply ends
+  with the progress line and 2-3 numbered options, so kids can answer "2".
+- **Paper first:** give each team paper and pens. A sketch photographed with a phone (AirDrop/email into
+  `public/assets/images/`) becomes a preview picture, a texture or a model idea.
 
 - **Save points** are the safety net. Remind teams to `npm run save -- "..."` every time something works.
   - `npm run undo` throws away changes since the last save (kept in `git stash list` as a backup).
@@ -39,7 +50,7 @@ Everything a mentor needs before and during the jam. Kids never need to read thi
   (`/clear` in Claude Code), and ask for a smaller step. Use the `/bug` command for bugs.
 - **Model Lab station** (optional, mentor-operated): turn a kid's drawing into a 3D model with an AI model
   generator (Meshy, Tripo), download as GLB, drop it in `public/assets/models/<folder>/`, run
-  `npm run assets -- catalog`. See `.claude/skills/character-animation/SKILL.md` section 6.
+  `npm run assets -- catalog`. See `.agents/skills/character-animation/SKILL.md` section 6.
 - **Feature freeze** 20 minutes before demos: only bug fixes and slider tuning after that.
 - **Demo**: `npm run dev` is fine. Add `?demo` to the URL to hide the slider button.
 
@@ -48,7 +59,8 @@ Everything a mentor needs before and during the jam. Kids never need to read thi
 | Need | Look at |
 |---|---|
 | What the AI is told | `AGENTS.md` (rules + engine reference), `CLAUDE.md` |
-| Recipes the AI follows | `.claude/skills/*/SKILL.md`, `.claude/skills/game-recipes/recipes/*.md` |
+| Recipes the AI follows | `.agents/skills/*/SKILL.md`, `.agents/skills/game-recipes/recipes/*.md` |
+| The team's plan | `our-game.md` |
 | What models exist | `public/assets/CATALOG.md` (`npm run assets -- catalog` rebuilds it) |
 | Errors from the game | `logs/browser.log` and the red box in the game |
 | Slider values | `src/tuning.json` holds only sliders people moved; "↺ Reset to code values" in a slider folder (or deleting its lines) undoes them |

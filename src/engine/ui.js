@@ -9,6 +9,10 @@
 //   await ui.screen({ title: 'You win!', text: 'Score: 10', button: 'Play again' })
 //   image: 'assets/images/logo.png' on title/screen shows a picture above the title (the kids' logo)
 //   ui.crosshair(true)                                 dot in the middle for aiming
+//   ui.hint('E', 'open')                               ONE small key hint at the bottom; ui.hint() hides it
+//      show it only while the key does something (near the door), never a list of controls
+//   ui.images(['assets/images/a.png', ...])            show pictures on top of the game (numbered if
+//      more than one); click or any key closes. `npm run preview` uses this for concept art.
 // While a screen is open the game is paused.
 import { setPaused } from './state.js';
 import { input } from './input.js';
@@ -83,6 +87,50 @@ export const ui = {
     if (el) el.style.display = show ? 'block' : 'none';
   },
 
+  hint(key, text = '') {
+    let el = document.querySelector('.key-hint');
+    if (!key) return el?.classList.add('hide');
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'key-hint';
+      el.innerHTML = '<kbd></kbd><span></span>';
+      document.body.appendChild(el);
+    }
+    el.querySelector('kbd').textContent = key;
+    el.querySelector('span').textContent = text;
+    el.classList.remove('hide');
+  },
+
+  images(urls) {
+    document.querySelector('.image-preview')?.remove();
+    if (!urls?.length) return;
+    input.unlockPointer();
+    const el = document.createElement('div');
+    el.className = 'image-preview';
+    const grid = document.createElement('div');
+    grid.className = `image-preview-grid n${Math.min(urls.length, 4)}`;
+    urls.forEach((url, i) => {
+      const fig = document.createElement('figure');
+      const img = document.createElement('img');
+      img.src = url;
+      fig.append(img);
+      if (urls.length > 1) {
+        const n = document.createElement('figcaption');
+        n.textContent = i + 1;
+        fig.append(n);
+      }
+      grid.append(fig);
+    });
+    el.append(grid);
+    document.body.appendChild(el);
+    const close = () => {
+      window.removeEventListener('keydown', close);
+      el.remove();
+    };
+    el.onclick = close;
+    setTimeout(() => window.addEventListener('keydown', close), 300);
+  },
+
   // The first screen. Skipped automatically when the page URL has ?play
   // (used by restartGame() and by the screenshot tool).
   title(options) {
@@ -128,3 +176,8 @@ export const ui = {
     });
   },
 };
+
+// `npm run preview` sends pictures to the running game through the dev server.
+if (import.meta.hot) {
+  import.meta.hot.on('preview:show', ({ urls }) => ui.images(urls));
+}

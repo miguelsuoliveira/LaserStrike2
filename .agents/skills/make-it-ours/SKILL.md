@@ -14,6 +14,15 @@ Hand-made things are what make a jam game theirs (and they score points for it).
 - Put images in `public/assets/images/`, sounds in `public/assets/sounds/ours/`. Lowercase names without
   spaces: `dragon_drawing.jpg`, `roar.m4a`. Run `npm run assets -- catalog` afterwards.
 - **Never** use photos of faces or anything with real names or school logos (privacy rule).
+- Phone photos can be huge, sideways or HEIC: `npm run preview -- --show <photo>` makes a small upright
+  copy in `.previews/` and shows it on the game screen. Use that copy (or ask for a JPG) for textures.
+
+## A sketch as a plan
+
+Kids' paper sketches are the best preview: look at the photo to understand their design (a character, a
+level map, a screen layout), show it on the game screen, and build from it. `npm run preview -- "what it is"
+--from public/assets/images/<photo>.jpg` turns a sketch into a cleaner concept picture (needs the image AI key)
+while keeping their design. Ask which parts matter most before you start.
 
 ## Drawing → texture on things
 

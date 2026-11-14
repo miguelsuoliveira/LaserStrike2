@@ -3,9 +3,10 @@
 // textures, parts, skeleton and animation names. Cheap for the AI to read.
 //   npm run inspect -- public/assets/models/characters/robot.glb
 //   npm run inspect -- public/assets/models/racing     (every model in a folder, one line each)
+// Works on compressed downloads too (meshopt from Objaverse, Draco from Smithsonian scans).
 import fs from 'node:fs';
 import path from 'node:path';
-import { gltfInfo } from './lib/gltf-info.mjs';
+import { gltfInfoDecoded } from './lib/gltf-info.mjs';
 
 const args = process.argv.slice(2);
 if (!args.length) {
@@ -24,7 +25,7 @@ const fmt = (v) => (Number.isFinite(v) ? v.toFixed(2) : '?');
 for (const f of files) {
   let info;
   try {
-    info = gltfInfo(f);
+    info = await gltfInfoDecoded(f);
   } catch (e) {
     console.log(`${f}: could not read (${e.message})`);
     continue;

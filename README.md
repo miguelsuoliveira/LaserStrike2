@@ -4,7 +4,13 @@ A starter project for a 4-5 hour game jam where kids (12+) with no coding experi
 game by talking to an AI coding agent (Claude Code, or Codex). The boring and hard parts are already
 done, so the kids spend their time on ideas, design and tuning.
 
-![The example game: a knight in a field with trees, rocks, coins and a campfire](docs/screenshot.jpg)
+**This branch (`guided-start`)** starts with an empty world. The AI guides each team through four choices
+(**Player** + view, **World**, **Goal**, **Twist**), builds a playable first draft after each one, and keeps
+the team's plan and checklist in [`our-game.md`](our-game.md). It shows pictures before building (the kids'
+paper sketches or gpt-image-2.6) and downloads models on demand from Kenney, KayKit, Quaternius, Poly Pizza,
+Poly Haven, the Smithsonian and Objaverse. The `main` branch has the "Coin Rush" example game instead.
+
+![What the engine can do: a knight in a field with trees, rocks, coins and a campfire (main branch example)](docs/screenshot.jpg)
 
 Out of the box:
 
@@ -17,8 +23,9 @@ Out of the box:
 - 160+ free (CC0) models: 7 animated characters (knight, mage, rogue, barbarian, two skeletons, robot),
   vehicles and race track pieces, dungeon, graveyard, space base, city, nature, realistic props;
   4 photo skies, 12 realistic textures, 19 sounds. See [`public/assets/CATALOG.md`](public/assets/CATALOG.md).
-- AI rules ([`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md)) that keep the AI short, kid-friendly,
-  safe and cheap, plus skills with tested recipes for common game features.
+- AI rules ([`AGENTS.md`](AGENTS.md), read by Codex and, through [`CLAUDE.md`](CLAUDE.md), Claude Code) that keep
+  the AI short, kid-friendly, safe and cheap, plus skills (plain Markdown in [`.agents/skills/`](.agents/skills))
+  with tested recipes for game features, model downloads and model remixing.
 - Tools for the AI: `npm run snap` lets it *see* the game (headless screenshot + errors), browser errors
   are copied to `logs/browser.log`, and `npm run check` catches broken code in under a second.
 - Save points for kids who never used git: `npm run save`, `npm run saves`, `npm run undo`, `npm run load`.
@@ -42,9 +49,11 @@ The game opens in the browser. In a second terminal, in the same folder, start t
 claude
 ```
 
-Then ask for something, for example: *"Let's make our own game. Use the idea skill to ask us questions first."*
+(or `codex`). Then just say hi: *"Hi! We're ready to make our game."* The AI asks the first choice.
 
-## Controls in the example game
+Optional: copy `.env.example` to `.env` and add an `OPENAI_API_KEY` for picture previews (gpt-image-2.6).
+
+## Controls
 
 | Key | Does |
 |---|---|
@@ -66,10 +75,12 @@ Then ask for something, for example: *"Let's make our own game. Use the idea ski
 | `npm run check` | quick check that the code loads |
 | `npm run snap` | screenshot of the game + any errors (the AI uses this to see) |
 | `npm run inspect -- <file.glb>` | size, parts, bones and animation names of a model |
-| `npm run assets -- search rock` | search free realistic models, skies and textures (Poly Haven) |
+| `npm run assets -- ...` | search and download free models (Kenney, KayKit, Quaternius, Poly Pizza, Poly Haven, Smithsonian, Objaverse); see the skills |
+| `npm run remix -- ...` | change a model file: color, parts, size, animations |
+| `npm run preview -- "..."` | show a picture on the game screen (a sketch photo, or one drawn by the image AI) |
 | `npm run build` | make a `dist/` folder you can upload anywhere (itch.io, Netlify, GitHub Pages) |
 
-## Slash commands for the kids (Claude Code)
+## Commands for the kids (`/idea` in Claude Code, `$idea` in Codex)
 
 - `/idea` plan a game or a big feature together (the AI asks questions first)
 - `/explain` explain the last change like you're 12, plus a Code Detective challenge
@@ -78,18 +89,23 @@ Then ask for something, for example: *"Let's make our own game. Use the idea ski
 ## Project layout
 
 ```
-src/game/          the kids' game (game.js is the example "Coin Rush")
+our-game.md        the team's 4 choices and checklist (the AI keeps it updated)
+src/game/          the kids' game (starts as an empty world)
 src/tuning.json    slider values (saved automatically)
 src/engine/        the engine (world, physics, player, cars, UI, sound, effects)
 public/assets/     models, skies, textures, sounds + CATALOG.md and CREDITS.md
-.claude/skills/    guides the AI reads: game-recipes, character-animation, free-assets, game-feel, make-it-ours, idea, explain, bug
-scripts/           check, snap, save points, model inspector, asset downloader
+.agents/skills/    guides the AI reads (Codex reads them here; npm install links them to .claude/skills for Claude Code)
+scripts/           check, snap, save points, model inspector, asset downloader, remix, preview
 ```
 
 ## Using Codex or another agent
 
-`AGENTS.md` holds all the rules and the engine reference, and tells the agent where the skills are.
-Claude Code reads it through `CLAUDE.md`. Other agents that read `AGENTS.md` work the same way.
+`AGENTS.md` holds all the rules and the engine reference, and lists the skills in `.agents/skills/`, which is
+where Codex looks for repo skills. Claude Code reads `AGENTS.md` through `CLAUDE.md`.
+
+For Codex, trust this folder when it asks: `.codex/config.toml` then lets commands use the internet (model
+downloads and picture previews need it). Without trust, start it with
+`codex --config sandbox_workspace_write.network_access=true`.
 
 ## Credits and license
 

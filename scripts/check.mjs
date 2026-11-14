@@ -9,6 +9,9 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 let ok = true;
 
+// Claude Code reads skills from .claude/skills; keep it pointing at .agents/skills.
+(await import('./link-skills.mjs')).linkSkills();
+
 try {
   JSON.parse(fs.readFileSync(path.join(ROOT, 'src/tuning.json'), 'utf8'));
 } catch (e) {

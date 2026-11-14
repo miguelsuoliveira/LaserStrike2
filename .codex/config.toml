@@ -1,0 +1,8 @@
+# Codex settings for this project (Codex uses them once you trust this folder).
+# Model downloads (npm run assets) and picture previews (npm run preview) need the internet,
+# and `npm run snap` talks to the game on localhost.
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+network_access = true

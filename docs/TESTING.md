@@ -52,3 +52,22 @@ investigation than a normal session needs.
 - The sky is barely visible in top-down games; photo skies (HDRI) can look hazy at sunset.
 - Kenney zips, Mixamo and AI model generators need a mentor with a browser and accounts.
 - A full 3-lap race (~90 s) is too long to check with one screenshot; use `--set` / `--before` to test parts.
+
+## guided-start branch (Nov 14, 2026)
+
+Tested on macOS with Node 26 before the first kid test:
+- Empty start: `npm run check`, `npm run snap` (no errors, 8 objects) and `npm run build` pass.
+- Pictures: `npm run preview` with a mocked image API (gpt-image-2.6 first, falls back to the next model if a key
+  can't use it), sketch-to-picture with `--from` (multipart upload), phone photos (huge, rotated, HEIC) and
+  numbered multi-picture display on the game screen. A real gpt-image-2.6 call still needs a key in `.env`.
+- Downloads: every source did a real search, a real `get` and loaded in the engine (35 models):
+  Poly Pizza, Kenney (`--only`), KayKit (GitHub and itch.io), Quaternius (Poly Pizza bundles and itch.io,
+  including the 122 MB Universal Base Characters), Smithsonian (Draco decoded, rotated upright, licence checked
+  against Open Access), Objaverse (web and LOD tiers), Poly Haven.
+- Remix: every op on bundled KayKit/Kenney models, a Smithsonian scan and an Objaverse model; all 18 outputs
+  loaded and animated in the engine.
+
+Known limits: 71 of 84 Quaternius pack pages only link Google Drive (single models still come through Poly
+Pizza); Smithsonian licence checks use the shared DEMO_KEY (about 10 per hour per network) unless a mentor adds
+`SI_API_KEY`; Poly Pizza search sees the first ~27 results; Objaverse is mostly CC-BY (credits are written
+automatically); copying animations needs matching bone names.

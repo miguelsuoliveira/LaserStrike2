@@ -1,7 +1,22 @@
 // Reads a .glb / .gltf file without a browser: size in meters (rest pose),
 // triangles, textures, skeleton, part names and animation names.
+//   gltfInfo(file)                 fast and synchronous. Decodes meshopt files (Objaverse, remix output);
+//                                  Draco files (Smithsonian scans) get their size from the bounds stored in the file.
+//   await gltfInfoDecoded(file)    same result, but decodes Draco first (exact size).
 import fs from 'node:fs';
 import path from 'node:path';
+
+const COMPRESSION = ['EXT_meshopt_compression', 'KHR_meshopt_compression', 'KHR_draco_mesh_compression'];
+
+// The meshopt decoder works synchronously once loaded.
+let meshopt = null;
+try {
+  const { MeshoptDecoder } = await import('meshoptimizer');
+  await MeshoptDecoder.ready;
+  meshopt = MeshoptDecoder;
+} catch {
+  // not installed: compressed files fall back to the bounds stored in the file
+}
 
 function readGltf(file) {
   const buf = fs.readFileSync(file);
@@ -15,7 +30,11 @@ function readGltf(file) {
     });
     return { json, buffers, bytes: buf.length + buffers.reduce((s, b) => s + (b ? b.length : 0), 0) };
   }
-  if (buf.readUInt32LE(0) !== 0x46546c67) throw new Error('not a GLB file');
+  return parseGlb(buf);
+}
+
+function parseGlb(buf) {
+  if (buf.length < 12 || buf.readUInt32LE(0) !== 0x46546c67) throw new Error('not a GLB file');
   let offset = 12;
   let json = null;
   let bin = null;
@@ -43,7 +62,15 @@ function imageSize(data) {
       i += 2 + len;
     }
   }
-  if (data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP') return ['webp', ''];
+  if (data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP') {
+    const kind = data.toString('ascii', 12, 16);
+    if (kind === 'VP8 ' && data.length >= 30) return [data.readUInt16LE(26) & 0x3fff, data.readUInt16LE(28) & 0x3fff];
+    if (kind === 'VP8L' && data.length >= 25) {
+      const b = data.readUInt32LE(21);
+      return [(b & 0x3fff) + 1, ((b >> 14) & 0x3fff) + 1];
+    }
+    if (kind === 'VP8X' && data.length >= 30) return [data.readUIntLE(24, 3) + 1, data.readUIntLE(27, 3) + 1];
+  }
   return null;
 }
 
@@ -76,7 +103,24 @@ function apply(m, p) {
 }
 
 export function gltfInfo(file) {
-  const { json, buffers, bytes } = readGltf(file);
+  return infoFrom(readGltf(file), file);
+}
+
+// Decodes meshopt / Draco geometry first (through gltf-transform), so sizes are exact.
+export async function gltfInfoDecoded(file) {
+  const raw = readGltf(file);
+  const used = raw.json.extensionsUsed || [];
+  const needs = meshopt ? ['KHR_draco_mesh_compression'] : COMPRESSION;
+  if (!used.some((e) => needs.includes(e))) return infoFrom(raw, file);
+  const { gltfIO } = await import('./gltf-io.mjs');
+  const io = await gltfIO();
+  const doc = await io.read(file);
+  for (const ext of doc.getRoot().listExtensionsUsed()) if (COMPRESSION.includes(ext.extensionName)) ext.dispose();
+  const decoded = parseGlb(Buffer.from(await io.writeBinary(doc)));
+  return { ...infoFrom(decoded, file), mb: raw.bytes / 1048576, extensions: used };
+}
+
+function infoFrom({ json, buffers, bytes }, file) {
   const acc = json.accessors || [];
   const meshes = json.meshes || [];
   const nodes = json.nodes || [];
@@ -84,17 +128,44 @@ export function gltfInfo(file) {
   const SIZES = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16 };
   const BYTES = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 };
   // Reads an accessor into an array of numbers (normalized ints become 0..1).
+  // The bytes of a buffer view (meshopt views are decoded; null if they can't be read).
+  const views = new Map();
+  const viewData = (index) => {
+    if (views.has(index)) return views.get(index);
+    const bv = json.bufferViews[index];
+    const ext = bv.extensions?.EXT_meshopt_compression || bv.extensions?.KHR_meshopt_compression;
+    let data = null;
+    if (ext) {
+      const src = buffers[ext.buffer];
+      if (meshopt && src) {
+        try {
+          const target = new Uint8Array(ext.count * ext.byteStride);
+          const source = new Uint8Array(src.buffer, src.byteOffset + (ext.byteOffset || 0), ext.byteLength);
+          meshopt.decodeGltfBuffer(target, ext.count, ext.byteStride, source, ext.mode, ext.filter);
+          data = Buffer.from(target.buffer, target.byteOffset, target.byteLength);
+        } catch {
+          data = null;
+        }
+      }
+    } else {
+      const b = buffers[bv.buffer || 0];
+      const fallback = json.buffers?.[bv.buffer || 0]?.extensions?.EXT_meshopt_compression?.fallback;
+      if (b && !fallback) data = b.subarray(bv.byteOffset || 0, (bv.byteOffset || 0) + bv.byteLength);
+    }
+    views.set(index, data);
+    return data;
+  };
   const read = (index) => {
     const a = acc[index];
     const n = SIZES[a.type];
     const out = new Array(a.count * n).fill(0);
     if (a.bufferView === undefined) return out;
     const bv = json.bufferViews[a.bufferView];
-    const b = buffers[bv.buffer || 0];
+    const b = viewData(a.bufferView);
     if (!b) return out;
     const size = BYTES[a.componentType];
     const stride = bv.byteStride || size * n;
-    const base = (bv.byteOffset || 0) + (a.byteOffset || 0);
+    const base = a.byteOffset || 0;
     const get = {
       5120: (o) => b.readInt8(o) / (a.normalized ? 127 : 1),
       5121: (o) => b.readUInt8(o) / (a.normalized ? 255 : 1),
@@ -105,6 +176,22 @@ export function gltfInfo(file) {
     }[a.componentType];
     for (let i = 0; i < a.count; i++)
       for (let k = 0; k < n; k++) out[i * n + k] = get(base + i * stride + k * size);
+    return out;
+  };
+  // Draco data (and meshopt without the decoder) can't be read here.
+  const hasData = (index) => {
+    const a = acc[index];
+    return !!a && a.bufferView !== undefined && !!viewData(a.bufferView);
+  };
+  // The corners of an accessor's stored min/max box (quantized values scaled like three.js does).
+  const boundsCorners = (index) => {
+    const a = acc[index];
+    if (!a?.min || !a?.max) return [];
+    const scale = a.normalized ? 1 / ({ 5120: 127, 5121: 255, 5122: 32767, 5123: 65535 }[a.componentType] || 1) : 1;
+    const lo = a.min.map((v) => v * scale);
+    const hi = a.max.map((v) => v * scale);
+    const out = [];
+    for (let c = 0; c < 8; c++) out.push([c & 1 ? hi[0] : lo[0], c & 2 ? hi[1] : lo[1], c & 4 ? hi[2] : lo[2]]);
     return out;
   };
 
@@ -143,6 +230,20 @@ export function gltfInfo(file) {
       }
       for (const p of meshes[n.mesh].primitives) {
         if (p.attributes.POSITION === undefined) continue;
+        const needed = [p.attributes.POSITION];
+        if (skin) needed.push(skin.inverseBindMatrices, p.attributes.JOINTS_0, p.attributes.WEIGHTS_0);
+        if (needed.some((a) => a !== undefined && !hasData(a))) {
+          // Rest pose = bind pose, so any joint's (world x inverse bind) places the box.
+          const place = jointMats && hasData(skin.inverseBindMatrices) ? jointMats[0] : world;
+          for (const pt of boundsCorners(p.attributes.POSITION)) {
+            const w = apply(place, pt);
+            for (let k = 0; k < 3; k++) {
+              min[k] = Math.min(min[k], w[k]);
+              max[k] = Math.max(max[k], w[k]);
+            }
+          }
+          continue;
+        }
         const pos = read(p.attributes.POSITION);
         const joints = jointMats && p.attributes.JOINTS_0 !== undefined ? read(p.attributes.JOINTS_0) : null;
         const weights = joints && p.attributes.WEIGHTS_0 !== undefined ? read(p.attributes.WEIGHTS_0) : null;
@@ -179,9 +280,7 @@ export function gltfInfo(file) {
   const textures = (json.images || []).map((img) => {
     let data = null;
     if (img.bufferView !== undefined) {
-      const bv = json.bufferViews[img.bufferView];
-      const b = buffers[bv.buffer || 0];
-      if (b) data = b.subarray(bv.byteOffset || 0, (bv.byteOffset || 0) + bv.byteLength);
+      data = viewData(img.bufferView);
     } else if (img.uri && !img.uri.startsWith('data:')) {
       const p = path.join(path.dirname(file), decodeURIComponent(img.uri));
       if (fs.existsSync(p)) data = fs.readFileSync(p);

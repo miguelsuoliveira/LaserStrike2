@@ -1,81 +1,54 @@
 #!/usr/bin/env node
-// Free (CC0) asset helper. Everything lands in public/assets and is listed in
+// Free asset helper. Everything lands in public/assets and is listed in
 // public/assets/CATALOG.md (what the AI reads) and CREDITS.md (who made it).
+// Every get prints the size and the loadModel('assets/models/...') path to use.
 //
 //   npm run assets -- catalog                       rebuild CATALOG.md after adding files by hand
-//   npm run assets -- search tree                   search Poly Haven (realistic models, skies, textures)
-//   npm run assets -- polyhaven fir_tree_01         download a Poly Haven model / sky / texture (1k)
-//        options: --res 2k  --name my_tree  --folder models/nature
+//   npm run assets -- polyhaven search tree         realistic models, skies, textures (CC0); also: search tree
+//   npm run assets -- polyhaven fir_tree_01         download one (1k). Options: --res 2k --name x --folder models/x
+//   npm run assets -- pizza search dragon           low-poly single models (CC0/CC-BY) [--by Kenney|Quaternius|KayKit] [--cc0] [--animated] [--thumbs]
+//   npm run assets -- pizza get <id>                [--name x] [--folder models/characters]
+//   npm run assets -- kenney list [word]            Kenney 3D kits (CC0)   kenney get <kit> [--only "a,b"] [--all]
+//   npm run assets -- kaykit list                   KayKit packs (CC0)     kaykit get <pack> [--only "a,b"] [--all]
+//   npm run assets -- quaternius list [word]        Quaternius packs (CC0) quaternius get <pack> [--only "a,b"] [--all]
+//   npm run assets -- itch get <creator>/<game>     a free itch.io pack [--file word] [--only "a,b"] [--all]
+//   npm run assets -- smithsonian search skull      museum scans (CC0, checked)   smithsonian get <id> [--small]
+//   npm run assets -- objaverse search dragon       6,000 models (mostly CC-BY) [--cc0] [--animated] [--max-tris N] [--thumbs]
+//   npm run assets -- objaverse get <id>            [--lod 1|2|3] [--name x]
 //   npm run assets -- url <https://...file.glb> --author "Name" --license CC0 [--folder models/props] [--name x]
-//   npm run assets -- zip ~/Downloads/kenney_pack.zip --author Kenney --license CC0 [--folder models/kenney_pack]
-//        (unpacks only .glb/.gltf models and .ogg/.mp3/.wav sounds; Kenney zips: GLB format folder)
+//   npm run assets -- zip ~/Downloads/pack.zip --author Kenney --license CC0 [--folder models/pack_name]
+//        (unpacks only .glb/.gltf models and .ogg/.mp3/.wav sounds)
 //   npm run assets -- sounds                        convert .ogg/.wav in public/assets/sounds to .mp3 (needs ffmpeg)
+// Big kits list their model names first: pick with --only. Over 5 MB warns, over 30 MB needs --force.
+// --thumbs saves numbered preview pictures in .previews/thumbs/<source>/ (sheet.jpg shows all).
 import fs from 'node:fs';
 import path from 'node:path';
-import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { gltfInfo } from './lib/gltf-info.mjs';
+import { ASSETS, MAX_MB, ROOT, WARN_MB, Oops, credit, externalUris, get, makeLoadable, mb, packToGlb, readZip, rel, safeName, sizeOf, zipModels } from './lib/asset-tools.mjs';
+import * as pizza from './sources/pizza.mjs';
+import * as kenney from './sources/kenney.mjs';
+import * as kaykit from './sources/kaykit.mjs';
+import * as quaternius from './sources/quaternius.mjs';
+import * as itch from './sources/itch.mjs';
+import * as smithsonian from './sources/smithsonian.mjs';
+import * as objaverse from './sources/objaverse.mjs';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const ASSETS = path.join(ROOT, 'public/assets');
-const UA = { 'User-Agent': 'ai-game-jam-starter/1.0 (kids game jam, education)' };
+try {
+  process.loadEnvFile(path.join(ROOT, '.env')); // optional keys: SI_API_KEY, GITHUB_TOKEN
+} catch {
+  // no .env: fine
+}
 
+const BOOL = new Set(['all', 'animated', 'cc0', 'force', 'small', 'thumbs', 'no-catalog']);
 const [cmd, ...rest] = process.argv.slice(2);
 const flags = {};
 const args = [];
 for (let i = 0; i < rest.length; i++) {
-  if (rest[i].startsWith('--')) flags[rest[i].slice(2)] = !rest[i + 1] || rest[i + 1].startsWith('--') ? true : rest[++i];
-  else args.push(rest[i]);
-}
-
-
-// ---------------------------------------------------------------- helpers
-
-async function get(url, as = 'buffer') {
-  const res = await fetch(url, { headers: UA });
-  if (!res.ok) throw new Error(`Download failed (${res.status}): ${url}`);
-  return as === 'json' ? res.json() : Buffer.from(await res.arrayBuffer());
-}
-
-function safeName(s) {
-  return String(s)
-    .toLowerCase()
-    .replace(/\.[a-z0-9]+$/, '')
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '');
-}
-
-function credit(line) {
-  const file = path.join(ASSETS, 'CREDITS.md');
-  if (!fs.existsSync(file)) fs.writeFileSync(file, '# Credits\n\nAll assets are CC0 (public domain) unless a line says otherwise.\n\n');
-  if (!fs.readFileSync(file, 'utf8').includes(line)) fs.appendFileSync(file, `- ${line}\n`);
-}
-
-function sizeOf(p) {
-  const bytes = fs.statSync(p).isDirectory()
-    ? fs.readdirSync(p).reduce((sum, f) => sum + fs.statSync(path.join(p, f)).size, 0)
-    : fs.statSync(p).size;
-  return `${(bytes / 1048576).toFixed(1)} MB`;
-}
-
-function rel(p) {
-  return path.relative(path.join(ROOT, 'public'), p).split(path.sep).join('/');
-}
-
-// URIs of textures/buffers a .glb expects to find next to it.
-function externalUris(buf) {
-  if (buf.readUInt32LE(0) !== 0x46546c67) return [];
-  const len = buf.readUInt32LE(12);
-  const json = JSON.parse(buf.toString('utf8', 20, 20 + len));
-  return [...(json.buffers || []), ...(json.images || [])].map((x) => x.uri).filter((u) => u && !u.startsWith('data:'));
-}
-
-async function packToGlb(gltfPath, outPath) {
-  const { NodeIO } = await import('@gltf-transform/core');
-  const { ALL_EXTENSIONS } = await import('@gltf-transform/extensions');
-  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
-  const doc = await io.read(gltfPath);
-  await io.write(outPath, doc);
+  if (rest[i].startsWith('--')) {
+    const name = rest[i].slice(2);
+    flags[name] = BOOL.has(name) || !rest[i + 1] || rest[i + 1].startsWith('--') ? true : rest[++i];
+  } else args.push(rest[i]);
 }
 
 // ---------------------------------------------------------------- Poly Haven
@@ -86,8 +59,8 @@ async function polyhavenIndex() {
   return phIndex;
 }
 
-async function search() {
-  const words = args.map((w) => w.toLowerCase());
+async function search(words = args) {
+  words = words.map((w) => w.toLowerCase());
   if (!words.length) return console.log('Usage: npm run assets -- search <words>');
   const index = await polyhavenIndex();
   const TYPES = ['sky (hdri)', 'texture', 'model'];
@@ -104,8 +77,9 @@ async function search() {
 }
 
 async function polyhaven() {
-  const id = args[0];
-  if (!id) return console.log('Usage: npm run assets -- polyhaven <id> [--res 1k]');
+  if (args[0] === 'search') return search(args.slice(1));
+  const id = args[0] === 'get' ? args[1] : args[0];
+  if (!id) return console.log('Usage: npm run assets -- polyhaven search <words>   or   npm run assets -- polyhaven <id> [--res 1k]');
   const res = flags.res || '1k';
   const info = await get(`https://api.polyhaven.com/info/${id}`, 'json');
   const files = await get(`https://api.polyhaven.com/files/${id}`, 'json');
@@ -129,6 +103,11 @@ async function polyhaven() {
   } else {
     const entry = files.gltf?.[res]?.gltf;
     if (!entry) throw new Error(`No ${res} glTF for ${id}`);
+    // Trees and big plants are hundreds of MB: check before downloading.
+    const bytes = entry.size + Object.values(entry.include || {}).reduce((sum, inc) => sum + (inc.size || 0), 0);
+    if (bytes > MAX_MB * 1048576 && !flags.force) {
+      throw new Oops(`"${info.name}" is ${mb(bytes)} at ${res}: too big for school laptops (limit ${MAX_MB} MB). Pick another one (or add --force if a mentor says OK).`);
+    }
     const tmp = fs.mkdtempSync(path.join(ROOT, '.tmp-'));
     try {
       const main = path.join(tmp, path.basename(entry.url));
@@ -147,6 +126,9 @@ async function polyhaven() {
   }
   credit(`${rel(saved)}: "${info.name}" by ${authors}, CC0, https://polyhaven.com/a/${id}`);
   console.log(`Saved ${rel(saved)} (${sizeOf(saved)})`);
+  if (fs.statSync(saved).isFile() && fs.statSync(saved).size > WARN_MB * 1048576) console.log('Heads up: that is big, so the game will take longer to load.');
+  const use = { 0: `await world.setSky('${rel(saved)}')`, 1: `box({ texture: '${rel(saved)}' })` }[info.type] || `await loadModel('${rel(saved)}', { height: 1 })`;
+  console.log(`Use it:  ${use}`);
   if (!flags['no-catalog']) await catalog(true);
 }
 
@@ -203,41 +185,12 @@ async function url() {
         fs.rmSync(tmp, { recursive: true, force: true });
       }
     } else {
-      fs.writeFileSync(out, data);
+      fs.writeFileSync(out, ext === '.glb' ? await makeLoadable(data) : data); // Draco -> meshopt
     }
   }
   credit(`${rel(out)}: by ${flags.author}, ${flags.license}, ${link}`);
   console.log(`Saved ${rel(out)} (${sizeOf(out)})`);
   if (!flags['no-catalog']) await catalog(true);
-}
-
-// Minimal zip reader (no extra tools needed on Windows/Mac/Linux).
-function readZip(buf) {
-  let eocd = buf.length - 22;
-  while (eocd >= 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
-  if (eocd < 0) throw new Error('Not a zip file');
-  const count = buf.readUInt16LE(eocd + 10);
-  let p = buf.readUInt32LE(eocd + 16);
-  const entries = [];
-  for (let i = 0; i < count; i++) {
-    const method = buf.readUInt16LE(p + 10);
-    const compSize = buf.readUInt32LE(p + 20);
-    const nameLen = buf.readUInt16LE(p + 28);
-    const extraLen = buf.readUInt16LE(p + 30);
-    const commentLen = buf.readUInt16LE(p + 32);
-    const local = buf.readUInt32LE(p + 42);
-    const name = buf.toString('utf8', p + 46, p + 46 + nameLen);
-    entries.push({
-      name,
-      read() {
-        const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
-        const data = buf.subarray(start, start + compSize);
-        return method === 8 ? zlib.inflateRawSync(data) : data;
-      },
-    });
-    p += 46 + nameLen + extraLen + commentLen;
-  }
-  return entries;
 }
 
 async function zip() {
@@ -247,30 +200,21 @@ async function zip() {
   }
   const pack = safeName(path.basename(file));
   const entries = readZip(fs.readFileSync(file)).filter((e) => !e.name.endsWith('/') && !e.name.includes('__MACOSX'));
-  const glb = entries.filter((e) => /\.glb$/i.test(e.name));
-  const models = glb.length ? glb : entries.filter((e) => /\.gltf$/i.test(e.name));
+  // .glb preferred, .gltf packed into .glb, textures next to the model packed in (Kenney "GLB format").
+  const models = zipModels(entries);
   const audio = entries.filter((e) => /\.(ogg|mp3|wav)$/i.test(e.name));
   let n = 0;
   const modelDir = path.join(ASSETS, flags.folder || `models/${pack}`);
-  const tmp = fs.mkdtempSync(path.join(ROOT, '.tmp-'));
-  try {
-    if (!glb.length && models.length) {
-      // .gltf + .bin + textures: unpack everything, then pack each into one .glb
-      for (const e of entries) {
-        const p = path.join(tmp, e.name);
-        fs.mkdirSync(path.dirname(p), { recursive: true });
-        fs.writeFileSync(p, e.read());
-      }
-    }
-    for (const e of models) {
-      const out = path.join(modelDir, `${safeName(path.basename(e.name))}.glb`);
+  for (const m of models) {
+    try {
+      const buf = await m.load();
       fs.mkdirSync(modelDir, { recursive: true });
-      if (/\.glb$/i.test(e.name)) fs.writeFileSync(out, e.read());
-      else await packToGlb(path.join(tmp, e.name), out);
+      fs.writeFileSync(path.join(modelDir, `${m.name}.glb`), buf);
       n++;
+    } catch (e) {
+      if (!(e instanceof Oops)) throw e;
+      console.log(`Skipped ${m.name}: ${e.message}`);
     }
-  } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
   }
   const soundDir = path.join(ASSETS, flags.soundFolder || `sounds/${pack}`);
   for (const e of audio) {
@@ -315,7 +259,7 @@ async function catalog(quiet = false) {
     'Auto-generated by `npm run assets -- catalog`. Paths start at public/, so use them as written:',
     "`loadModel('assets/models/...')`, `sound.play('assets/sounds/...')`, `loadMaterial('assets/textures/...')`.",
     'Sizes are meters before scaling (loadModel `height`/`size` options rescale). Details: `npm run inspect -- public/<path>`.',
-    'Everything here is free to use (CC0). See CREDITS.md.',
+    'Everything here is free to use: CC0, or CC-BY where CREDITS.md says so (CC-BY authors go in the game credits).',
     '',
   ];
   const walk = (d) =>
@@ -389,15 +333,38 @@ async function catalog(quiet = false) {
     lines.push(`- ${images.map((f) => rel(f)).join(', ')}`, '');
   }
   fs.writeFileSync(path.join(ASSETS, 'CATALOG.md'), lines.join('\n'));
-  if (!quiet || quiet === true) console.log(`Updated public/assets/CATALOG.md (${models.length} models, ${hdri.length} skies, ${textures.length} textures, ${audio.length} sounds)`);
+  if (quiet !== 'silent') console.log(`Updated public/assets/CATALOG.md (${models.length} models, ${hdri.length} skies, ${textures.length} textures, ${audio.length} sounds)`);
 }
 
 // ---------------------------------------------------------------- run the command
 
 const commands = { catalog, search, polyhaven, url, zip, sounds };
-if (!commands[cmd]) {
-  const help = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 12);
-  console.log(help.join('\n').replace(/^\/\/ ?/gm, ''));
-  process.exit(cmd ? 1 : 0);
+const sources = { pizza, kenney, kaykit, quaternius, itch, smithsonian, objaverse };
+try {
+  if (sources[cmd]) {
+    const src = sources[cmd];
+    const sub = args[0];
+    const fn = ['search', 'list', 'get'].includes(sub) && src[sub];
+    if (!fn) {
+      console.log(src.usage);
+      process.exit(sub ? 1 : 0);
+    }
+    const saved = await fn(args.slice(1), flags);
+    if (saved?.length && !flags['no-catalog']) {
+      await catalog('silent');
+      console.log('Added to CATALOG.md and CREDITS.md.');
+    }
+  } else if (commands[cmd]) {
+    await commands[cmd]();
+  } else {
+    const lines = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1);
+    const help = lines.slice(0, lines.findIndex((l) => !l.startsWith('//')));
+    console.log(help.join('\n').replace(/^\/\/ ?/gm, ''));
+    process.exit(cmd ? 1 : 0);
+  }
+} catch (e) {
+  // One helpful line, never a stack trace (DEBUG=1 shows it).
+  console.log(e instanceof Oops ? e.message : `Problem: ${e.message}`);
+  if (process.env.DEBUG) console.error(e);
+  process.exit(1);
 }
-await commands[cmd]();

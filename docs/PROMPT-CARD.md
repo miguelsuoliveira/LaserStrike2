@@ -1,5 +1,12 @@
 # Prompt card (print one per team)
 
+## How it works
+
+Your game starts as an empty world. The AI asks you four choices, one at a time:
+**Player** (what you are, and how we see it) → **World** (where) → **Goal** (what you do) → **Twist** (what makes it weird).
+After each one you can play it. Answer with a number ("2") or your own idea. Drawing on paper and sending
+a photo is a great answer too!
+
 ## The recipe for a good prompt
 
 1. **WHAT** I want: "Skeletons climb out of the ground and chase us."
@@ -16,7 +23,7 @@ Bad: "make it better". Good: all five, in your own words. Long is fine!
 
 ## Commands
 
-| Type in the AI chat | It does |
+| Type in the AI chat (Codex: `$` instead of `/`) | It does |
 |---|---|
 | `/idea` | plan a game or big feature together (it asks you questions first) |
 | `/explain` | explain what just changed, plus a Code Detective challenge |

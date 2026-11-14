@@ -316,3 +316,71 @@ canvas {
   font: 800 24px/1 system-ui, sans-serif;
 }
 
+/* Phone controls (touch.js) */
+body.touch,
+body.touch canvas {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+.touch-stick {
+  position: fixed;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  z-index: 25;
+}
+.touch-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transform: translate(-50%, -50%);
+}
+.touch-buttons {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 12px;
+  max-width: 50vw;
+  z-index: 25;
+}
+.touch-button {
+  min-width: 64px;
+  height: 64px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: 32px;
+  background: rgba(10, 14, 20, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
+  font: 800 22px/1 system-ui, sans-serif;
+  touch-action: none;
+}
+.touch-button.down,
+body.touch .key-hint.down {
+  background: rgba(255, 255, 255, 0.45);
+}
+body.touch .key-hint {
+  pointer-events: auto;
+  bottom: auto;
+  top: 18%;
+  padding: 12px 20px 12px 12px;
+  font-size: 22px;
+}
+
+/* Keep corner text clear of the phone buttons */
+body.touch .hud-bottom-right {
+  bottom: 96px;
+}

@@ -8,6 +8,7 @@
 //   world.focus                  the point shadows follow (the player sets it)
 // Sliders: "Sky" (time of day, clouds, fog) and "Graphics" (quality, glow).
 import * as THREE from 'three';
+import { isTouch } from './touch.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -54,7 +55,7 @@ export const world = {
       skyLight: { value: 0.6, min: 0, max: 3 },
     });
     G = tune('Graphics', {
-      quality: { value: 'high', options: ['low', 'medium', 'high'] },
+      quality: { value: isTouch ? 'medium' : 'high', options: ['low', 'medium', 'high'] },
       glow: { value: 0.3, min: 0, max: 3 },
       glowThreshold: { value: 2.5, min: 0, max: 10 },
       brightness: { value: 1, min: 0.2, max: 3 },

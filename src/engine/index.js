@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { world } from './world.js';
 import { physics } from './physics.js';
 import { input } from './input.js';
+import { setupTouch, isTouch } from './touch.js';
 import { cameraRig } from './camera.js';
 import { updateCharacters, endCharactersFrame } from './player.js';
 import { updateAttachments } from './attach.js';
@@ -17,7 +18,7 @@ import { time, updateTimers } from './utils.js';
 import { state, setPaused } from './state.js';
 import { tune } from './tuning.js';
 
-export { THREE, world, physics, input, cameraRig, time, setPaused, tune };
+export { THREE, world, physics, input, cameraRig, time, setPaused, tune, isTouch };
 export { createPlayer, createCharacter } from './player.js';
 export { createVehicle } from './vehicle.js';
 export { loadModel, loadTexture, loadMaterial, preload } from './assets.js';
@@ -43,6 +44,7 @@ export async function start(game) {
     cameraRig.init();
     initAudio();
     input.init(world.renderer.domElement);
+    setupTouch();
   } catch (e) {
     reportError(e, 'engine start');
     return;

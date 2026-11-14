@@ -8,6 +8,7 @@
 // 'escape', 'tab', 'up', 'down', 'left', 'right', 'mouse' (left button),
 // 'rightmouse'. Action names that also work with a gamepad:
 // 'jump' (space), 'fire' (left mouse), 'run' (shift), 'interact' (e).
+// Phones: see touch.js (joystick, drag to look, input.touchButton('fire', '🔫') for every other key).
 
 const held = new Set();
 const pressed = new Set();
@@ -34,9 +35,20 @@ function keyName(code) {
 
 const names = (name) => ACTIONS[name] || [name.toLowerCase()];
 
+function pressKey(n) {
+  if (!held.has(n)) pressed.add(n);
+  held.add(n);
+}
+function releaseKey(n) {
+  if (!held.has(n)) return;
+  held.delete(n);
+  released.add(n);
+}
+
 export const input = {
   move: { x: 0, y: 0 },
   look: { x: 0, y: 0 }, // right stick
+  touchMove: { x: 0, y: 0 }, // phone joystick (touch.js)
   mouse: { x: 0, y: 0, dx: 0, dy: 0, wheel: 0 },
   locked: false,
   wantsPointerLock: false,
@@ -45,17 +57,15 @@ export const input = {
   held: (name) => names(name).some((n) => held.has(n)),
   pressed: (name) => names(name).some((n) => pressed.has(n)),
   released: (name) => names(name).some((n) => released.has(n)),
+  // Press or let go of a key or action from code (touch buttons use these).
+  press: (name) => pressKey(names(name)[0]),
+  release: (name) => releaseKey(names(name)[0]),
+  touchButton() {}, // replaced by touch.js
 
   init(canvas) {
     this.canvas = canvas;
-    const press = (n) => {
-      if (!held.has(n)) pressed.add(n);
-      held.add(n);
-    };
-    const release = (n) => {
-      held.delete(n);
-      released.add(n);
-    };
+    const press = pressKey;
+    const release = releaseKey;
     window.addEventListener('keydown', (e) => {
       if (e.target.closest?.('input, textarea, .lil-gui')) return;
       if (['Space', 'ArrowUp', 'ArrowDown', 'Tab'].includes(e.code)) e.preventDefault();
@@ -111,6 +121,8 @@ export const input = {
     const dead = (v) => (Math.abs(v) < 0.15 ? 0 : v);
     let x = (this.held('d') || this.held('right') ? 1 : 0) - (this.held('a') || this.held('left') ? 1 : 0);
     let y = (this.held('w') || this.held('up') ? 1 : 0) - (this.held('s') || this.held('down') ? 1 : 0);
+    x += this.touchMove.x;
+    y += this.touchMove.y;
     if (pad) {
       x += dead(pad.axes[0] || 0);
       y -= dead(pad.axes[1] || 0);

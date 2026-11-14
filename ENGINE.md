@@ -78,7 +78,10 @@ Y is up. The ground top is y = 0. It starts as an empty floor with a grid: repla
 **Input** (`input`)
 - `input.held('w')`, `input.pressed('space')`, `input.released('e')`; names: letters, digits, `space`, `shift`,
   `enter`, `escape`, `up/down/left/right`, `mouse`, `rightmouse`; actions: `jump`, `fire`, `run`, `interact`
-- `input.move` `{ x, y }` (WASD/arrows/stick, y = forward), `input.mouse` `{ x, y, dx, dy, wheel }`, `input.locked`
+- `input.move` `{ x, y }` (WASD/arrows/stick/phone joystick, y = forward), `input.mouse` `{ x, y, dx, dy, wheel }`, `input.locked`
+- Phones (touch controls appear by themselves; `?touch` in the URL shows them on a computer): `isTouch` (true on
+  phones/tablets), `input.touchButton('fire', '🔫')` a hold button for any key or action (`null` label removes it;
+  Jump is there by default), `input.press('e')` / `input.release('e')` press keys from code.
 
 **UI** (`ui`)
 - `ui.text(id, text, { at: 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right' | 'center', size, color })`

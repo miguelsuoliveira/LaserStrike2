@@ -22,7 +22,8 @@ fill in a choice they didn't make: ask, and suggest.
 5. A choice they haven't made? Ask with options; don't invent it. The Goal needs how you **win** and how you
    **lose**: "shoot birds" isn't a goal yet, so ask ("1. ⭐ survive 3 minutes 2. shoot 25 birds 3. protect your
    sandcastle").
-6. Build fast, then **see the main new thing** with `npm run snap` before you say it works: teleport next to it,
+6. Build fast, then **see the main new thing** with `npm run snap` before you say it works (and `--phone` when you
+   added controls or screens): teleport next to it,
    look up with `--before "game.cameraRig.pitch = -0.7"`, or `--eval` a value. If you couldn't see it, fix that first.
 7. Save point, update `our-game.md`, then reply: short, the progress line, one question with options.
 
@@ -185,6 +186,7 @@ and update it after every step: their choices (their words, short), the game map
     without editing the game). `--eval "<js>"` prints a value at the end. Both may use `await`
     (with several statements, end with `return value`).
   - Look somewhere: `--before "game.cameraRig.pitch = -0.7"` looks up (sky, birds, planes), `game.cameraRig.yaw` turns.
+  - `--phone`: a phone held sideways, with the touch controls (check buttons and the HUD fit).
   - In both: `window.game` has `world`, `physics`, `player`, `car`, `cameraRig`, `time`, `THREE`, and
     `await game.module('enemies')` gives the game's live `src/game/enemies.js` (never `import()` it: that loads a
     second, empty copy). Export the lists you'll want to test (`export const birds = []`).
@@ -233,6 +235,11 @@ Guides for common jobs are in `.agents/skills/<name>/SKILL.md` (plain Markdown; 
 - **Controls: 3D + WASD.** W A S D move (or steer), Space jumps or does the main action, Shift runs or boosts, the
   mouse looks around. Keep to that. If one extra key is really needed (E to open, 1/2/3 to switch), show it
   with **one** `ui.hint('E', 'open')` only while it's useful (near the door), and hide it after (`ui.hint()`).
+- **Every game is playable on a phone too.** Touch controls are built in: a thumb joystick (= WASD), drag to look,
+  and a Jump button. Every other key or mouse button the game uses needs a touch button:
+  `input.touchButton('fire', '🔫')`, `input.touchButton('1', 'Laser')` (`input.touchButton('jump', null)` removes
+  Jump). `ui.hint` becomes a tap button on phones. No hover-only, right-click-only or tiny click targets.
+  Check it with `npm run snap -- --phone`.
 - **No wordy screens.** No help panels, no control lists, no instructions on the title screen, no tutorial text.
   The game should teach itself: the first enemy is slow, the first coin is right in front of you, the exit glows.
   A title screen is just the name and a Play button.

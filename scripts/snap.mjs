@@ -14,6 +14,7 @@
 //   npm run snap -- --before "game.cameraRig.pitch = -0.7"   look up (sky, flying things); .yaw turns left/right
 //        --before and --eval may use await: --eval "const m = await game.module('birds'); return m.birds.length"
 //   npm run snap -- --zoom 2                      zoom into the middle of the screen (small things in top-down games)
+//   npm run snap -- --phone                       a phone held sideways, with the touch controls showing
 // Uses the running `npm run dev` server if there is one, otherwise starts its own.
 // Needs Google Chrome (or Microsoft Edge) installed.
 import fs from 'node:fs';
@@ -76,8 +77,9 @@ if (!browser) {
   process.exit(2);
 }
 
-const [w, h] = String(opt('size', '1024x576')).split('x').map(Number);
-const page = await browser.newPage({ viewport: { width: w, height: h } });
+const phone = !!opt('phone', false);
+const [w, h] = String(opt('size', phone ? '844x390' : '1024x576')).split('x').map(Number);
+const page = await browser.newPage({ viewport: { width: w, height: h }, ...(phone ? { isMobile: true, hasTouch: true } : {}) });
 const problems = [];
 page.on('console', (m) => {
   if (m.type() === 'error' || m.type() === 'warning') {
@@ -95,6 +97,7 @@ if (!opt('title', false)) url.searchParams.set('play', '1');
 const set = opt('set', null);
 if (set && set !== true) url.searchParams.set('tune', set);
 url.searchParams.set('demo', '1');
+if (phone) url.searchParams.set('touch', '1');
 const started = Date.now();
 await page.goto(url.toString());
 try {

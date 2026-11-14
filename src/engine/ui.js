@@ -10,12 +10,14 @@
 //   image: 'assets/images/logo.png' on title/screen shows a picture above the title (the kids' logo)
 //   ui.crosshair(true)                                 dot in the middle for aiming
 //   ui.hint('E', 'open')                               ONE small key hint at the bottom; ui.hint() hides it
-//      show it only while the key does something (near the door), never a list of controls
+//      show it only while the key does something (near the door), never a list of controls.
+//      On phones it is a button: tapping it presses the key.
 //   ui.images(['assets/images/a.png', ...])            show pictures on top of the game (numbered if
 //      more than one); click or any key closes. `npm run preview` uses this for concept art.
 // While a screen is open the game is paused.
 import { setPaused } from './state.js';
 import { input } from './input.js';
+import { isTouch, holdToPress } from './touch.js';
 
 const slots = {};
 const items = {};
@@ -95,8 +97,10 @@ export const ui = {
       el.className = 'key-hint';
       el.innerHTML = '<kbd></kbd><span></span>';
       document.body.appendChild(el);
+      if (isTouch) holdToPress(el, () => el.dataset.key);
     }
-    el.querySelector('kbd').textContent = key;
+    el.dataset.key = key.toLowerCase();
+    el.querySelector('kbd').textContent = isTouch ? '👆' : key;
     el.querySelector('span').textContent = text;
     el.classList.remove('hide');
   },

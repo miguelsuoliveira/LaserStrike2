@@ -11,6 +11,8 @@
 //   npm run snap -- --keys "mouse:800x300, click, fire:1500"   move the mouse, click, hold the left button 1.5 s
 //   npm run snap -- --set "Health.hearts=1, Sky.timeOfDay=20"  slider values for this run only (not saved)
 //   npm run snap -- --before "game.player.teleport([0, 20, 0])" run code after loading, before the keys
+//   npm run snap -- --before "game.cameraRig.pitch = 0.7"   look up (sky, flying things); .yaw turns left/right
+//        --before and --eval may use await: --eval "const m = await import('/src/game/birds.js'); return m.birds.length"
 //   npm run snap -- --zoom 2                      zoom into the middle of the screen (small things in top-down games)
 // Uses the running `npm run dev` server if there is one, otherwise starts its own.
 // Needs Google Chrome (or Microsoft Edge) installed.
@@ -104,10 +106,26 @@ try {
 }
 const loadSeconds = ((Date.now() - started) / 1000).toFixed(1);
 
+// Runs code in the page. Code with `await` runs inside an async function.
+const runInPage = (code) =>
+  page.evaluate(async (e) => {
+    try {
+      return await (0, eval)(e);
+    } catch (err) {
+      if (!(err instanceof SyntaxError) || !/await|import/.test(err.message)) throw err;
+      try {
+        return await (0, eval)(`(async () => (${e}\n))()`);
+      } catch (err2) {
+        if (!(err2 instanceof SyntaxError)) throw err2;
+        return await (0, eval)(`(async () => {${e}\n})()`);
+      }
+    }
+  }, code);
+
 const before = opt('before', null);
 if (before && before !== true) {
   try {
-    await page.evaluate(async (e) => await (0, eval)(e), before);
+    await runInPage(before);
   } catch (e) {
     problems.push(`ERROR: --before code failed: ${e.message}`);
   }
@@ -179,10 +197,8 @@ let evalResult;
 const expr = opt('eval', null);
 if (expr && expr !== true) {
   try {
-    evalResult = await page.evaluate(async (e) => {
-      const v = await (0, eval)(e);
-      return typeof v === 'object' ? JSON.stringify(v) : String(v);
-    }, expr);
+    const v = await runInPage(expr);
+    evalResult = typeof v === 'object' ? JSON.stringify(v) : String(v);
   } catch (e) {
     evalResult = `eval failed: ${e.message}`;
   }

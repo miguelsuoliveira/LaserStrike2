@@ -3,7 +3,6 @@
 All assets are CC0 (public domain) unless a line says otherwise.
 
 - assets/models/characters/robot.glb: by Tomás Laulhé (Quaternius), modified by Don McCurdy, CC0, https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/RobotExpressive/RobotExpressive.glb
-- assets/models/characters/knight.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb
 - assets/models/characters/mage.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb
 - assets/models/characters/rogue.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb
 - assets/models/characters/barbarian.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb
@@ -44,8 +43,6 @@ All assets are CC0 (public domain) unless a line says otherwise.
 - assets/models/city/building_small_b.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-b.glb
 - assets/models/city/building_small_c.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-c.glb
 - assets/models/city/building_small_d.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/building-small-d.glb
-- assets/models/city/grass_trees_tall.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/grass-trees-tall.glb
-- assets/models/city/grass_trees.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/grass-trees.glb
 - assets/models/city/pavement_fountain.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/pavement-fountain.glb
 - assets/models/city/road_corner.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-corner.glb
 - assets/models/city/road_intersection.glb: by Kenney, CC0, https://raw.githubusercontent.com/KenneyNL/Starter-Kit-City-Builder/main/models/road-intersection.glb
@@ -112,9 +109,6 @@ All assets are CC0 (public domain) unless a line says otherwise.
 - assets/models/spooky/pumpkin_orange_jackolantern.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/pumpkin_orange_jackolantern.gltf
 - assets/models/spooky/shrine_candles.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/shrine_candles.gltf
 - assets/models/spooky/skull.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/skull.gltf
-- assets/models/spooky/tree_dead_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_dead_large.gltf
-- assets/models/spooky/tree_dead_medium.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_dead_medium.gltf
-- assets/models/spooky/tree_pine_orange_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf/tree_pine_orange_large.gltf
 - assets/models/space/basemodule_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/basemodule_A.gltf
 - assets/models/space/basemodule_garage.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/basemodule_garage.gltf
 - assets/models/space/cargo_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf/cargo_A.gltf
@@ -147,15 +141,8 @@ All assets are CC0 (public domain) unless a line says otherwise.
 - assets/models/obstacle_course/target.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/target.gltf
 - assets/models/obstacle_course/target_stand_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf/target_stand_A.gltf
 - assets/models/nature/cloud_big.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/cloud_big.gltf
-- assets/models/nature/mountain_a_grass_trees.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/mountain_A_grass_trees.gltf
-- assets/models/nature/hills_a_trees.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/hills_A_trees.gltf
 - assets/models/nature/rock_single_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/rock_single_A.gltf
 - assets/models/nature/rock_single_c.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/rock_single_C.gltf
-- assets/models/nature/tree_single_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/tree_single_A.gltf
-- assets/models/nature/tree_single_b.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/tree_single_B.gltf
-- assets/models/nature/trees_a_large.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_A_large.gltf
-- assets/models/nature/trees_b_medium.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_B_medium.gltf
-- assets/models/nature/trees_a_small.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/trees_A_small.gltf
 - assets/models/nature/waterlily_a.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature/waterlily_A.gltf
 - assets/models/medieval/barrel.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/barrel.gltf
 - assets/models/medieval/crate_a_big.glb: by Kay Lousberg (KayKit), CC0, https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props/crate_A_big.gltf

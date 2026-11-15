@@ -14,7 +14,7 @@
 //        copies animations between models whose skeletons have the same bone names
 //   npm run remix -- rename-anim <file> <old> <new> [--out x.glb]
 // Names are matched loosely (case, dots and spaces don't matter: handslot.r = handslotr).
-// Files can be given as in game code too: assets/models/characters/knight.glb
+// Files can be given as in game code too: assets/models/characters/barbarian.glb
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -87,7 +87,7 @@ function walkFiles(dir) {
 
 // Finds the model file: a path from here, from the project, from public/ (like game code), or a bare name.
 function findModel(p, what = 'model') {
-  if (!p) throw fail(`which ${what}? Give a file, e.g. public/assets/models/characters/knight.glb`);
+  if (!p) throw fail(`which ${what}? Give a file, e.g. public/assets/models/characters/barbarian.glb`);
   for (const t of [path.resolve(HERE, p), path.resolve(ROOT, p), path.resolve(PUBLIC, p)]) {
     if (fs.existsSync(t) && fs.statSync(t).isFile()) {
       if (!/\.(glb|gltf)$/i.test(t)) throw fail(`${p} is not a .glb or .gltf model`);
@@ -98,7 +98,7 @@ function findModel(p, what = 'model') {
   const hits = walkFiles(path.join(ASSETS, 'models')).filter((f) => /\.(glb|gltf)$/i.test(f) && norm(path.basename(f).replace(/\.(glb|gltf)$/i, '')) === want);
   if (hits.length === 1) return hits[0];
   if (hits.length > 1) throw fail(`"${p}" matches several files: ${hits.map(rel).join(', ')}. Use the full path.`);
-  throw fail(`file not found: ${p} (try a path like public/assets/models/characters/knight.glb; public/assets/CATALOG.md lists them)`);
+  throw fail(`file not found: ${p} (try a path like public/assets/models/characters/barbarian.glb; public/assets/CATALOG.md lists them)`);
 }
 
 // Reads the GLB/glTF JSON without decoding anything (cheap).

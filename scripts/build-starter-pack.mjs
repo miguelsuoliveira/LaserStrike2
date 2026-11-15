@@ -13,7 +13,8 @@ const add = (url, folder, author, name) => jobs.push({ url, folder, author, name
 
 // Characters (rigged + animated)
 add('https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/RobotExpressive/RobotExpressive.glb', 'models/characters', 'Tomás Laulhé (Quaternius), modified by Don McCurdy', 'robot');
-for (const c of ['Knight', 'Mage', 'Rogue', 'Barbarian'])
+// No knight and no trees: kids pick those from the libraries (every game used the same bundled ones).
+for (const c of ['Mage', 'Rogue', 'Barbarian'])
   add(`${KK}/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/${c}.glb`, 'models/characters', 'Kay Lousberg (KayKit)');
 for (const c of ['Skeleton_Minion', 'Skeleton_Warrior'])
   add(`${KK}/KayKit-Character-Pack-Skeletons-1.0/main/addons/kaykit_character_pack_skeletons/Characters/gltf/${c}.glb`, 'models/characters', 'Kay Lousberg (KayKit)');
@@ -23,7 +24,7 @@ const kenney = {
   'Starter-Kit-3D-Platformer': ['platformer', ['block-coin', 'brick', 'character', 'cloud', 'coin', 'flag', 'grass-small', 'grass', 'platform-falling', 'platform-grass-large-round', 'platform-large', 'platform-medium', 'platform']],
   'Starter-Kit-FPS': ['shooter', ['blaster-repeater', 'blaster', 'enemy-flying', 'wall-high', 'wall-low']],
   'Starter-Kit-Racing': ['racing', ['decoration-empty', 'decoration-forest', 'decoration-tents', 'track-bump', 'track-corner', 'track-finish', 'track-straight', 'vehicle-motorcycle', 'vehicle-truck-green', 'vehicle-truck-purple', 'vehicle-truck-red', 'vehicle-truck-yellow']],
-  'Starter-Kit-City-Builder': ['city', ['building-garage', 'building-small-a', 'building-small-b', 'building-small-c', 'building-small-d', 'grass-trees-tall', 'grass-trees', 'pavement-fountain', 'road-corner', 'road-intersection', 'road-split', 'road-straight-lightposts', 'road-straight']],
+  'Starter-Kit-City-Builder': ['city', ['building-garage', 'building-small-a', 'building-small-b', 'building-small-c', 'building-small-d', 'pavement-fountain', 'road-corner', 'road-intersection', 'road-split', 'road-straight-lightposts', 'road-straight']],
 };
 for (const [repo, [folder, names]] of Object.entries(kenney))
   for (const n of names) add(`${KN}/${repo}/main/models/${n}.glb`, `models/${folder}`, 'Kenney');
@@ -39,10 +40,10 @@ for (const [repo, [dir, names]] of Object.entries(kenneySounds))
 // KayKit environment packs (.gltf packed into .glb)
 const kaykit = {
   'KayKit-Dungeon-Remastered-1.0/main/addons/kaykit_dungeon_remastered/Assets/gltf': ['dungeon', '.gltf.glb', ['barrel_large', 'box_large', 'chest.glb', 'chest_gold.glb', 'coin', 'coin_stack_large', 'column', 'crates_stacked', 'floor_tile_large', 'floor_tile_big_spikes.glb', 'floor_wood_large', 'key', 'pillar', 'stairs', 'sword_shield', 'table_medium', 'chair', 'torch_lit', 'torch_mounted', 'wall', 'wall_corner', 'wall_doorway.glb', 'wall_window_open', 'wall_broken', 'rubble_large']],
-  'KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf': ['spooky', '.gltf', ['arch_gate', 'bench', 'bone_A', 'candle_triple', 'coffin', 'crypt', 'fence', 'fence_gate', 'grave_A', 'gravestone', 'lantern_standing', 'post_lantern', 'pumpkin_orange', 'pumpkin_orange_jackolantern', 'shrine_candles', 'skull', 'tree_dead_large', 'tree_dead_medium', 'tree_pine_orange_large']],
+  'KayKit-Halloween-Bits-1.0/main/addons/kaykit_halloween_bits/Assets/gltf': ['spooky', '.gltf', ['arch_gate', 'bench', 'bone_A', 'candle_triple', 'coffin', 'crypt', 'fence', 'fence_gate', 'grave_A', 'gravestone', 'lantern_standing', 'post_lantern', 'pumpkin_orange', 'pumpkin_orange_jackolantern', 'shrine_candles', 'skull']],
   'KayKit-Space-Base-Bits-1.0/main/addons/kaykit_space_base_bits/Assets/gltf': ['space', '.gltf', ['basemodule_A', 'basemodule_garage', 'cargo_A', 'containers_A', 'drill_structure', 'lander_A', 'landingpad_large', 'rock_A', 'rocks_A', 'solarpanel', 'spacetruck', 'structure_tall', 'terrain_low', 'terrain_slope', 'tunnel_straight_A', 'windturbine_tall']],
   'KayKit-Prototype-Bits-1.0/main/addons/kaykit_prototype_bits/Assets/gltf': ['obstacle_course', '.gltf', ['Barrel_A', 'Box_A', 'Coin_A', 'Door_A', 'Dummy_Base', 'Pallet_Large', 'Primitive_Beam', 'Primitive_Cube', 'Primitive_Floor', 'Primitive_Pillar', 'Primitive_Slope', 'Primitive_Stairs', 'Primitive_Wall', 'target', 'target_stand_A']],
-  'KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature': ['nature', '.gltf', ['cloud_big', 'mountain_A_grass_trees', 'hills_A_trees', 'rock_single_A', 'rock_single_C', 'tree_single_A', 'tree_single_B', 'trees_A_large', 'trees_B_medium', 'trees_A_small', 'waterlily_A']],
+  'KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/nature': ['nature', '.gltf', ['cloud_big', 'rock_single_A', 'rock_single_C', 'waterlily_A']],
   'KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/decoration/props': ['medieval', '.gltf', ['barrel', 'crate_A_big', 'flag_red', 'ladder', 'sack', 'tent', 'weaponrack', 'wheelbarrow']],
   'KayKit-Medieval-Hexagon-Pack-1.0/main/addons/kaykit_medieval_hexagon_pack/Assets/gltf/buildings/blue': ['medieval', '.gltf', ['building_castle_blue', 'building_home_A_blue', 'building_tavern_blue', 'building_tower_A_blue', 'building_windmill_blue', 'building_well_blue']],
 };

@@ -1,6 +1,6 @@
 ---
 name: remix-models
-description: Change a 3D model the kids already have (bundled or downloaded) - recolor it ("make the knight blue", "a red cape"), keep or remove parts ("only the sword", "no shield"), make variants (gold enemy, giant head, squashed car), combine models (sword from one character in another's hand, a rider on a car), glow, new textures, add or rename animations ("give my robot a dance"), and fix models that are too big, slow, sideways, floating or won't load (Draco). Use for any "change this model" request before looking for a new one.
+description: Change a 3D model the kids already have (bundled or downloaded) - recolor it ("make the barbarian blue", "a red cape"), keep or remove parts ("only the sword", "no shield"), make variants (gold enemy, giant head, squashed car), combine models (sword from one character in another's hand, a rider on a car), glow, new textures, add or rename animations ("give my robot a dance"), and fix models that are too big, slow, sideways, floating or won't load (Draco). Use for any "change this model" request before looking for a new one.
 ---
 
 # Remix models
@@ -30,7 +30,7 @@ model.traverse((o) => {
 o.material.emissive.set('#00ffcc'); o.material.emissiveIntensity = 4;
 
 // Hide parts (names contain these words)
-await loadModel('assets/models/characters/knight.glb', { height: 1.8, hide: ['Shield', '2H_Sword', 'Offhand'] });
+await loadModel('assets/models/characters/barbarian.glb', { height: 1.8, hide: ['Shield', '2H_Axe', 'Offhand', 'Mug'] });
 
 // Variants: same model, different colors
 for (const [i, c] of ['#e63946', '#2a9d8f', '#ffb703'].entries()) {
@@ -56,7 +56,7 @@ o.material.map = tex; o.material.needsUpdate = true;
 ```
 - **Combine models**: borrow a part from another model and put it in a hand. No new file needed:
   ```js
-  const donor = await loadModel('assets/models/characters/knight.glb', { height: 1.8, add: false });
+  const donor = await loadModel('assets/models/characters/barbarian.glb', { height: 1.8, add: false });
   attach(rogue, donor.getObjectByName('1H_Sword'), { to: 'right hand' });
   ```
   Props, hats, torches and hand/head/back positions: see the `character-animation` skill (section 3).
@@ -77,16 +77,16 @@ The original is never changed. The new file goes next to it as `<name>_remix.glb
 into the game). Files in `public/assets` are added to CATALOG.md and get a CREDITS.md line automatically.
 
 ```bash
-npm run remix -- parts public/assets/models/characters/knight.glb
+npm run remix -- parts public/assets/models/characters/barbarian.glb
 npm run remix -- shrink ~/Downloads/triceratops.glb --tris 20000 --texture 1024 --out public/assets/models/dinos/triceratops.glb
-npm run remix -- color public/assets/models/characters/knight.glb all "#3366ff" --out knight_blue.glb
-npm run remix -- color public/assets/models/characters/knight.glb cape gold --out knight_goldcape.glb
+npm run remix -- color public/assets/models/characters/barbarian.glb all "#3366ff" --out barbarian_blue.glb
+npm run remix -- color public/assets/models/characters/barbarian.glb cape gold --out barbarian_goldcape.glb
 npm run remix -- color public/assets/models/racing/vehicle_truck_red.glb body gold --keep-texture --out truck_gold.glb
-npm run remix -- keep public/assets/models/characters/knight.glb 1H_Sword --out sword.glb
-npm run remix -- remove public/assets/models/characters/knight.glb shield --out knight_noshield.glb
+npm run remix -- keep public/assets/models/characters/barbarian.glb 1H_Axe --out axe.glb
+npm run remix -- remove public/assets/models/characters/barbarian.glb shield --out barbarian_noshield.glb
 npm run remix -- turn public/assets/models/dinos/fossil.glb --x 90 --out fossil_standing.glb
 npm run remix -- anims public/assets/models/characters/skeleton_minion.glb
-npm run remix -- add-anims public/assets/models/characters/knight.glb public/assets/models/characters/skeleton_minion.glb --only Taunt Spawn_Ground --out knight_taunt.glb
+npm run remix -- add-anims public/assets/models/characters/barbarian.glb public/assets/models/characters/skeleton_minion.glb --only Taunt Spawn_Ground --out barbarian_taunt.glb
 npm run remix -- rename-anim public/assets/models/characters/rogue.glb Cheer Celebrate --out rogue_party.glb
 ```
 - **shrink**: simplifies to about `--tris` triangles (default 20000), textures at most `--texture` pixels

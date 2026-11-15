@@ -22,8 +22,9 @@ Out of the box:
 - Characters with real collisions for enemies and NPCs, and an arcade car.
 - Sliders for every number (press `` ` `` in the game). Slider values save to `src/tuning.json` automatically.
 - Title / win / lose screens, HUD text and health bars, made-up sound effects, particles, screen shake.
-- 160+ free (CC0) models: 7 animated characters (knight, mage, rogue, barbarian, two skeletons, robot),
-  vehicles and race track pieces, dungeon, graveyard, space base, city, nature, realistic props;
+- 140+ free (CC0) models: 6 animated characters (mage, rogue, barbarian, two skeletons, robot),
+  vehicles and race track pieces, dungeon, graveyard, space base, city, rocks, realistic props (no knight and no
+  trees on purpose: the AI shows the kids pictures of real choices from the libraries instead);
   4 photo skies, 12 realistic textures, 19 sounds. See [`public/assets/CATALOG.md`](public/assets/CATALOG.md).
 - AI rules ([`AGENTS.md`](AGENTS.md), read by Codex and, through [`CLAUDE.md`](CLAUDE.md), Claude Code) that keep
   the AI short, kid-friendly, safe and cheap, plus skills (plain Markdown in [`.agents/skills/`](.agents/skills))

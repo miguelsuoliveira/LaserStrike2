@@ -136,11 +136,12 @@ Random placement changes on every reload. Put `seedRandom(7)` at the start of `s
 
 ## Decorating fast
 
-Scatter trees/rocks around the edge (not on the play area):
+Scatter trees/rocks around the edge (not on the play area). No trees are bundled: search for the kind the kids
+want (`npm run assets -- pizza search palm tree --thumbs`), let them pick, then:
 ```js
 for (let i = 0; i < 30; i++) {
   const a = random(0, Math.PI * 2), d = random(40, 90);
-  loadModel('assets/models/nature/tree_single_a.glb', { height: random(5, 9), position: [Math.cos(a) * d, 0, Math.sin(a) * d], rotation: random(0, 360), physics: 'fixed' });
+  loadModel('assets/models/polypizza/palm_tree.glb', { height: random(5, 9), position: [Math.cos(a) * d, 0, Math.sin(a) * d], rotation: random(0, 360), physics: 'fixed' });
 }
 ```
 Walls/arches with openings need `shape: 'mesh'` so you can walk through the gap.

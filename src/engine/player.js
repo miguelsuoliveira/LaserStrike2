@@ -3,7 +3,7 @@
 //
 // THE PLAYER (keyboard + mouse + camera):
 //   const player = await createPlayer({
-//     model: 'assets/models/characters/knight.glb',   // or your own THREE object (a blob made of spheres)
+//     model: 'assets/models/characters/barbarian.glb', // or your own THREE object (a blob made of spheres)
 //     height: 1.8,
 //     position: [0, 1, 0],
 //     camera: 'third',           // 'third' | 'first' | 'top' | 'side' | 'none'

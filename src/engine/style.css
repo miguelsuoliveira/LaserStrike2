@@ -317,10 +317,20 @@ canvas {
 }
 
 /* Phone controls (touch.js) */
+/* Never zoom or scroll the page on phones: pinch, double tap and iPhone's landscape text enlarging. */
+html,
+body {
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body.touch,
 body.touch canvas {
   touch-action: none;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .touch-stick {
   position: fixed;
@@ -346,12 +356,12 @@ body.touch canvas {
 .touch-buttons {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 56px); /* above the bottom-right corner */
   display: flex;
   flex-wrap: wrap-reverse;
   justify-content: flex-end;
   gap: 12px;
-  max-width: 50vw;
+  max-width: min(50vw, 230px); /* at most 3 buttons per row; more go in a row above */
   z-index: 25;
 }
 .touch-button {
@@ -380,9 +390,11 @@ body.touch .key-hint {
   font-size: 22px;
 }
 
-/* Keep corner text clear of the phone buttons */
+/* Phones: the bottom-right corner stays empty (hosting badges like "Powered by Netlify" and browser
+   buttons sit there), the buttons go just above it, and corner text moves to the top right. */
 body.touch .hud-bottom-right {
-  bottom: 96px;
+  bottom: auto;
+  top: 84px;
 }
 .turn-phone {
   display: none;

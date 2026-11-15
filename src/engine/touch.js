@@ -20,7 +20,34 @@ const STICK_RADIUS = 56;
 const buttons = new Map(); // key -> element
 let bar = null;
 
+// Phones never zoom the game: iPhone Safari ignores "user-scalable=no", so pinch and double tap are
+// stopped here, and a page that got zoomed anyway is put back to normal size.
+function stopZoom() {
+  const stop = (e) => e.preventDefault();
+  for (const name of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(name, stop, { passive: false });
+  document.addEventListener('touchmove', (e) => (e.touches.length > 1 || (e.scale && e.scale !== 1)) && e.preventDefault(), { passive: false });
+  let lastEnd = 0;
+  document.addEventListener(
+    'touchend',
+    (e) => {
+      const now = performance.now();
+      if (now - lastEnd < 350 && !e.target.closest?.('input, textarea, select, .lil-gui')) e.preventDefault(); // double tap
+      lastEnd = now;
+    },
+    { passive: false },
+  );
+  document.addEventListener('dblclick', stop, { passive: false });
+  const meta = document.querySelector('meta[name=viewport]');
+  window.visualViewport?.addEventListener('resize', () => {
+    if (!meta || window.visualViewport.scale < 1.01) return;
+    const content = meta.content;
+    meta.content = `${content.replace(/,?\s*maximum-scale=[^,]*/, '')}, maximum-scale=1.0001`;
+    requestAnimationFrame(() => (meta.content = content));
+  });
+}
+
 export function setupTouch() {
+  stopZoom();
   if (!isTouch) return;
   document.body.classList.add('touch');
   const stick = document.createElement('div');

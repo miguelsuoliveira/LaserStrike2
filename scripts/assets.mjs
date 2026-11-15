@@ -13,8 +13,9 @@
 //   npm run assets -- quaternius list [word]        Quaternius packs (CC0) quaternius get <pack> [--only "a,b"] [--all]
 //   npm run assets -- itch get <creator>/<game>     a free itch.io pack [--file word] [--only "a,b"] [--all]
 //   npm run assets -- smithsonian search skull      museum scans (CC0, checked)   smithsonian get <id> [--small]
-//   npm run assets -- objaverse search dragon       6,000 models (mostly CC-BY) [--cc0] [--animated] [--max-tris N] [--thumbs]
-//   npm run assets -- objaverse get <id>            [--lod 1|2|3] [--name x]
+//   npm run assets -- objaverse search dragon       800,000 models (CC-BY/CC0) [--cc0] [--animated] [--max-tris N] [--thumbs]
+//                                                   --checked: only the 6,000 hand-checked ones
+//   npm run assets -- objaverse get <id>            [--name x] [--big] (checked set: [--lod 1|2|3])
 //   npm run assets -- url <https://...file.glb> --author "Name" --license CC0 [--folder models/props] [--name x]
 //   npm run assets -- zip ~/Downloads/pack.zip --author Kenney --license CC0 [--folder models/pack_name]
 //        (unpacks only .glb/.gltf models and .ogg/.mp3/.wav sounds)
@@ -40,7 +41,7 @@ try {
   // no .env: fine
 }
 
-const BOOL = new Set(['all', 'animated', 'cc0', 'force', 'small', 'thumbs', 'no-catalog']);
+const BOOL = new Set(['all', 'animated', 'big', 'cc0', 'checked', 'force', 'small', 'thumbs', 'no-catalog']);
 const [cmd, ...rest] = process.argv.slice(2);
 const flags = {};
 const args = [];

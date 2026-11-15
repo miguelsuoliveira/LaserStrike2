@@ -38,6 +38,8 @@ Y is up. The ground top is y = 0. It starts as an empty floor with a grid: repla
 **Models**
 - `const m = await loadModel('assets/models/...glb', { height | size, scale, position, rotation (degrees Y), turn, hide: ['Part'], physics, shape, add, center })`
   Returns a THREE.Group with feet at its position (`center: false` keeps the file's origin). Copies are cheap.
+  The engine's front is +Z. Models from the internet often face another way: `turn: 90 | -90 | 180` fixes the
+  model itself (`rotation` is where it looks in the level). Check with `npm run snap -- --colliders`.
   `m.userData.model` is the loaded scene inside. Parts, bones and sizes: `npm run inspect -- public/assets/...glb`
   (it prints names the way three.js sees them: dots are removed, `handslot.r` → `handslotr`).
 - `const anim = animate(m)`: `anim.play('Run', { speed })` (loose name match), `await anim.once('Attack', { speed })`, `anim.names`, `anim.busy`
@@ -55,10 +57,12 @@ Y is up. The ground top is y = 0. It starts as an empty floor with a grid: repla
   `player.faceCamera = true` (for aiming), `player.lookAt = vec3 | null`, `player.spawn` (respawn point, a Vector3).
   Standing on `physics: 'kinematic'` platforms carries the player.
 - Enemies/NPCs with the same physics: `const e = await createCharacter({ model, position, speed })`, then every frame
-  `e.walkTo(target)` or `e.move(x, z)`; `e.tryJump()`, `e.remove()`, plus everything the player has
+  `e.walkTo(target)` (goes around walls and crates in its way, sidesteps when stuck; no maze solving) or `e.move(x, z)`;
+  `e.tryJump()`, `e.remove()`, plus everything the player has
   (`e.settings` is shared by all NPCs: gravity, jumpHeight, acceleration...).
 - Cars: `const car = await createVehicle({ model, size: 3, position, rotation, camera, controls })` (W/S/A/D, Space drift,
-  chase camera; drives up ramps and jumps off them). `car.speed`, `car.boost(2)`, `car.maxSpeed`, `car.frozen`,
+  chase camera; drives up ramps and jumps off them; `ramps: false` never jumps: tanks, trucks). A warning says when
+  the model looks sideways (wider than long): fix it with `turn`. `car.speed`, `car.boost(2)`, `car.maxSpeed`, `car.frozen`,
   `controls: false` + `car.steer`/`car.throttle` for computer cars. Ready-made race track and rival cars:
   `game-recipes` skill, `vehicles.md`. Boats, planes, spaceships and rolling balls: `vehicles.md` too.
 
@@ -69,7 +73,20 @@ Y is up. The ground top is y = 0. It starts as an empty floor with a grid: repla
 - Top view uses topDownHeight and topDownAngle (not distance); the sky is barely visible from above, so make the floor look good.
 
 **Physics** (`physics`, Rapier)
-- `physics.add(obj, { type: 'dynamic' | 'fixed' | 'kinematic', shape: 'box' | 'ball' | 'capsule' | 'cylinder' | 'mesh' | 'hull', mass, friction, bounciness, sensor, lockRotation, gravity: 0..1, ccd })`
+- `physics.add(obj, { type: 'dynamic' | 'fixed' | 'kinematic', shape, material, mass, friction, bounciness, sensor, lockRotation, gravity: 0..1, damping, ccd })`
+- Leave `shape` out: `box()`/`ball()`/`cylinder()` keep their shape, fixed models get their **exact** shape (drive under
+  tables, walk through doorways and up stairs), moving models a `'hull'` (shrink-wrap), sensors a `'box'`. Choose one
+  only when needed: `'box' | 'ball' | 'capsule' | 'cylinder' | 'mesh' (exact) | 'hull'`. Hidden parts don't collide.
+- `material: 'ice' | 'grease' | 'rubber' | 'wood' | 'metal' | 'stone'` sets friction and bounciness.
+- Dynamic things under 0.5 m (shots, balls) get `ccd` automatically: fast ones don't pass through walls.
+- **Collider view:** `npm run snap -- --colliders` (or slider Physics > showColliders): green lines = scenery, blue =
+  moving things, pink = sensors, **yellow arrow = where a character or vehicle thinks forward is** (it must come out of
+  its face, nose or gun barrel).
+- **Physics checks** print as warnings in `npm run snap` and `logs/browser.log`: something starting inside something
+  else (it would fly out), something falling through the world at the start, a character or car starting inside a
+  wall (it gets lifted out), a vehicle model facing sideways. Fix them; they are real bugs kids will see.
+- Steep stairs in a model (steps over ~20 cm or under ~50 cm deep) block characters: put an invisible ramp on them,
+  `box({ size: [width, 0.2, length], position, rotation: [-angle, 0, 0], opacity: 0 })` (walkable up to 50°).
 - `physics.onHit(obj, (other) => {})` touching starts (`other === player.object` for the player; sensors notice the player too)
 - `physics.push(obj, { x, y, z })`, `physics.setVelocity(obj, v)`, `physics.getVelocity(obj)`, `physics.teleport(obj, [x, y, z])`
 - `physics.raycast(from, dir, maxDist, { ignore: obj })` → `{ object, point, normal, distance } | null`

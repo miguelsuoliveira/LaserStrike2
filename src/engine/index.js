@@ -82,6 +82,7 @@ export async function start(game) {
     }
     cameraRig.update(realDt);
     updateFx(realDt);
+    physics.drawDebug(world.scene); // collider view (slider Physics > showColliders)
     updateAudio();
     world.render();
     input.endFrame();

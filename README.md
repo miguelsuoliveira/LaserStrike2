@@ -4,19 +4,21 @@ A starter project for a 4-5 hour game jam where kids (12+) with no coding experi
 game by talking to an AI coding agent (Claude Code, or Codex). The boring and hard parts are already
 done, so the kids spend their time on ideas, design and tuning.
 
-**This branch (`guided-start`)** starts with an empty world. The AI guides each team through four choices
+The game starts with an empty world. The AI guides each team through four choices
 (**Player** + view, **World**, **Goal**, **Twist**), builds a playable first draft after each one, and keeps
 the team's plan and checklist in [`our-game.md`](our-game.md). It shows pictures before building (the kids'
 paper sketches or gpt-image-2.6) and downloads models on demand from Kenney, KayKit, Quaternius, Poly Pizza,
-Poly Haven, the Smithsonian and Objaverse. The `main` branch has the "Coin Rush" example game instead.
+Poly Haven, the Smithsonian and Objaverse (800,000 models).
 
-![What the engine can do: a knight in a field with trees, rocks, coins and a campfire (main branch example)](docs/screenshot.jpg)
+![What the engine can do: a knight in a field with trees, rocks, coins and a campfire (an earlier example game)](docs/screenshot.jpg)
 
 Out of the box:
 
 - A realistic-looking 3D world: animated sky with clouds and time of day, sun shadows, fog, glow, photo skies.
 - A third-person player that walks, runs, jumps, climbs steps and pushes things, with automatic animations.
-- Physics (Rapier): things fall, stack, bounce and get knocked over.
+- Physics (Rapier): things fall, stack, bounce and get knocked over. Colliders fit each model (exact for scenery),
+  a collider view (`npm run snap -- --colliders`) shows them with a "forward" arrow on characters and cars, and
+  physics checks warn about things that start inside each other, fall through the floor or face sideways.
 - Characters with real collisions for enemies and NPCs, and an arcade car.
 - Sliders for every number (press `` ` `` in the game). Slider values save to `src/tuning.json` automatically.
 - Title / win / lose screens, HUD text and health bars, made-up sound effects, particles, screen shake.

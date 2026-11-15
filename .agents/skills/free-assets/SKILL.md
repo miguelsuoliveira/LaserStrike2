@@ -23,7 +23,7 @@ Use the `remix-models` skill instead of downloading a new one.
 | A character or creature that walks, runs and attacks | KayKit adventurers/skeletons, Quaternius monsters, `pizza search <animal> --animated` | `kenney-kaykit-quaternius`, `poly-pizza` |
 | Realistic sky, ground/wall texture, photo-real prop | Poly Haven | `poly-haven` |
 | A real museum object (dinosaur skeleton, fossil, statue, plane) | Smithsonian 3D | `smithsonian-3d` |
-| Something specific nobody else has (toaster, jellyfish, submarine) | Objaverse (6,000 models, mostly CC-BY) | `objaverse` |
+| Something specific nobody else has (toaster, jellyfish, submarine) | Objaverse (800,000 models, CC-BY/CC0) | `objaverse` |
 
 Quick order for "I want an X": catalog → `pizza search X` → kit with X → `objaverse search X`.
 
@@ -85,5 +85,21 @@ File > Export > glTF Binary), which is a mentor job. Files saved by hand go into
 ```bash
 npm run inspect -- public/assets/models/<folder>/<file>.glb
 ```
+
 Shows size in meters, parts, bones and animations. Load it with `height` or `size` so it's the right size in
-the game, and check it with `npm run snap`. Sideways, floating, too big or too slow: `remix-models` skill.
+the game. Then, once, for anything that moves, collides or shoots:
+
+```bash
+npm run snap -- --colliders --before "game.cameraRig.aimAt(game.player.object)"
+```
+
+- **Front:** the yellow arrow on a character or vehicle must come out of its face, nose or gun barrel. Downloaded
+  models often face sideways or backwards: `loadModel(..., { turn: 90 })` (or -90, 180) and look again.
+  Things that aren't characters or vehicles: look at them from the front with `--before` and check they face the
+  way your code moves them.
+- **Collider:** green (scenery) and blue (moving) lines must hug the model. A big box around empty space, lines
+  floating above or sunk into the floor, or no lines at all (it isn't solid) are bugs: see `ENGINE.md`, Physics.
+- **Size:** next to the player it should look right (a mug is not as tall as the hero, unless that's the joke).
+- **Warnings:** fix every `Physics check:` line the snap prints.
+
+Too big, too slow, wrong colors or wrong parts: `remix-models` skill.

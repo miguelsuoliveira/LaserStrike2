@@ -15,6 +15,8 @@
 //        --before and --eval may use await: --eval "const m = await game.module('birds'); return m.birds.length"
 //   npm run snap -- --zoom 2                      zoom into the middle of the screen (small things in top-down games)
 //   npm run snap -- --phone                       a phone held sideways, with the touch controls showing
+//   npm run snap -- --colliders                   show colliders (green = scenery, blue = moving things) and
+//                                                 yellow arrows = which way characters and vehicles think is forward
 // Uses the running `npm run dev` server if there is one, otherwise starts its own.
 // Needs Google Chrome (or Microsoft Edge) installed.
 import fs from 'node:fs';
@@ -94,8 +96,11 @@ page.on('response', (r) => {
 
 const url = new URL(base);
 if (!opt('title', false)) url.searchParams.set('play', '1');
-const set = opt('set', null);
-if (set && set !== true) url.searchParams.set('tune', set);
+let set = opt('set', null);
+if (set === true) set = null;
+// --colliders: show what things bump into (green/blue lines) and which way is forward (yellow arrows)
+if (opt('colliders', false)) set = [set, 'Physics.showColliders=true'].filter(Boolean).join(', ');
+if (set) url.searchParams.set('tune', set);
 url.searchParams.set('demo', '1');
 if (phone) url.searchParams.set('touch', '1');
 const started = Date.now();

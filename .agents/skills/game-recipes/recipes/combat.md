@@ -2,11 +2,12 @@
 
 ## Projectiles (blaster bolts, fireballs, snowballs)
 
-Simple moving objects checked by distance. Reliable, no physics needed.
+Simple moving objects checked by distance, stopped by walls (a short ray each frame), so shots never fly
+through walls, crates or the floor.
 
 ```js
 // src/game/shooting.js
-import { THREE, world, cameraRig, input, tune, near, sfx, fx, ball, ui } from '../engine/index.js';
+import { THREE, world, physics, cameraRig, input, tune, near, sfx, fx, ball, ui } from '../engine/index.js';
 import { enemies, hitEnemy } from './enemies.js';
 
 const S = tune('Shooting', {
@@ -33,12 +34,17 @@ export function updateShooting(dt, player) {
     shoot(player);
   }
   for (const b of [...bullets]) {
-    b.position.addScaledVector(b.userData.velocity, dt);
+    // A wall (or the floor) in the way this frame? Stop there. Enemies are checked by distance below.
+    const v = b.userData.velocity;
+    const wall = physics.raycast(b.position, v, v.length() * dt, { ignore: player.object });
+    const isEnemy = wall && enemies.some((e) => e.object === wall.object);
+    if (wall && !isEnemy) b.position.copy(wall.point);
+    else b.position.addScaledVector(v, dt);
     b.userData.life -= dt;
     const hit = enemies.find((e) => !e.dead && near(b, e.position.clone().setY(e.position.y + 1), 1));
     if (hit) hitEnemy(hit, S.damage);
-    if (hit || b.userData.life <= 0) {
-      if (hit) fx.burst(b.position, { color: S.color, count: 8, speed: 3 });
+    if (hit || (wall && !isEnemy) || b.userData.life <= 0) {
+      if (hit || wall) fx.burst(b.position, { color: S.color, count: 8, speed: 3 });
       world.remove(b);
       bullets.splice(bullets.indexOf(b), 1);
     }

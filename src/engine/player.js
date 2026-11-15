@@ -14,7 +14,7 @@
 //
 // ENEMIES / ANIMALS / NPCs (you steer them in update):
 //   const zombie = await createCharacter({ model: 'assets/models/characters/skeleton_minion.glb', position: [5, 0, 5], speed: 2 });
-//   zombie.walkTo(player.position)       // call every frame; walks there and stops at arrival
+//   zombie.walkTo(player.position)       // call every frame; walks there (around walls and boxes in the way)
 //   zombie.move(x, z)                    // or: walk in a direction this frame (x/z from -1 to 1)
 //   zombie.stop()
 //   zombie.remove()                      // gone from the world
@@ -37,6 +37,8 @@ import { animate, forgetAnimator } from './animation.js';
 import { damp } from './utils.js';
 
 const characters = [];
+const _ahead = new THREE.Vector3();
+const _from = new THREE.Vector3();
 const _rideP = new THREE.Vector3();
 const _rideV = new THREE.Vector3();
 const _rideQ = new THREE.Quaternion();
@@ -113,7 +115,11 @@ export async function createCharacter(opts = {}) {
   controller.setApplyImpulsesToDynamicBodies(true);
   controller.setCharacterMass(60);
   physics.register(object, body, collider);
+  physics.showFacing(object, radius + 0.8);
   object.userData.cameraIgnore = true;
+  let checkSpawn = true; // started (or teleported) inside something? lift it out first
+  // walkTo: going around things in the way, and getting unstuck
+  const avoid = { side: 1, until: 0, stuckUntil: 0, stuckFor: 0, last: new THREE.Vector3(), lastTime: 0 };
 
   const anim = animate(object);
   const names = { ...DEFAULT_ANIMATIONS, ...(opts.animations || {}) };
@@ -169,8 +175,53 @@ export async function createCharacter(opts = {}) {
       const dx = p.x - object.position.x;
       const dz = p.z - object.position.z;
       const d = Math.hypot(dx, dz);
-      if (d < stopDistance) this.stop();
-      else this.move(dx / d, dz / d);
+      if (d < stopDistance) {
+        this.stop();
+        return d;
+      }
+      let mx = dx / d;
+      let mz = dz / d;
+      const now = performance.now() / 1000;
+      // Stuck (wants to walk but hardly moved for a second): walk sideways for a moment.
+      if (now - avoid.lastTime > 0.5) {
+        const movedBy = Math.hypot(object.position.x - avoid.last.x, object.position.z - avoid.last.z);
+        avoid.stuckFor = movedBy < 0.15 && !this.frozen ? avoid.stuckFor + (now - avoid.lastTime) : 0;
+        avoid.last.copy(object.position);
+        avoid.lastTime = now;
+        if (avoid.stuckFor > 1) {
+          avoid.side = -avoid.side;
+          avoid.stuckUntil = now + 0.8;
+          avoid.stuckFor = 0;
+        }
+      }
+      if (now < avoid.stuckUntil) {
+        [mx, mz] = [mx * 0.3 + mz * avoid.side, mz * 0.3 - mx * avoid.side];
+      } else {
+        // Something solid right ahead (a wall, a crate; not the target, not small stuff underfoot)? Go along it.
+        _from.set(object.position.x, object.position.y + Math.min(height * 0.5, (P.stepHeight ?? 0.4) + 0.15), object.position.z);
+        const look = radius + 0.8;
+        const hit = physics.raycast(_from, _ahead.set(mx, 0, mz), look, { ignore: object });
+        const o = hit?.object;
+        const isTarget = o && (o === target || o === target.object || Math.hypot(o.position.x - p.x, o.position.z - p.z) < 1.5);
+        // Stairs: just before the riser we hit, the floor is already higher than our feet (a step we can climb).
+        let stairs = false;
+        if (hit && !isTarget) {
+          _ahead.set(hit.point.x - mx * 0.12, _from.y, hit.point.z - mz * 0.12);
+          const down = physics.raycast(_ahead, { x: 0, y: -1, z: 0 }, _from.y - object.position.y + 0.1, { ignore: object });
+          stairs = !!down && down.point.y > object.position.y + 0.08;
+        }
+        if (hit && !isTarget && !stairs && hit.distance < d - 0.3 && Math.abs(hit.normal.y) < 0.6) {
+          // Follow the wall one way (the side nearer the target), and keep going that way until the way is clear.
+          const nl = Math.hypot(hit.normal.x, hit.normal.z) || 1;
+          const nx = hit.normal.x / nl;
+          const nz = hit.normal.z / nl;
+          if (now > avoid.until) avoid.side = -nz * mx + nx * mz >= 0 ? 1 : -1;
+          avoid.until = now + 0.6;
+          mx = -nz * avoid.side + nx * 0.15; // along the wall, a little away from it
+          mz = nx * avoid.side + nz * 0.15;
+        }
+      }
+      this.move(mx, mz);
       return d;
     },
 
@@ -184,6 +235,7 @@ export async function createCharacter(opts = {}) {
       object.position.copy(v);
       body.setTranslation({ x: v.x, y: v.y + halfHeight + radius + LIFT, z: v.z }, true);
       velocity.set(0, 0, 0);
+      checkSpawn = true;
     },
 
     // Always jumps, even in the air (jump pads, bounces). 2 = twice as high.
@@ -205,6 +257,7 @@ export async function createCharacter(opts = {}) {
       if (i >= 0) characters.splice(i, 1);
       physics.world.removeCharacterController(controller);
       physics.world.removeRigidBody(body);
+      physics.remove(object);
       forgetAnimator(object);
       object.removeFromParent();
     },
@@ -213,6 +266,10 @@ export async function createCharacter(opts = {}) {
     update(dt) {
       // The ground and walls only become solid after the first physics step: wait for it.
       if (physics.steps <= createdAtStep) return;
+      if (checkSpawn) {
+        checkSpawn = false;
+        physics.unstick(body, collider, object.name || 'a character');
+      }
       const isPlayer = this === playerRef;
       let mx = this.frozen ? 0 : want.x;
       let mz = this.frozen ? 0 : want.z;

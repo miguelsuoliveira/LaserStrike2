@@ -10,6 +10,7 @@
 //   rotation: [x, y, z] in degrees       glow: '#00ffff' (makes it shine), glowStrength: 0.3 (big glowing areas
 //                                        like lava: use a dark color + low glowStrength, or the screen washes out)
 //   texture: a folder in assets/textures (tiles every `tile` meters, default 2)
+//   opacity: 0.5 see-through; opacity: 0 = invisible but solid (invisible walls, a ramp over steep stairs)
 //   mass, bounciness, friction           roughness: 0..1, metalness: 0..1
 import * as THREE from 'three';
 import { world } from './world.js';
@@ -17,8 +18,10 @@ import { physics } from './physics.js';
 import { loadMaterial } from './assets.js';
 
 function finish(mesh, opts, defaultPhysics, shape) {
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
+  const invisible = opts.opacity === 0; // invisible walls and ramps: solid, but no shadow and not drawn
+  mesh.castShadow = !invisible;
+  mesh.receiveShadow = !invisible;
+  if (invisible) mesh.material.colorWrite = mesh.material.depthWrite = false;
   const p = opts.position || [0, 0, 0];
   if (Array.isArray(p)) mesh.position.set(p[0], p[1], p[2]);
   else mesh.position.copy(p);

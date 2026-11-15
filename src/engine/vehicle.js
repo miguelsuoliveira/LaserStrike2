@@ -11,6 +11,9 @@
 //   car.teleport([x, y, z], rotationDegrees), car.boost(2) (2x speed for a moment), car.controls = false (drive it from code)
 //   car.steer / car.throttle  (-1..1) when controls = false (AI cars); car.maxSpeed = 18 (this car only)
 //   car.boosting (true during a boost), car.grounded
+//   ramps: false   never jump off ramps (tanks, trucks); by default driving fast up a real ramp launches the car
+//   The model's front must point +Z: if it drives sideways or backwards, fix it with turn: 90, -90 or 180
+//   (check with `npm run snap -- --colliders`: the yellow arrow is forward).
 // Sliders "Car": maxSpeed, acceleration, brakes, turnSpeed, grip, gravity.
 import * as THREE from 'three';
 import { physics } from './physics.js';
@@ -19,6 +22,7 @@ import { tune } from './tuning.js';
 import { cameraRig } from './camera.js';
 import { loadModel } from './assets.js';
 import { damp } from './utils.js';
+import { warnOnce } from './physics.js';
 
 const vehicles = [];
 let V = null;
@@ -41,6 +45,8 @@ export async function createVehicle(opts = {}) {
     turn: opts.turn,
   });
   const s = object.userData.size; // width, height, length after scaling
+  if (s.x > s.z * 1.2)
+    warnOnce(`sideways:${object.name}`, `the vehicle "${object.name}" is wider than it is long, so it probably drives sideways. Look at it with npm run snap -- --colliders (the yellow arrow is forward) and fix it with turn: 90 or turn: -90.`);
   const R = physics.RAPIER;
   const hx = s.x / 2;
   const hy = Math.max(0.2, s.y / 2 - 0.15, hx); // at least half the width: the capsule below is as wide as the car
@@ -62,12 +68,15 @@ export async function createVehicle(opts = {}) {
   controller.setMaxSlopeClimbAngle(THREE.MathUtils.degToRad(40));
   controller.enableSnapToGround(0.4);
   physics.register(object, body, collider);
+  physics.showFacing(object, Math.max(1.2, s.z * 0.9));
   object.userData.cameraIgnore = true;
+  let checkSpawn = true; // started (or teleported) inside something? lift it out first
 
   let heading = object.rotation.y;
   const createdAtStep = physics.steps;
   let vy = 0;
   let climb = 0; // m/s upwards while driving up a slope
+  const ramps = opts.ramps ?? true;
   let boostUntil = 0;
   let boostScale = 1;
   const sideways = new THREE.Vector2(); // drift velocity (x = forward, y = sideways)
@@ -94,6 +103,7 @@ export async function createVehicle(opts = {}) {
       object.position.copy(v);
       if (rotationDegrees !== undefined) heading = THREE.MathUtils.degToRad(rotationDegrees);
       body.setTranslation({ x: v.x, y: v.y + hy + LIFT, z: v.z }, true);
+      checkSpawn = true;
       this.speed = 0;
       sideways.set(0, 0);
       vy = 0;
@@ -109,6 +119,10 @@ export async function createVehicle(opts = {}) {
       // New colliders (the ground, walls) only become solid after the first physics step:
       // moving before that lets the car fall into the ground and get stuck.
       if (physics.steps <= createdAtStep) return;
+      if (checkSpawn) {
+        checkSpawn = false;
+        physics.unstick(body, collider, object.name);
+      }
       if (this.controls) {
         this.throttle = this.frozen ? 0 : input.move.y;
         this.steer = this.frozen ? 0 : -input.move.x;
@@ -141,15 +155,20 @@ export async function createVehicle(opts = {}) {
 
       vy = this.grounded ? -1 : vy - V.gravity * dt;
       // Don't glue the car to the ground while it climbs, or it can't fly off the top of a ramp.
-      if (climb > 2) controller.disableSnapToGround();
+      if (climb > 2 && ramps) controller.disableSnapToGround();
       else controller.enableSnapToGround(0.4);
       controller.computeColliderMovement(collider, { x: move.x * dt, y: vy * dt, z: move.z * dt }, R.QueryFilterFlags.EXCLUDE_SENSORS);
       const moved = controller.computedMovement();
       const wasGrounded = this.grounded;
       this.grounded = controller.computedGrounded();
       // Driving up a ramp: remember how fast we climb, so driving off the top is a real jump.
-      if (this.grounded) climb = Math.max(moved.y / dt, climb - 10 * dt); // (smoothed: the ramp lip is bumpy)
-      else if (wasGrounded) vy = Math.max(vy, climb);
+      // Smoothed and capped: a step up onto a plate or kerb (autostep lifts the car in one go) is not a ramp,
+      // and used to launch cars and tanks high into the air when they drove off the other side.
+      if (this.grounded) {
+        const rate = THREE.MathUtils.clamp(moved.y / dt, 0, Math.abs(this.speed) * 0.85);
+        climb = damp(climb, rate, 5, dt);
+      } else if (wasGrounded && ramps && climb > 2) vy = Math.max(vy, Math.min(climb, 12));
+      if (!this.grounded && vy > 12) vy = 12;
       // Bumped into a wall: lose speed.
       const want = Math.hypot(move.x, move.z) * dt;
       const got = Math.hypot(moved.x, moved.z);

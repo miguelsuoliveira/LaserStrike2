@@ -18,7 +18,7 @@ fill in a choice they didn't make: ask, and suggest.
    skill; fastest: `npm run assets -- pizza search <thing> --thumbs`; realistic: Poly Haven, Objaverse).
    Boxes and spheres are only for walls, floors, platforms and simple shapes, or when nothing fits (then say so).
    Pick things from the kids' words and their picture, not the first things every game of that kind has: their
-   castle shouldn't look like every other castle.
+   spaceship shouldn't look like every other spaceship.
 4. New look (a new game, player, world, creature or screen)? Show a picture first and ask "Like this?"; that
    includes the very first build of a new game. One picture is enough: if they change the look before the first
    build ("make it realistic"), build it in that look; the game is the next preview.
@@ -28,7 +28,11 @@ fill in a choice they didn't make: ask, and suggest.
 6. Build fast, then **see the main new thing** with `npm run snap` before you say it works (and `--phone` when you
    added controls or screens): teleport next to it,
    look up with `--before "game.cameraRig.pitch = -0.7"`, or `--eval` a value. If you couldn't see it, fix that first.
-7. Save point, update `our-game.md`, then reply: short, the progress line, one question with options.
+7. **New model that moves, collides or shoots?** Check it once with `npm run snap -- --colliders`: the yellow arrow
+   must come out of its front (face, nose, gun barrel), or it will walk, drive or shoot sideways: fix with
+   `turn: 90 | -90 | 180`. The lines must hug the model (no big invisible box, not floating, not sunk into the
+   floor) and it must be the right size next to the player. Fix every `Physics check:` warning before replying.
+8. Save point, update `our-game.md`, then reply: short, the progress line, one question with options.
 
 ## How to talk
 
@@ -220,7 +224,7 @@ Guides for common jobs are in `.agents/skills/<name>/SKILL.md` (plain Markdown; 
 | one cartoon model fast (thousands of low-poly models) | `poly-pizza` |
 | realistic models, photo skies, textures | `poly-haven` |
 | museum scans (dinosaurs, fossils, spacecraft, statues) | `smithsonian-3d` |
-| 6,000 checked 3D models of everything (animals, cars, furniture, food) | `objaverse` |
+| 800,000 3D models of almost anything (Objaverse: animals, tools, furniture, food) | `objaverse` |
 | change a model: color, size, parts, animations, too big or slow | `remix-models` |
 | effects, sounds, glow, weather, time of day, "make it feel good" | `game-feel` |
 | the kids' own drawings, voices, logos, paper maps | `make-it-ours` |
@@ -259,7 +263,18 @@ Guides for common jobs are in `.agents/skills/<name>/SKILL.md` (plain Markdown; 
   things that are gone (`world.remove(obj)`), reuse models with `loadModel` (it copies cheaply),
   don't create new materials/geometries every frame.
 - Model front is +Z, and the player starts facing +Z with the camera behind it: build the level in front (+Z),
-  or start the player with `rotation: 180`. To face something use `turnTowards(obj, target, dt)`.
+  or start the player with `rotation: 180`. To face something use `turnTowards(obj, target, dt)`. Shots leave from
+  the gun or nose in the direction the model faces.
+- **Physics that doesn't frustrate:**
+  - Things that walk: `createPlayer`/`createCharacter` (they step up, slide along walls, and `walkTo` goes around
+    things). Things that drive: `createVehicle` (`ramps: false` if it shouldn't jump). Things that tumble or get
+    knocked over: `physics: 'dynamic'`. Never move a solid object by setting its position every frame (it passes
+    through walls or gets stuck): use `physics.setVelocity`/`push`, or `physics: 'kinematic'` for moving platforms.
+  - Put things **on** what's under them (y = the top of it), never inside each other or inside the floor.
+  - Let the engine choose collider shapes (scenery models are exact, moving ones shrink-wrapped). Floors and walls
+    from `box()`. Slippery or bouncy: `material: 'ice' | 'grease' | 'rubber'`.
+  - Instant shots: `physics.raycast`. Shots you can see fly: small dynamic balls (they never pass through walls).
+  - Characters climb steps up to 40 cm; steep model stairs need an invisible ramp (`ENGINE.md`, Physics).
 - Random layouts change every reload; call `seedRandom(7)` first in `setup()` to keep the same layout.
 - Don't edit `src/engine/` unless a skill says so or there is a real engine bug; if you do, say so in your reply
   so a mentor knows.

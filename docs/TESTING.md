@@ -219,3 +219,25 @@ picked Poly Pizza models (mostly the same zombie) and the bundled knight; nobody
 knight or used Objaverse, although Poly Pizza has 12 knights and Objaverse at least 12 animated ones.
 
 Results and screenshots: https://kids-ai-game-jam-test.netlify.app
+
+## Phones never zoom (Nov 15, 2026)
+
+On an iPhone the games could zoom in (Safari ignores `user-scalable=no`), and on Netlify the "Powered by Netlify"
+badge (bottom-right corner, on by default for new free projects; Project configuration > General) covered the
+touch buttons. The engine now stops pinch and double-tap zoom and iPhone's landscape text enlarging, resets a page
+that got zoomed anyway, keeps the bottom-right corner empty (buttons sit above it, at most 3 per row, so 4+ buttons
+no longer cover the HUD), and moves bottom-right HUD text to the top right on phones. Games already on the test
+site got the same fix as a small patch in their page.
+
+## Test 3a: castle again with GPT-6.1 Sol, no bundled knight or trees (Nov 15, 2026)
+
+The knight and all bundled trees were removed (0c70f68) because every test-3 game used them. Same six messages,
+fresh worktree at 6597b77.
+
+| AI | Time | API price | Requests | Tokens in: cached + new · out | Collider checks |
+|---|---|---|---|---|---|
+| Codex gpt-6.1-sol low | 26 min | $1.77 | 88 | 10.4M + 161k · 40k | 29 |
+
+It built every request (fire arrows, supply runs, traps built from supply kits, ladder pushing, catapult, oil,
+crossbow), but it got the knight by downloading the whole KayKit adventurers pack, the same knight that used to be
+bundled, and never showed the kids a choice of knights. Removing defaults alone doesn't make the AI offer choices.

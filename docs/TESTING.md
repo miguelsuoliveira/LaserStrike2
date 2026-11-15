@@ -158,3 +158,64 @@ first (the "new look → picture" rule); only Opus and Fable built a level in th
 game adds 4+ touch buttons they wrap to two rows and cover the bottom-right HUD text.
 
 Results and screenshots: https://kids-ai-game-jam-test.netlify.app
+
+## Physics fixes and model checks (Nov 15, 2026)
+
+Problems seen in the kitchen-tank games: tanks flying into the air after driving over plates, things stuck
+inside other models, models driving or shooting sideways, colliders much bigger than the model. Changes:
+
+- **Tanks and cars flying:** stepping up onto a plate or kerb (autostep, 25 cm in one physics step) counted as
+  driving up a ramp, so leaving the plate launched the car at up to 15 m/s. Climb speed is now smoothed and capped
+  (`speed × 0.85`), so only real ramps launch; `ramps: false` never jumps. Test: plate 0.24 m max height
+  (was several meters), 15° ramp still jumps to 2.2 m.
+- **Colliders fit models:** fixed models get their exact shape (trimesh with internal-edge fix: walk through
+  doorways, under tables, up stairs), moving models a convex hull, `box()`/`ball()`/`cylinder()` their own shape,
+  sensors a box, hidden parts nothing. Before, every model was a box around everything.
+- **Collider view:** `npm run snap -- --colliders` (slider Physics > showColliders): green = scenery, blue =
+  moving, pink = sensors, yellow arrow = where a character or vehicle thinks forward is.
+- **Physics checks** (warnings in snap and `logs/browser.log`): two things starting inside each other, something
+  falling through the world right after it appears, a character or car created inside something (lifted out),
+  a vehicle model wider than long (probably sideways).
+- **Enemies:** `walkTo` follows walls around obstacles (picks one side and keeps it), climbs stairs instead of
+  avoiding them, and sidesteps when stuck. No maze solving yet (a navmesh would be next).
+- Small dynamic things get CCD; `material: 'ice' | 'grease' | 'rubber' | ...`; `box({ opacity: 0 })` is an
+  invisible solid (walls, a ramp over steep stairs).
+- Known limit: characters (capsule radius ~0.4 m) can't climb steep model stairs (30 cm steps, 30 cm deep);
+  20 cm × 60 cm stairs work. Use an invisible ramp.
+- Prompt: step 7 "check every new model once with `--colliders`: front arrow, collider, size, no warnings".
+- Bug found by the castle test and fixed (7bb2ba5): the stuck check also ran on `teleport()`, which games use to
+  move climbing zombies up ladders, so zombies popped onto the wall. It now runs only when something is created.
+
+**Objaverse:** `npm run assets -- objaverse search <words>` now searches all 800,000 Objaverse 1.0 models
+(Sketchfab's public search, kept if the model is in `allenai/objaverse` and CC0/CC-BY, not age-restricted, no
+known brands), downloads the .glb from Hugging Face and shrinks anything over 5 MB or 60k triangles.
+`--checked` keeps the old 6,000-model set. About half to three quarters of Sketchfab's hits are in Objaverse.
+
+## Test 3: knight defends a high castle (Nov 15, 2026)
+
+Same method as the kitchen test, fresh worktrees at 6d156c7, each game open in a hidden Chrome page (instead of
+browser tabs), low effort. Fable 5.2 left out (too expensive); Haiku 5.5 and GPT-6 Luna dropped (Luna took over
+30 minutes for 5 messages).
+
+1. knight third person in a high castle with a sword or a bow, and waves of zombies attack the castle with ladders
+   and other stuff
+2. yes make it look like a real castle, you win if you survive 10 waves and you lose if the zombies get in and get you
+3. i want fire arrows to set them on fire, and you have to run down to get more arrows and supplies
+4. 1
+5. can we push the ladders off the walls
+6. add more medieval weapons like a catapult and boiling oil and a crossbow
+
+| AI | Time | API price | Requests | Tokens in: cached + new · out | Collider checks | Notes |
+|---|---|---|---|---|---|---|
+| Claude Opus 5.5 | 14 min | $2.92 | 61 | 6.08M + 113k · 40k | 19 | best game: every request built and tested, asked about the twist |
+| Codex gpt-6.1-sol | 17 min | $1.23 | 80 | 7.52M + 113k · 26k | 38 | built everything incl. the catapult; "tested and saved!" filler |
+| Claude Sonnet 5.5 | 13 min | $1.58 | 66 | 6.73M + 115k · 45k | 15 | all weapons; marked the Twist itself; starts facing a tower wall |
+| Codex gpt-6.1-terra | 11 min | $0.72 | 106 | 10.0M + 130k · 18k | 18 | catapult only as pictures; plain look |
+| (dropped) Haiku 5.5 medium | 25 min | $1.73 | 151 | 25.5M + 248k · 152k | 15 | 130 of 151 requests over 100k tokens |
+| (dropped) Haiku 5.5 low | 9 min | $0.37 | 57 | 5.88M + 122k · 51k | 9 | same options 4 times; game over in 12 s |
+
+All four were playable by message 2, used the collider view, and showed no physics warnings at the end. Every AI
+picked Poly Pizza models (mostly the same zombie) and the bundled knight; nobody offered the kids a choice of
+knight or used Objaverse, although Poly Pizza has 12 knights and Objaverse at least 12 animated ones.
+
+Results and screenshots: https://kids-ai-game-jam-test.netlify.app

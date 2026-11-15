@@ -70,7 +70,7 @@ export async function createVehicle(opts = {}) {
   physics.register(object, body, collider);
   physics.showFacing(object, Math.max(1.2, s.z * 0.9));
   object.userData.cameraIgnore = true;
-  let checkSpawn = true; // started (or teleported) inside something? lift it out first
+  let checkSpawn = true; // started inside something? lift it out first (only when created)
 
   let heading = object.rotation.y;
   const createdAtStep = physics.steps;
@@ -103,7 +103,6 @@ export async function createVehicle(opts = {}) {
       object.position.copy(v);
       if (rotationDegrees !== undefined) heading = THREE.MathUtils.degToRad(rotationDegrees);
       body.setTranslation({ x: v.x, y: v.y + hy + LIFT, z: v.z }, true);
-      checkSpawn = true;
       this.speed = 0;
       sideways.set(0, 0);
       vy = 0;

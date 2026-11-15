@@ -83,8 +83,8 @@ Y is up. The ground top is y = 0. It starts as an empty floor with a grid: repla
   moving things, pink = sensors, **yellow arrow = where a character or vehicle thinks forward is** (it must come out of
   its face, nose or gun barrel).
 - **Physics checks** print as warnings in `npm run snap` and `logs/browser.log`: something starting inside something
-  else (it would fly out), something falling through the world at the start, a character or car starting inside a
-  wall (it gets lifted out), a vehicle model facing sideways. Fix them; they are real bugs kids will see.
+  else (it would fly out), something falling through the world at the start, a character or car created inside a
+  wall (it gets lifted out; `teleport` never lifts), a vehicle model facing sideways. Fix them; they are real bugs kids will see.
 - Steep stairs in a model (steps over ~20 cm or under ~50 cm deep) block characters: put an invisible ramp on them,
   `box({ size: [width, 0.2, length], position, rotation: [-angle, 0, 0], opacity: 0 })` (walkable up to 50°).
 - `physics.onHit(obj, (other) => {})` touching starts (`other === player.object` for the player; sensors notice the player too)

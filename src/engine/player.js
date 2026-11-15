@@ -117,7 +117,7 @@ export async function createCharacter(opts = {}) {
   physics.register(object, body, collider);
   physics.showFacing(object, radius + 0.8);
   object.userData.cameraIgnore = true;
-  let checkSpawn = true; // started (or teleported) inside something? lift it out first
+  let checkSpawn = true; // started inside something? lift it out first (not after teleport: games use it to move along ladders)
   // walkTo: going around things in the way, and getting unstuck
   const avoid = { side: 1, until: 0, stuckUntil: 0, stuckFor: 0, last: new THREE.Vector3(), lastTime: 0 };
 
@@ -235,7 +235,6 @@ export async function createCharacter(opts = {}) {
       object.position.copy(v);
       body.setTranslation({ x: v.x, y: v.y + halfHeight + radius + LIFT, z: v.z }, true);
       velocity.set(0, 0, 0);
-      checkSpawn = true;
     },
 
     // Always jumps, even in the air (jump pads, bounces). 2 = twice as high.

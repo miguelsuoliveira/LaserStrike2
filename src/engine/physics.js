@@ -178,6 +178,7 @@ export const physics = {
   },
 
   // A character or car that starts inside something solid gets lifted out (up to 4 m) and a warning.
+  // Only when it's created: teleport() is also used to move characters along ladders and walls on purpose.
   // Returns how far it was lifted (0 = it was free).
   unstick(body, collider, label = 'it') {
     const pos = collider.translation(); // the collider's own place and turn (a car's capsule lies down)

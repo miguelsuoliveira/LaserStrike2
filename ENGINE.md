@@ -6,6 +6,9 @@ Import what you need in game files:
 `src/game/game.js` exports `async setup()` (runs once; `await` loading there) and `update(dt)`
 (every frame; `dt` = seconds since last frame). `src/main.js` starts it. Units are meters and seconds.
 Y is up. The ground top is y = 0. It starts as an empty floor with a grid: replace the floor when you build the World.
+It also starts with an invisible first-person explorer (`createPlayer({ model: new THREE.Group(), camera: 'first' })`),
+so the kids can walk through their world before they choose who they are: replace that call in the Player stage
+(a game has one `createPlayer`).
 
 **Sliders**
 - `const S = tune('Enemy', { speed: 3, damage: { value: 10, min: 0, max: 50 }, color: '#ff0000', boss: false, mode: { value: 'easy', options: ['easy', 'hard'] } })`

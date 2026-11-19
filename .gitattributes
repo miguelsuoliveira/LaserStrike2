@@ -1,0 +1,15 @@
+# The same line endings on every system. (Windows git would otherwise turn them into CRLF, which breaks
+# the shell scripts when the folder is used from WSL or a Mac.)
+* text=auto eol=lf
+*.glb binary
+*.gltf text eol=lf
+*.hdr binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp3 binary
+*.ogg binary
+*.wav binary
+*.m4a binary
+*.cmd text eol=crlf

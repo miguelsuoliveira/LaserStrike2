@@ -182,6 +182,7 @@ export const ui = {
 };
 
 // `npm run preview` sends pictures to the running game through the dev server.
-if (import.meta.hot) {
+// Only on the team's own computer: friends playing through the public link don't get the pictures.
+if (import.meta.hot && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
   import.meta.hot.on('preview:show', ({ urls }) => ui.images(urls));
 }

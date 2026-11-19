@@ -4,11 +4,14 @@
 //   npm run saves                                list save points
 //   npm run undo                                 throw away changes since the last save point
 //   npm run load -- 3                            go back to save point #3 (newer ones stay in the list)
+// A save ends with the game's public link, checked (see lib/share.mjs): friends see the saved change there.
 // Nothing is ever lost: undo/load first stash the current files ("git stash list").
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { useLocalTools, hasGit } from './lib/tools.mjs';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: Windows drives, spaces in folder names
 const git = (...args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const tryGit = (...args) => {
   try {
@@ -20,13 +23,38 @@ const tryGit = (...args) => {
 
 const [cmd, ...rest] = process.argv.slice(2);
 
+useLocalTools(ROOT); // Git that the setup put into .tools/ (Windows)
+if (!hasGit()) {
+  console.log(
+    'Save points need Git, and this computer has none.\n' +
+      'For the AI: run `npm run setup` once (on Windows it gets Git by itself). If this message comes again, tell the team\n' +
+      'in one sentence to ask a mentor to install Git, and carry on: the game itself is fine.',
+  );
+  if (cmd === 'save') await printLink();
+  process.exit(cmd === 'save' ? 0 : 1);
+}
 if (tryGit('rev-parse', '--is-inside-work-tree') !== 'true') {
   git('init', '-q');
 }
 if (!tryGit('config', 'user.name')) git('config', 'user.name', 'Game Jam Team');
 if (!tryGit('config', 'user.email')) git('config', 'user.email', 'team@game-jam.local');
+// Same line endings on every system (see .gitattributes), without warnings on Windows.
+if (tryGit('config', '--local', 'core.autocrlf') !== 'false') tryGit('config', '--local', 'core.autocrlf', 'false');
 
 const changed = () => git('status', '--porcelain') !== '';
+
+// The public link, checked through the internet (started again if it stopped). Never stops a save.
+async function printLink() {
+  try {
+    const { findGame, ensureLink, linkReport, linkOff } = await import('./lib/share.mjs');
+    if (linkOff(ROOT)) return;
+    const game = await findGame(ROOT);
+    if (!game) return console.log('No public link: the game is not running. `npm run share` starts it and prints the link.');
+    console.log(linkReport(await ensureLink(ROOT, game, (msg) => console.log(msg))));
+  } catch (e) {
+    console.log(`No public link right now (${e.message}). Leave the link line out of your reply.`);
+  }
+}
 
 function list() {
   const out = tryGit('log', '--reverse', '--format=%h|%ar|%s') || '';
@@ -49,11 +77,12 @@ if (cmd === 'save') {
   const message = rest.join(' ').trim() || 'save point';
   if (!changed()) {
     console.log('Nothing changed since the last save point.');
-    process.exit(0);
+  } else {
+    git('add', '-A');
+    git('commit', '-q', '-m', message);
+    console.log(`Saved: #${list().length} "${message}"`);
   }
-  git('add', '-A');
-  git('commit', '-q', '-m', message);
-  console.log(`Saved: #${list().length} "${message}"`);
+  await printLink();
 } else if (cmd === 'saves') {
   const saves = list();
   if (!saves.length) console.log('No save points yet. Make one with: npm run save -- "what works now"');

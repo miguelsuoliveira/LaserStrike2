@@ -4,7 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "status": "node scripts/status.mjs",
+    "share": "node scripts/setup.mjs --share",
     "dev": "vite --open",
+    "spark": "node scripts/spark.mjs",
     "check": "node scripts/check.mjs",
     "snap": "node scripts/snap.mjs",
     "save": "node scripts/save.mjs save",
@@ -16,8 +20,7 @@
     "remix": "node scripts/remix.mjs",
     "preview": "node scripts/preview.mjs",
     "build": "vite build",
-    "build:preview": "vite preview --open",
-    "postinstall": "node scripts/link-skills.mjs"
+    "build:preview": "vite preview --open"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

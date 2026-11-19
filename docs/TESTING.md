@@ -241,3 +241,59 @@ fresh worktree at 6597b77.
 It built every request (fire arrows, supply runs, traps built from supply kits, ladder pushing, catapult, oil,
 crossbow), but it got the knight by downloading the whole KayKit adventurers pack, the same knight that used to be
 bundled, and never showed the kids a choice of knights. Removing defaults alone doesn't make the AI offer choices.
+
+## How to run a test (since Nov 16, 2026)
+
+Don't point a test agent at your working copy of this repo: its save points are git commits, and its game,
+downloads and plan land in your tree. Instead:
+
+1. `node scripts/test-run.mjs new codex-low` makes a fresh copy next to the repo (your uncommitted changes
+   included, no `node_modules`, so the agent's own setup is part of the test).
+2. Open that folder with the agent and write like the kids would, one message at a time.
+3. `node scripts/test-run.mjs collect codex-low` gathers the transcript (Codex session logs),
+   `our-game.md`, the game code, logs, screenshots, pictures and save points into `.tmp-review/codex-low/`.
+
+## Public link (Nov 19, 2026)
+
+Tested on Linux arm64 (Node 22, cloudflared 2026.11.1) with real Quick Tunnels; not yet on macOS or Windows.
+
+- Fresh copy: `npm run setup` installed, started the game, downloaded cloudflared, and printed a link only after
+  fetching `/__id` through it. A new link took 8-32 s; a second `setup`, `share` or `save` reused it in under 1 s.
+- A phone-sized browser opened the link (game ready in 4.8 s, 44 requests, none failed); a file edit reached that
+  page by hot reload in about a second, with no build.
+- Killed the tunnel: the next `npm run save` noticed, started a new one and reported the link as NEW (8 s).
+- Through the link, `.env`, `.git`, `logs/`, `/@fs/` and the dev tools (`/__project`, `/__preview`,
+  `/__open-in-editor`) answer 404; slider saves and log lines from visitors are dropped.
+- `scripts/bootstrap.sh` with no Node.js on the PATH: Node 22 into `.tools/node`, then the normal setup.
+  `scripts/bootstrap.ps1` is untested.
+
+Two traps found: cloudflared only dials `127.0.0.1`, so the tunnel is pointed at whichever loopback address the
+game answers on; and a new link's name appears up to 26 s after the tunnel connects, while looking it up too early
+makes resolvers remember "no such name" for 60 s. The tools now ask Cloudflare's name servers directly until the
+name exists, and only then fetch the game through it.
+
+## Codex-only, and getting ready for Windows (Nov 19, 2026)
+
+The Claude Code files (CLAUDE.md, hooks, skill links) are gone; `npm run status` now does what the per-message
+hook did. Checked on Linux arm64 with a fresh copy: the first `npm run status` installed, started the game and
+printed a checked link; later calls took 0.3 s; `npm run save` without Git on the PATH explained itself and
+still printed the link; a killed tunnel came back as "NEW ... tell your host"; check and snap passed.
+
+Found by reading, not by running: five scripts built the project path from `new URL(import.meta.url).pathname`,
+which gives `\C:\Users\...` on Windows and `%20` for spaces in folder names on every system. They use
+`fileURLToPath` now.
+
+**Not run on Windows yet. What to check there** (fresh folder from the ZIP, ideally a laptop without Node.js and Git):
+
+1. Double-click `setup.cmd`: Node.js lands in `.tools\node`, Git in `.tools\git`, the engine installs, the game
+   opens in the browser, a link is printed, and the link opens on a phone.
+2. Open the folder in Codex and say hi: it runs `npm run status` (or `npm.cmd run status`), and its reply ends
+   with the link line. No setup talk.
+3. After Codex's command has returned, the game and the link are still up (the background processes survive).
+4. Ask for one small change: the page behind the link updates by itself; `npm run save` prints "Saved" and the link.
+5. Leave the laptop alone past its sleep time: it stays awake (a hidden `powershell` process keeps it so).
+6. Let it sleep on purpose (close the lid a minute): the next reply says "New link! Tell your host".
+7. `npm.cmd run snap` prints "No errors." (it uses Edge when there is no Chrome).
+8. A folder name with a space ("My Game") works.
+
+When something fails, `logs\dev-server.log` and `logs\tunnel.log` say why.

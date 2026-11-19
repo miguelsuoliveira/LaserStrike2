@@ -5,7 +5,7 @@ description: Put the kids' own creations into the game - drawings or photos as t
 
 # Make it ours
 
-Hand-made things are what make a jam game theirs (and they score points for it). Keep it simple and fast.
+Hand-made things are what make a jam game theirs: a world and a story nobody else has. Keep it simple and fast.
 
 ## Getting files onto the laptop
 
@@ -19,7 +19,7 @@ Hand-made things are what make a jam game theirs (and they score points for it).
 
 ## A sketch as a plan
 
-Kids' paper sketches are the best preview: look at the photo to understand their design (a character, a
+Kids' own sketches (whiteboard or paper) are the best preview: look at the photo to understand their design (a character, a
 level map, a screen layout), show it on the game screen, and build from it. `npm run preview -- "what it is"
 --from public/assets/images/<photo>.jpg` turns a sketch into a cleaner concept picture (needs the image AI key)
 while keeping their design. Ask which parts matter most before you start.

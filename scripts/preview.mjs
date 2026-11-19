@@ -14,9 +14,10 @@
 // open in the computer's picture viewer instead.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync, spawn } from 'node:child_process';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: Windows drives, spaces in folder names
 const OUT = path.join(ROOT, '.previews');
 const MODELS = [process.env.IMAGE_MODEL, 'gpt-image-2.6', 'gpt-image-2.5-flare', 'gpt-image-1'].filter(Boolean);
 

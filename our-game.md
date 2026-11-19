@@ -1,24 +1,20 @@
 # Our game: (name it later)
 
-## Our 4 choices
-- **Player:** ?
-- **View:** ?
-- **World:** ?
-- **Goal:** ?
-- **Twist:** ?
+**Theme:** ?
 
-## Game map (how the parts connect)
+## Stages (✅ done · 🔨 now · ⬜ not yet)
+- 🔨 **World:** ?
+- ⬜ **Player** (and the view): ?
+- ⬜ **Goal** (win / lose): ?
+- ⬜ **Mechanics** (what you do again and again, the weird rule): ?
+- ⬜ **Details** (sounds, name, our own art): ?
+
+## Game map (how the parts connect; from the Goal on)
 - **Core loop:** ?
 - **Places:** ?
 - **Progress:** ?
 - **Extras:** ?
 
-## Steps
-- [ ] 1. Player: walk around the empty world
-- [ ] 2. World
-- [ ] 3. Goal: how to win, how to lose
-- [ ] 4. Twist
-- [ ] 5. Juice: sounds and effects
-- [ ] 6. Name and title screen
+## Rounds (one line per thing built, newest last: "- [x] World 2: fog and lanterns")
 
 ## Later (ideas saved for after)

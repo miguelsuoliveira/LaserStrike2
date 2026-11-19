@@ -21,6 +21,7 @@
 // Needs Google Chrome (or Microsoft Edge) installed.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -29,7 +30,7 @@ const opt = (name, fallback) => {
   const v = argv[i + 1];
   return v === undefined || v.startsWith('--') ? true : v;
 };
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: Windows drives, spaces in folder names
 const outDir = path.join(ROOT, '.screenshots');
 fs.mkdirSync(outDir, { recursive: true });
 

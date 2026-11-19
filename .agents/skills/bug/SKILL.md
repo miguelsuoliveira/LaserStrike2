@@ -38,4 +38,4 @@ description: Fix something that is broken - an error box on screen, a black or f
 | Animation T-pose / frozen | the clip name doesn't exist (warning in the log lists real names) |
 | Sound doesn't play | the browser needs one click/key first; or a wrong file path (log shows it) |
 
-Then encourage them: every bug they describe well is a point toward "Best Bug Story".
+Then encourage them: describing a bug well is a real game maker's skill, and it makes the next fix faster.

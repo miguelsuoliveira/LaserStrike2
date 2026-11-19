@@ -17,6 +17,7 @@
 // Files can be given as in game code too: assets/models/characters/barbarian.glb
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { ImageUtils, PropertyType } from '@gltf-transform/core';
 import { EXTTextureWebP } from '@gltf-transform/extensions';
@@ -24,7 +25,7 @@ import { dedup, prune, resample, weld, weldPrimitive, unweldPrimitive, simplifyP
 import { Color, Euler, Quaternion } from 'three';
 import { gltfIO, writeCompact } from './lib/gltf-io.mjs';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: Windows drives, spaces in folder names
 const PUBLIC = path.join(ROOT, 'public');
 const ASSETS = path.join(PUBLIC, 'assets');
 const CREDITS = path.join(ASSETS, 'CREDITS.md');

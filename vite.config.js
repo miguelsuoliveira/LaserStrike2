@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const TUNING_FILE = path.resolve('src/tuning.json');
 const LOG_FILE = path.resolve('logs/browser.log');
@@ -16,8 +17,15 @@ const MAX_LOG_LINES = 300;
 //   running game live instead of reloading the page.
 // - POST /__preview shows images (concept art, sketches, model thumbnails) on top
 //   of the running game; `npm run preview` uses it. /__previews/<file> serves .previews/.
+// - The public link (a Cloudflare tunnel, scripts/lib/share.mjs) lets friends play the game while it is
+//   being made. Visitors only get the game: they can't save sliders, write logs, show pictures or
+//   read the project's private files. /__id tells the share tools that a link shows THIS game.
 function gameJamTools() {
   let lastWritten = null;
+  const serverId = crypto.randomBytes(8).toString('hex');
+  // Anyone who doesn't come from this computer itself (the tunnel adds these headers and its own host name).
+  const isVisitor = (req) =>
+    !/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(req.headers.host || '') || !!req.headers['cf-connecting-ip'] || !!req.headers['x-forwarded-for'];
 
   const readBody = (req) =>
     new Promise((resolve) => {
@@ -32,8 +40,32 @@ function gameJamTools() {
       fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
       fs.writeFileSync(LOG_FILE, `[${time()}] dev server started\n`);
 
+      // First of all: what visitors from the public link may not do.
+      server.middlewares.use((req, res, next) => {
+        if (!isVisitor(req)) return next();
+        let p = '/.unreadable';
+        try {
+          p = decodeURIComponent(new URL(req.url, 'http://x').pathname).replaceAll('\\', '/');
+        } catch {}
+        // The game's own calls home (slider saves, logs) are quietly dropped.
+        if (/^\/__(tuning|log)$/.test(p)) {
+          res.statusCode = 204;
+          return res.end();
+        }
+        const tool = /^\/__/.test(p) && !/^\/__(id|vite_ping)$/.test(p); // dev tools: previews, project path, open-in-editor...
+        const hidden = /(^|\/)\.(?!vite\/)/.test(p); // .env, .git, .claude, .previews... (node_modules/.vite is the engine)
+        if (tool || hidden || /^\/(@fs|logs)\//.test(p)) {
+          res.statusCode = 404;
+          return res.end();
+        }
+        next();
+      });
+      server.middlewares.use('/__id', (req, res) => res.end(serverId));
+
       // Lets `npm run snap` check this server belongs to this project.
       server.middlewares.use('/__project', (req, res) => res.end(server.config.root));
+      // How many browser pages show the game right now (`npm run setup` opens one if nobody is watching).
+      server.middlewares.use('/__clients', (req, res) => res.end(String(server.ws.clients?.size ?? 0)));
 
       server.middlewares.use('/__tuning', async (req, res) => {
         if (req.method !== 'POST') return res.end();
@@ -136,7 +168,9 @@ export default defineConfig({
   base: './',
   plugins: [gameJamTools()],
   server: {
-    watch: { ignored: ['**/logs/**', '**/.screenshots/**', '**/dist/**', '**/.previews/**', '**/.cache/**'] },
+    // The public link's address (https://<random words>.trycloudflare.com). Hot reload works through it as it is.
+    allowedHosts: ['.trycloudflare.com'],
+    watch: { ignored: ['**/logs/**', '**/.screenshots/**', '**/dist/**', '**/.previews/**', '**/.cache/**', '**/.tools/**'] },
   },
   build: {
     chunkSizeWarningLimit: 5000,

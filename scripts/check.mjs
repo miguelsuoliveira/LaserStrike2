@@ -5,12 +5,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: Windows drives, spaces in folder names
 let ok = true;
-
-// Claude Code reads skills from .claude/skills; keep it pointing at .agents/skills.
-(await import('./link-skills.mjs')).linkSkills();
 
 try {
   JSON.parse(fs.readFileSync(path.join(ROOT, 'src/tuning.json'), 'utf8'));

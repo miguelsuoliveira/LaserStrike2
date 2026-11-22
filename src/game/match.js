@@ -147,16 +147,15 @@ export class Match {
     this.onSound?.('shot',{bot,volume:bot ? Math.max(0,.55-distance(a,this.player)/1100) : 1});
     a.cooldown = item.interval;
     const dx = Math.cos(angle), dy = Math.sin(angle);
-    let limit = wallDistance(a.x,a.y,dx,dy,item.range), target;
+    const limit = wallDistance(a.x,a.y,dx,dy,item.range);
     for (const b of this.actors) {
       if (b===a || !b.hp || a.team===b.team) continue;
       const x=b.x-a.x,y=b.y-a.y, along=x*dx+y*dy, cross=x*dy-y*dx;
       if (along < 0 || Math.abs(cross) > 13) continue;
       const contact = Math.max(0,along-Math.sqrt(169-cross*cross));
-      if (contact < limit) { limit = contact; target = b; }
+      if (contact < limit) this.hit(a,b,item.damage);
     }
     this.traces.push({x:a.x,y:a.y,bx:a.x+dx*limit,by:a.y+dy*limit,team:a.team,life:.12});
-    if (target) this.hit(a,target,item.damage);
   }
 
   droppedWeapon(actor) {

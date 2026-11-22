@@ -209,7 +209,14 @@ try {
     const previousLabelCount=labels.length;
     paint(ctx,demo,null);
     const farLabel=labels.slice(previousLabelCount).includes('Spark · 0 CR');
-    return {labels,redX,nearLabel,farLabel,presets};
+    const pierce=new Match(2,0,'Standard',()=>0);
+    Object.assign(pierce.player,{x:25,y:350});
+    Object.assign(pierce.actors[2],{x:180,y:350});
+    Object.assign(pierce.actors[3],{x:240,y:350});
+    pierce.fire(pierce.player,0);
+    paint(ctx,pierce,null);
+    const trail=Array.from(ctx.getImageData(300,350,1,1).data);
+    return {labels,redX,nearLabel,farLabel,presets,trail};
   });
   assert.ok(feedback.labels.includes('−44 HP'));
   assert.ok(feedback.labels.includes('Planting · 1.0s'));
@@ -220,6 +227,7 @@ try {
   assert.equal(new Set(feedback.presets).size,3);
   assert.ok(feedback.labels.includes('Vale'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
+  assert.ok(feedback.trail[0]>220 && feedback.trail[2]>85);
   assert.deepEqual(errors,[]);
   console.log('Browser flow passed at '+url+' using '+(channel || 'Chromium')+'.');
 } finally {

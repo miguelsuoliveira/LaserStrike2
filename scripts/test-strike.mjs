@@ -255,4 +255,27 @@ for(let n=1;n<=10;n++) {
   assert.equal(m.pickUpWeapon(m.player,m.weaponDrops[0]),false);
 }
 
+{
+  const m=make(4);
+  const p=m.player, ally=m.actors[1], rivals=m.actors.slice(4);
+  Object.assign(p,{x:50,y:150,item:4});
+  Object.assign(ally,{x:80,y:150});
+  Object.assign(rivals[0],{x:100,y:150});
+  Object.assign(rivals[1],{x:150,y:150});
+  Object.assign(rivals[2],{x:390,y:150});
+  m.fire(p,0);
+  assert.equal(ally.hp,100);
+  assert.deepEqual(rivals.slice(0,3).map(a=>a.hp),[70,70,100]);
+  assert.equal(m.feedback.damage,60);
+  assert.equal(m.traces[0].bx,180);
+
+  Object.assign(p,{x:50,y:350,cooldown:0,item:0});
+  Object.assign(rivals[0],{x:100,y:350});
+  Object.assign(rivals[1],{x:250,y:350});
+  Object.assign(rivals[2],{x:380,y:350});
+  m.fire(p,0);
+  assert.deepEqual(rivals.slice(0,3).map(a=>a.hp),[48,48,100]);
+  assert.equal(m.traces[1].bx,365);
+}
+
 console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

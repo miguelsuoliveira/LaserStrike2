@@ -1,6 +1,6 @@
 import './strike.css';
 import './lan.css';
-import { Match,gear,matchRounds } from './match.js';
+import { Match,gear,roundOptions } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
 import { createLanMotion } from './lan-motion.js';
@@ -93,8 +93,9 @@ function lobby() {
   }).join('');
   const fields=state.host ? `<form id="room-settings">
     <label class="settings-row">Players per team <select id="roster-size">${Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.size?'selected':''}>${n}v${n}</option>`).join('')}</select></label>
+    <label class="settings-row">Rounds <select id="room-rounds">${roundOptions.map(n=>`<option ${n===state.rounds?'selected':''}>${n}</option>`).join('')}</select></label>
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
-    </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host</p>`;
+    </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host · ${state.rounds} rounds</p>`;
   return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the code with players on the same network.</p>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
@@ -133,7 +134,7 @@ function display() {
       return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} ${a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
-    const next=`<div class="topbar">Round ${view.round} / ${matchRounds} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
+    const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
     if(hud.dataset.render!==next){hud.innerHTML=next;hud.dataset.render=next;}
   }
 }
@@ -201,7 +202,7 @@ overlay.addEventListener('input',event=>{
 });
 overlay.addEventListener('change',event=>{
   if (event.target.closest('#room-settings')) {
-    act('settings',{size:Number(document.querySelector('#roster-size').value),level:document.querySelector('#bot-level').value});
+    act('settings',{size:Number(document.querySelector('#roster-size').value),rounds:Number(document.querySelector('#room-rounds').value),level:document.querySelector('#bot-level').value});
   }
 });
 overlay.addEventListener('submit',event=>{

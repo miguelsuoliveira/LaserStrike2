@@ -3,7 +3,7 @@ import { Match, gear } from '../src/game/match.js';
 import { spawn, sites, clear, move, route } from '../src/game/arena.js';
 
 const idle={dx:0,dy:0,x:0,y:0};
-const make=(size=5,side=0)=>new Match(size,side,'Standard',()=>.2);
+const make=(size=5,side=0,rounds)=>new Match(size,side,'Standard',()=>.2,[],rounds);
 const advance=(m,seconds)=>m.step(seconds,idle);
 const active=m=>advance(m,10);
 const next=m=>advance(m,m.time);
@@ -91,24 +91,24 @@ assert.ok(route({x:spawn[0][0],y:360},sites[0]).length);
   assert.equal(m.reason,'Time expired');
 }
 for(const draw of [false,true]) {
-  const m=make(1,1), p=m.player;
+  const m=make(1,1,draw?10:11), p=m.player;
   p.kills=3;
-  for(let i=1;i<=(draw?10:6);i++) {
+  for(let i=1;i<=(draw?10:11);i++) {
     active(m);
-    m.finish(draw?Number(i%2===0):0,'Test');
+    m.finish(Number(i%2===0),'Test');
     if(i===5) {
       assert.equal(m.phase,'halftime');
-      assert.deepEqual(m.score,draw?[3,2]:[5,0]);
+      assert.deepEqual(m.score,[3,2]);
       next(m);
       assert.equal(m.round,6);
       assert.equal(m.attack,1);
       assert.equal(p.team,1);
       assert.equal(p.kills,3);
-      assert.deepEqual(m.score,draw?[3,2]:[5,0]);
+      assert.deepEqual(m.score,[3,2]);
     } else if(m.phase!=='results') next(m);
   }
   assert.equal(m.phase,'results');
-  assert.deepEqual(m.score,draw?[5,5]:[6,0]);
+  assert.deepEqual(m.score,draw?[5,5]:[6,5]);
   assert.equal(m.winningRoster().length,draw ? 0 : 1);
 }
 

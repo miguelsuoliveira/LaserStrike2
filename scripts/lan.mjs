@@ -1,7 +1,7 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import { lanAddress,lanPort } from './lib/lan-network.mjs';
 import { createServer } from 'vite';
-import { Match } from '../src/game/match.js';
+import { Match,defaultRounds,roundOptions } from '../src/game/match.js';
 
 const rooms = new Map();
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -54,14 +54,14 @@ function start(room) {
   const seats=[...room.clients.values()].flatMap(client=>client.seats);
   const counts=[0,0];
   for (const seat of seats) seat.slot=seat.team*room.size+counts[seat.team]++;
-  room.match=new Match(room.size,seats[0].team,room.level,Math.random,seats.map(seat=>seat.slot));
+  room.match=new Match(room.size,seats[0].team,room.level,Math.random,seats.map(seat=>seat.slot),room.rounds);
   for (const seat of seats) room.match.actors[seat.slot].name=seat.name;
   room.clock=performance.now();
 }
 
 function snapshot(room, client) {
   const clients=[...room.clients.values()];
-  const base={code:room.code,serial:++room.serial,host:clients[0]===client,size:room.size,level:room.level,
+  const base={code:room.code,serial:++room.serial,host:clients[0]===client,size:room.size,rounds:room.rounds,level:room.level,
     team:client.seats[0].team,pausedBy:room.pausedBy,notices:room.notices,
     players:clients.flatMap(peer=>peer.seats.map(seat=>({name:seat.name,team:seat.team}))),
     seats:client.seats.map(seat=>seat.slot),match:null};
@@ -69,7 +69,7 @@ function snapshot(room, client) {
   if (!m) return base;
   const actorIndex = actor => actor ? m.actors.indexOf(actor) : -1;
   const o=m.objective;
-  base.match={phase:m.phase,time:m.time,round:m.round,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
+  base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
     actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})=>
       ({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})),
     traces:m.traces, weaponDrops:m.weaponDrops,
@@ -83,7 +83,7 @@ function api(path, data) {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();
     while (rooms.has(id)) id=code();
-    const room={code:id,size:5,level:'Standard',nextName:1,clients:new Map(),notices:[],noticeId:0,serial:0,pausedBy:null,endedAt:null};
+    const room={code:id,size:5,rounds:defaultRounds,level:'Standard',nextName:1,clients:new Map(),notices:[],noticeId:0,serial:0,pausedBy:null,endedAt:null};
     const client=join(room,data.name);
     rooms.set(id,room);
     return {token:client.token,...snapshot(room,client)};
@@ -126,6 +126,9 @@ function api(path, data) {
       if (!Number.isInteger(data.size) || data.size<1 || data.size>10 || !levels.includes(data.level)) fail('Invalid settings.');
       const players=[...room.clients.values()].flatMap(peer=>peer.seats);
       if ([0,1].some(team=>players.filter(seat=>seat.team===team).length>data.size)) fail('The match size is too small for this room.');
+      const rounds=data.rounds ?? room.rounds;
+      if (!roundOptions.includes(rounds)) fail('Invalid round count.');
+      room.rounds=rounds;
       room.size=data.size;
       room.level=data.level;
       room.match=null;

@@ -28,6 +28,9 @@ try {
   await page.getByRole('heading',{name:'LASER STRIKE 2',exact:true}).waitFor();
   await page.getByText(/Based off Counter-Strike 2/).waitFor();
   await expect('5v5');
+  const rounds=page.getByRole('combobox',{name:'Rounds',exact:true});
+  assert.equal(await rounds.inputValue(),'11');
+  await rounds.selectOption('10');
   for (let n=6;n<=10;n++) {
     await page.getByRole('button',{name:'More players'}).click();
     await expect(n+'v'+n);

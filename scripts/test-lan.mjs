@@ -86,6 +86,9 @@ async function lanRoom() {
   assert.equal(blocked,409);
   await label(host,'Players per team').selectOption('3');
   await guest.getByText(/3v3 · Standard bots/).waitFor();
+  assert.equal(await label(host,'Rounds').inputValue(),'11');
+  await label(host,'Rounds').selectOption('10');
+  await guest.getByText(/Waiting for host · 10 rounds/).waitFor();
   await label(host,'Bot difficulty').selectOption('Expert');
   await guest.getByText(/3v3 · Expert bots/).waitFor();
   await button(guest,'Join Liberals').click();

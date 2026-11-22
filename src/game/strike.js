@@ -1,5 +1,5 @@
 import './strike.css';
-import { Match, gear, matchRounds } from './match.js';
+import { Match, gear, defaultRounds, roundOptions } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { graphicsPresets } from './arena-quality.js';
 import { paint } from './arena-art.js';
@@ -23,7 +23,7 @@ function resizeArena() {
 
 resizeArena();
 const keys=new Set(), pointer={x:600,y:360};
-let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
+let size=5, rounds=defaultRounds, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
 let pickupPressed=false;
 let screen='menu', previousPhase, lastOverlay='', lastHud='', lastBoard='';
 const shell=(title,body,kicker='PORT MERIDIAN · ARCADE LEAGUE', extraClass='') =>
@@ -44,6 +44,7 @@ function table() {
 function menu() {
   return shell('LASER <span>STRIKE 2</span>',`<p class="tagline">Two crews. One relay. Take the harbor. Based off Counter-Strike 2.</p>
     <div class="settings-row"><span>Match size</span><div class="stepper"><button data-action="minus" aria-label="Fewer players" ${size===1?'disabled':''}>−</button><strong>${size}v${size}</strong><button data-action="plus" aria-label="More players" ${size===10?'disabled':''}>+</button></div></div>
+    <label class="settings-row">Rounds<select id="match-rounds">${roundOptions.map(n=>`<option ${n===rounds?'selected':''}>${n}</option>`).join('')}</select></label>
     <div class="actions">${btn('Play','teams',true)}${btn('Settings','settings')} <a class="lan-link" href="/lan.html">Play LAN Server</a></div>
     <h2>Controls</h2><div class="controls">${controls}</div>`,'SINGLE PLAYER · TOP-DOWN ARCADE');
 }
@@ -93,14 +94,14 @@ function drawHud() {
   const relayHint=canInteract && match.relaySite(p);
   const drop=!relayHint && canInteract && match.nearbyWeapon(p);
   const hint=relayHint ? 'Hold E' : drop ? `E · Pick up ${gear[drop.item].name}` : '';
-  const html=`<div class="topbar"><span class="a">LIB · ${alive[0]} LIVE</span><strong>${score()}</strong><span class="b">CL · ${alive[1]} LIVE</span><span>ROUND ${match.round} / ${matchRounds}</span><span>${Math.floor(time/60)}:${String(time%60).padStart(2,'0')}</span><span>${match.phase.toUpperCase()}</span></div>
+  const html=`<div class="topbar"><span class="a">LIB · ${alive[0]} LIVE</span><strong>${score()}</strong><span class="b">CL · ${alive[1]} LIVE</span><span>ROUND ${match.round} / ${match.roundLimit}</span><span>${Math.floor(time/60)}:${String(time%60).padStart(2,'0')}</span><span>${match.phase.toUpperCase()}</span></div>
   <div class="objective">${objective}${hint?' · '+hint:''}${o.actor===p? `<progress value="${o.progress}" max="1"></progress>`:''}</div>
   <div class="bottom"><b>${p.hp} HP</b><b>${item.name} · ${p.reload?'Reloading':p.ammo+' / '+item.capacity}</b><b>${p.credits.toLocaleString()} CR</b></div>`;
   if (html!==lastHud) { hud.innerHTML=html; lastHud=html; }
 }
 
 function start(side) {
-  match=new Match(size,side,level);
+  match=new Match(size,side,level,Math.random,[],rounds);
   match.onSound=audio.play;
   previousPhase='buy'; paused=false; buyOpen=true; keys.clear(); fire=false; screen='match';
 }
@@ -123,6 +124,7 @@ overlay.addEventListener('click',event=>{
   display();
 });
 overlay.addEventListener('change',event=>{
+  if (event.target.id==='match-rounds') rounds=Number(event.target.value);
   if (event.target.id==='difficulty') {
     level=event.target.value;
     if (match) match.level=level;

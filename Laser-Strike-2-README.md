@@ -21,7 +21,7 @@ Run `npm run lan` on the same computer hosting the public game. Players on the h
 
 Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. The shop shows damage per hit for all five items. A countdown beside the active character shows how long planting or defusing has left. A red X confirms a hit and the crosshair briefly shows the combined damage of consecutive hits. Press E beside a dropped weapon to swap it for yours. Ground labels show the shop price, and swapping costs no credits. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
 
-Win six rounds in a match of up to ten. A 5–5 score ends in a draw. The crews keep their scores, roster, and statistics when activation and defense swap before round six. At the end of a decisive match, the winners’ stage ranks the entire winning crew by total damage. Surviving characters carry equipment forward, and all roster members receive the same round reward for their team.
+Choose 2 to 30 rounds next to match size. The default is 11. Teams switch sides before the middle round of an odd limit or the first round of the second half of an even limit. A majority wins, and only even limits can end in a draw. Crews keep their scores, roster, and statistics at the switch. At the end of a decisive match, the winners’ stage ranks the entire winning crew by total damage. Surviving characters carry equipment forward, and all roster members receive the same round reward for their team.
 
 ## Source
 

@@ -8,8 +8,8 @@ export const gear = [
   ['Nova',4000,30,12,.32,405,'Heavy, versatile pulses'],
 ].map(([name,cost,damage,capacity,interval,range,description]) => ({name,cost,damage,capacity,interval,range,description}));
 
-export const matchRounds = 10;
-const roundsPerHalf = matchRounds / 2;
+export const defaultRounds = 11;
+export const roundOptions = Array.from({length:29},(_,i)=>i+2);
 
 const difficulty = { Relaxed:[.72,.36,102,1.8], Standard:[.48,.23,125,2.4], Expert:[.3,.15,146,3.1] };
 const patrols = [
@@ -23,11 +23,13 @@ const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
 
 export class Match {
-  constructor(size, side, level, random = Math.random, humanSlots = []) {
+  constructor(size, side, level, random = Math.random, humanSlots = [], rounds = defaultRounds) {
     this.random = random;
     this.level = level;
     this.score = [0,0];
     this.round = 1;
+    this.roundLimit = rounds;
+    this.roundsBeforeSwitch = Math.floor(rounds / 2);
     this.traces = [];
     this.actors = Array.from({length:2*size}, (_,i) => ({
       team:Number(i>=size), slot:i%size, name:names[(i+(i>=size?3:0))%10],
@@ -40,7 +42,7 @@ export class Match {
   }
 
   begin() {
-    this.attack = Number(this.round > roundsPerHalf);
+    this.attack = Number(this.round > this.roundsBeforeSwitch);
     this.phase = 'buy';
     this.time = 10;
     this.traces.length = 0;
@@ -89,12 +91,12 @@ export class Match {
       a.credits += a.team === team ? 1500 : 1000;
       if (!a.hp) a.item = 0;
     }
-    if (this.score[team] > roundsPerHalf || this.round === matchRounds) {
+    if (this.score[team] > this.roundsBeforeSwitch || this.round === this.roundLimit) {
       this.phase = 'results';
       this.time = 0;
     } else {
-      this.phase = this.round === roundsPerHalf ? 'halftime' : 'result';
-      this.time = this.round === roundsPerHalf ? 5 : 3;
+      this.phase = this.round === this.roundsBeforeSwitch ? 'halftime' : 'result';
+      this.time = this.round === this.roundsBeforeSwitch ? 5 : 3;
     }
   }
 

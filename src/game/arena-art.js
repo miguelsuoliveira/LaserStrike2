@@ -108,12 +108,28 @@ export function paint(c, match, pointer, mini=false) {
     c.textAlign='center';
     c.lineWidth=3;
     c.strokeStyle='#152124';
+    const labels=[];
     for (const a of match.actors) {
       if (!a.hp || a===match.player) continue;
       const y=a.y<36 ? a.y+27 : a.y-25;
+      const halfWidth=c.measureText(a.name).width/2+3;
+      let spot;
+      for (const dy of [0,-13,13,-26,26]) {
+        for (const dx of [0,-12,12,-24,24]) {
+          const x=Math.max(halfWidth,Math.min(width-halfWidth,a.x+dx));
+          const baseline=y+dy;
+          if (baseline<12 || baseline>height ||
+              labels.some(label=>Math.abs(label.y-baseline)<13 && Math.abs(label.x-x)<label.halfWidth+halfWidth)) continue;
+          spot={x,y:baseline,halfWidth};
+          break;
+        }
+        if (spot) break;
+      }
+      if (!spot) spot={x:a.x,y,halfWidth};
+      labels.push(spot);
       c.fillStyle=colors[a.team];
-      c.strokeText(a.name,a.x,y);
-      c.fillText(a.name,a.x,y);
+      c.strokeText(a.name,spot.x,spot.y);
+      c.fillText(a.name,spot.x,spot.y);
     }
   }
   if (o.dropped) {

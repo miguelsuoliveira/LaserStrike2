@@ -19,16 +19,14 @@ function command(raw) {
   };
 }
 
-function join(room, count, name) {
+function join(room, name) {
   const displayName=typeof name==='string' ? name.trim().replace(/[\u0000-\u001f\u007f]/g,'').slice(0,24) : '';
   const seats=[...room.clients.values()].flatMap(peer=>peer.seats);
   const shortTeam=Number(seats.filter(seat=>seat.team===1).length<seats.filter(seat=>seat.team===0).length);
   const token=randomBytes(24).toString('hex');
-  const client={token,seen:Date.now(),commands:[],seats:[]};
-  for (let i=0;i<count;i++) {
-    const fallback='Player '+(room.nextName++);
-    client.seats.push({name:i===0 && displayName ? displayName : fallback,team:room.local?0:shortTeam});
-  }
+  const playerName=displayName || 'Player '+room.nextName;
+  room.nextName++;
+  const client={token,seen:Date.now(),commands:[],seats:[{name:playerName,team:shortTeam}]};
   room.clients.set(token,client);
   return client;
 }
@@ -44,7 +42,7 @@ function start(room) {
 
 function snapshot(room, client) {
   const clients=[...room.clients.values()];
-  const base={code:room.code,local:room.local,host:clients[0]===client,size:room.size,level:room.level,
+  const base={code:room.code,host:clients[0]===client,size:room.size,level:room.level,
     players:clients.flatMap(peer=>peer.seats.map(seat=>({name:seat.name,team:seat.team}))),
     seats:client.seats.map(seat=>seat.slot),match:null};
   const m=room.match;
@@ -65,18 +63,17 @@ function api(path, data) {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();
     while (rooms.has(id)) id=code();
-    const local=data.local===true;
-    const room={code:id,local,size:5,level:'Standard',nextName:1,clients:new Map()};
-    const client=join(room,local?2:1,data.name);
+    const room={code:id,size:5,level:'Standard',nextName:1,clients:new Map()};
+    const client=join(room,data.name);
     rooms.set(id,room);
     return {token:client.token,...snapshot(room,client)};
   }
   const room=rooms.get(String(data.code??'').toUpperCase().trim());
   if (!room) fail('Room not found. Check the code.',404);
   if (path==='join') {
-    if (room.local || room.match) fail('This room is already playing or is local co-op.',409);
+    if (room.match) fail('This room is already playing.',409);
     if (room.clients.size>=room.size*2) fail('This room is full.',409);
-    const client=join(room,1,data.name);
+    const client=join(room,data.name);
     return {token:client.token,...snapshot(room,client)};
   }
   const client=room.clients.get(data.token);

@@ -3,7 +3,6 @@
 #room-code{text-transform:uppercase}
 .lan-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:4px 12px;padding-left:18px}
 .lan-error{color:#ffb0a8;margin:8px 0}
-.coop-button{background:#234770;border-color:#6db6ff;color:#dfedff}
 .lan-equipment{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:5px}
 .lan-equipment button{font-size:.75rem;padding:6px}
 .actions{flex-wrap:wrap}

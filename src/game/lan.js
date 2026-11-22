@@ -10,15 +10,12 @@ const overlay=document.querySelector('#overlay'), hud=document.querySelector('#h
 const audio=createStrikeAudio();
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, error='';
-let name='', roomCode='', address='', markup='', pickups=[false,false], previousPhase;
+let name='', roomCode='', address='', markup='', pickupPressed=false, previousPhase;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
-const localMode=new URLSearchParams(location.search).get('mode')==='local';
-const lanPath='/lan.html'+(localMode?'?mode=local':'');
 const title = 'LASER <span>STRIKE 2</span>';
-const controls = '<p class="tagline">P1 · WASD move, mouse aim and shoot, R reload, E interact</p>';
-const localControls = '<p class="tagline">P2 · Arrow keys move, IJKL aim, Right Shift shoot, O reload, Enter interact</p>';
+const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E interact</p>';
 
 async function api(action, data={}) {
   const response=await fetch('/lan-api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -49,8 +46,8 @@ function lobby() {
     <label class="settings-row">Players per team <select id="roster-size">${Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.size?'selected':''}>${n}v${n}</option>`).join('')}</select></label>
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host</p>`;
-  return panel(state.local?'Local co-op':'Room '+state.code,`${state.local?'':'<p class="tagline">Share the code with players on the same network.</p>'}
-    <ul class="lan-roster">${players}</ul>${fields}${controls}${state.local?localControls:''}
+  return panel('Room '+state.code,`<p class="tagline">Share the code with players on the same network.</p>
+    <ul class="lan-roster">${players}</ul>${fields}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
 }
 
@@ -66,11 +63,11 @@ function display() {
   let html;
   if (!online) html=panel(title,`<p class="tagline">Open the host’s LAN address on the same network, then enter a room code or create a room.</p>
     <form id="address-form"><label class="settings-row">LAN host address <input id="address" placeholder="192.168.1.10:5188" value="${escape(address)}" required></label>
-    <div class="actions"><button class="primary">Open LAN host</button><a class="lan-link" href="http://localhost:5188${lanPath}">This computer</a><a class="lan-link" href="/">Back</a></div></form>`);
+    <div class="actions"><button class="primary">Open LAN host</button><a class="lan-link" href="http://localhost:5188/lan.html">This computer</a><a class="lan-link" href="/">Back</a></div></form>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
-    ${localMode ? '' : `<form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
-    <button class="primary">Join room</button></form>`}
-    <div class="actions">${localMode?'':button('Create room','create')}${button('Play Local Co-op','local','coop-button')}<a class="lan-link" href="/">Back</a></div>`);
+    <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
+    <button class="primary">Join room</button></form>
+    <div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!view) html=lobby();
   else if (view.phase==='buy') html=shop();
   else if (view.phase==='results') html=panel(view.score[0]===view.score[1]?'Match drawn':sides[view.winner]+' win',
@@ -93,14 +90,8 @@ function display() {
 
 function input() {
   if (!view) return [];
-  const first={...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
-    fire:held,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickups[0]};
-  if (!state.local) return [first];
-  const a=view.actors[state.seats[1]];
-  const aimX=+keys.has('KeyL')-+keys.has('KeyJ'),aimY=+keys.has('KeyK')-+keys.has('KeyI');
-  return [first,{x:a.x+100*(aimX||aimY?aimX:Math.cos(a.angle)),y:a.y+100*(aimX||aimY?aimY:Math.sin(a.angle)),
-    dx:+keys.has('ArrowRight')-+keys.has('ArrowLeft'),dy:+keys.has('ArrowDown')-+keys.has('ArrowUp'),
-    fire:keys.has('ShiftRight'),reload:keys.has('KeyO'),use:keys.has('Enter'),pickup:pickups[1]}];
+  return [{...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
+    fire:held,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed}];
 }
 
 async function poll() {
@@ -109,7 +100,7 @@ async function poll() {
   requestInFlight=true;
   try {
     const commands=input();
-    pickups=[false,false];
+    pickupPressed=false;
     const next=await api('sync',{commands});
     if (session===current) {
       accept(next);
@@ -154,27 +145,26 @@ overlay.addEventListener('submit',event=>{
       const target=new URL(address.includes('://')?address:'http://'+address);
       if (target.protocol!=='http:' || !target.hostname || target.username || target.password) throw new Error();
       if (!target.port) target.port='5188';
-      location.href=new URL(lanPath,target.origin);
+      location.href=new URL('/lan.html',target.origin);
     } catch {error='Enter the LAN address shown on the host computer.';display();}
   }
 });
 overlay.addEventListener('click',event=>{
   const action=event.target.closest('button')?.dataset.action;
   if (!action) return;
-  if (action==='create' || action==='local') act('create',{local:action==='local',name});
+  if (action==='create') act('create',{name});
   if (action==='start' || action==='leave') act(action);
   if (action.startsWith('buy-')) {
     const [,seat,item]=action.split('-');
     act('buy',{seat:Number(seat),item:Number(item)});
   }
 });
-const gameplayKeys=new Set(['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyI','KeyJ','KeyK','KeyL','ShiftRight','KeyO','Enter']);
+const gameplayKeys=new Set(['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE']);
 addEventListener('keydown',event=>{
   if (view?.phase!=='active' || !gameplayKeys.has(event.code)) return;
   event.preventDefault();
   keys.add(event.code);
-  if (!event.repeat && event.code==='KeyE') pickups[0]=true;
-  if (!event.repeat && event.code==='Enter') pickups[1]=true;
+  if (!event.repeat && event.code==='KeyE') pickupPressed=true;
 });
 addEventListener('keyup',event=>keys.delete(event.code));
 addEventListener('blur',()=>{keys.clear();held=false;});

@@ -25,7 +25,6 @@ h2{font-size:1.05rem;margin:12px 0}
 button,select{font:inherit;color:inherit;background:#253234;border:1px solid #546463;border-radius:4px;padding:9px 15px;font-weight:700;cursor:pointer}
 button:hover:not(:disabled),button:focus-visible{border-color:var(--mint);background:#354749}
  .actions:has(.lan-link){flex-wrap:wrap}
-a.coop-link{background:#234770}
 a.lan-link{display:inline-block;color:#a9d6ff;padding:8px 12px;border:1px solid #6db6ff;border-radius:4px;font-weight:700;text-decoration:none}
 button.primary{background:var(--mint);color:#132522;border-color:var(--mint)}
 button.primary:hover{background:#97f7e8}

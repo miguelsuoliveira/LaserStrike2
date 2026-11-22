@@ -16,6 +16,7 @@ const snapshot=async page=>(await page.waitForResponse(res=>res.url().endsWith('
 
 async function lanRoom() {
   const host=await pageAt(), guest=await pageAt();
+  assert.equal(await button(host,'Play Local Co-op').count(),0);
   await label(host,'Your name').fill('Ada');
   await button(host,'Create room').click();
   const room=host.getByRole('heading',{name:/^Room [A-Z0-9]{6}$/});
@@ -47,30 +48,10 @@ async function lanRoom() {
   await Promise.all([host.close(),guest.close()]);
 }
 
-async function localRoom() {
-  const page=await pageAt(url+'?mode=local');
-  await label(page,'Your name').fill('Captain');
-  await button(page,'Play Local Co-op').click();
-  await page.getByText('Captain · Liberals',{exact:true}).waitFor();
-  await page.getByText('Player 2 · Liberals',{exact:true}).waitFor();
-  await button(page,'Start match').click();
-  await page.getByText('Player 2 · 0 CR',{exact:true}).waitFor();
-  await page.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:18000});
-  const before=await snapshot(page);
-  await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(450);
-  await page.keyboard.up('ArrowRight');
-  const after=await snapshot(page);
-  const [first,second]=before.seats;
-  assert.equal(after.match.actors[first].x,before.match.actors[first].x);
-  assert.ok(after.match.actors[second].x>before.match.actors[second].x+20);
-  await page.close();
-}
-
 try {
-  await Promise.all([lanRoom(),localRoom()]);
+  await lanRoom();
   assert.deepEqual(errors,[]);
-  console.log('LAN rooms, names, host settings, remote movement and local co-op passed at '+url);
+  console.log('LAN rooms, names, host settings, and remote movement passed at '+url);
 } finally {
   await browser.close();
 }

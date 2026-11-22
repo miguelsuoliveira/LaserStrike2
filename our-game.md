@@ -4,7 +4,7 @@
 
 - ✅ **World** Original Mediterranean-inspired arena with two relay sites.
 - ✅ **Player** Top-down 2D, WASD and mouse. Choose either crew.
-- ✅ **Goal** Win nine rounds. Eight each is a draw.
+- ✅ **Goal** Win six rounds. Five each is a draw. Sides switch before round six.
 - ✅ **Mechanics** Activate or disable the relay, earn credits, buy pulse equipment, and switch roles at halftime.
 - ✅ **Details** Main menu, HUD, minimap, scoreboard, pause and results.
 

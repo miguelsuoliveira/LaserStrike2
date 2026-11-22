@@ -1,5 +1,5 @@
 import './strike.css';
-import { Match, gear } from './match.js';
+import { Match, gear, matchRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { graphicsPresets } from './arena-quality.js';
 import { paint } from './arena-art.js';
@@ -93,7 +93,7 @@ function drawHud() {
   const relayHint=canInteract && match.relaySite(p);
   const drop=!relayHint && canInteract && match.nearbyWeapon(p);
   const hint=relayHint ? 'Hold E' : drop ? `E · Pick up ${gear[drop.item].name}` : '';
-  const html=`<div class="topbar"><span class="a">LIB · ${alive[0]} LIVE</span><strong>${score()}</strong><span class="b">CL · ${alive[1]} LIVE</span><span>ROUND ${match.round} / 16</span><span>${Math.floor(time/60)}:${String(time%60).padStart(2,'0')}</span><span>${match.phase.toUpperCase()}</span></div>
+  const html=`<div class="topbar"><span class="a">LIB · ${alive[0]} LIVE</span><strong>${score()}</strong><span class="b">CL · ${alive[1]} LIVE</span><span>ROUND ${match.round} / ${matchRounds}</span><span>${Math.floor(time/60)}:${String(time%60).padStart(2,'0')}</span><span>${match.phase.toUpperCase()}</span></div>
   <div class="objective">${objective}${hint?' · '+hint:''}${o.actor===p? `<progress value="${o.progress}" max="1"></progress>`:''}</div>
   <div class="bottom"><b>${p.hp} HP</b><b>${item.name} · ${p.reload?'Reloading':p.ammo+' / '+item.capacity}</b><b>${p.credits.toLocaleString()} CR</b></div>`;
   if (html!==lastHud) { hud.innerHTML=html; lastHud=html; }

@@ -93,22 +93,22 @@ assert.ok(route({x:spawn[0][0],y:360},sites[0]).length);
 for(const draw of [false,true]) {
   const m=make(1,1), p=m.player;
   p.kills=3;
-  for(let i=1;i<=(draw?16:9);i++) {
+  for(let i=1;i<=(draw?10:6);i++) {
     active(m);
     m.finish(draw?Number(i%2===0):0,'Test');
-    if(i===8) {
+    if(i===5) {
       assert.equal(m.phase,'halftime');
-      assert.deepEqual(m.score,draw?[4,4]:[8,0]);
+      assert.deepEqual(m.score,draw?[3,2]:[5,0]);
       next(m);
-      assert.equal(m.round,9);
+      assert.equal(m.round,6);
       assert.equal(m.attack,1);
       assert.equal(p.team,1);
       assert.equal(p.kills,3);
-      assert.deepEqual(m.score,draw?[4,4]:[8,0]);
+      assert.deepEqual(m.score,draw?[3,2]:[5,0]);
     } else if(m.phase!=='results') next(m);
   }
   assert.equal(m.phase,'results');
-  assert.deepEqual(m.score,draw?[8,8]:[9,0]);
+  assert.deepEqual(m.score,draw?[5,5]:[6,0]);
   assert.equal(m.winningRoster().length,draw ? 0 : 1);
 }
 
@@ -213,7 +213,7 @@ for(let n=1;n<=10;n++) {
     m.actors[n+i].damage=i*50;
     m.actors[i].damage=10000;
   }
-  m.score=[3,8];
+  m.score=[3,5];
   active(m);
   m.finish(1,'Test');
   const lineup=m.winningRoster();

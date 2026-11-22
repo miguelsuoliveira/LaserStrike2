@@ -107,7 +107,7 @@ try {
   await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'Restart match'}).click();
   await expect('Equipment');
-  await expect('ROUND 1 / 16');
+  await expect('ROUND 1 / 10');
   await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'Main menu'}).click();
   await page.getByRole('button',{name:'Play',exact:true}).click();
@@ -130,7 +130,7 @@ try {
   await page.evaluate(()=>{
     const m=window.testCurrentMatch();
     m.phase='active';
-    m.score=[1,8];
+    m.score=[1,5];
     m.actors.filter(a=>a.team===1).forEach((a,i)=>{a.damage=100*i;});
     m.finish(1,'Opposing team eliminated');
   });
@@ -149,7 +149,7 @@ try {
   await page.locator('.winners-stage.close').waitFor();
   assert.equal(await stage.locator('li').count(),1);
   assert.ok(await stage.locator('.stage-figure').first().evaluate(el=>el.getBoundingClientRect().width)>wideFigure);
-  await page.evaluate(()=>{window.testCurrentMatch().score=[8,8];});
+  await page.evaluate(()=>{window.testCurrentMatch().score=[5,5];});
   await expect('Match drawn');
   assert.equal(await page.locator('.winners-stage').count(),0);
   await page.getByRole('button',{name:'Play again'}).click();

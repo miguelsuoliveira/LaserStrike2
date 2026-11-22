@@ -8,6 +8,9 @@ export const gear = [
   ['Nova',4000,30,12,.32,405,'Heavy, versatile pulses'],
 ].map(([name,cost,damage,capacity,interval,range,description]) => ({name,cost,damage,capacity,interval,range,description}));
 
+export const matchRounds = 10;
+const roundsPerHalf = matchRounds / 2;
+
 const difficulty = { Relaxed:[.72,.36,102,1.8], Standard:[.48,.23,125,2.4], Expert:[.3,.15,146,3.1] };
 const patrols = [
   [{x:250,y:355},{x:330,y:86},{x:556,y:133},{x:720,y:350},{x:550,y:594},{x:325,y:642}],
@@ -37,7 +40,7 @@ export class Match {
   }
 
   begin() {
-    this.attack = Number(this.round > 8);
+    this.attack = Number(this.round > roundsPerHalf);
     this.phase = 'buy';
     this.time = 10;
     this.traces.length = 0;
@@ -86,12 +89,12 @@ export class Match {
       a.credits += a.team === team ? 1500 : 1000;
       if (!a.hp) a.item = 0;
     }
-    if (this.score[team] === 9 || this.round === 16) {
+    if (this.score[team] > roundsPerHalf || this.round === matchRounds) {
       this.phase = 'results';
       this.time = 0;
     } else {
-      this.phase = this.round === 8 ? 'halftime' : 'result';
-      this.time = this.round === 8 ? 5 : 3;
+      this.phase = this.round === roundsPerHalf ? 'halftime' : 'result';
+      this.time = this.round === roundsPerHalf ? 5 : 3;
     }
   }
 

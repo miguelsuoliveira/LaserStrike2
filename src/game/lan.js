@@ -1,6 +1,6 @@
 import './strike.css';
 import './lan.css';
-import { Match,gear } from './match.js';
+import { Match,gear,matchRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
 import { createLanMotion } from './lan-motion.js';
@@ -122,7 +122,7 @@ function display() {
   else if (view.phase==='buy') html=shop();
   else if (view.phase==='results') html=panel(view.score[0]===view.score[1]?'Match drawn':sides[view.winner]+' win',
     `<p class="tagline">${view.score.join(' : ')}</p><div class="actions">${state.host?button('Play again','start','primary'):''}${button('Leave room','leave')}</div>`);
-  else if (view.phase==='result' || view.phase==='halftime') html=`<section class="notice"><h2>${sides[view.winner]} win the round</h2><p>${view.score.join(' : ')} · ${escape(view.reason)}</p></section>`;
+  else if (view.phase==='result' || view.phase==='halftime') html=`<section class="notice">${view.phase==='halftime'?'<div class="kicker">HALFTIME · ROLES SWITCH</div>':''}<h2>${sides[view.winner]} win the round</h2><p>${view.score.join(' : ')} · ${escape(view.reason)}</p></section>`;
   else html='';
   if (html!==markup) {overlay.innerHTML=html;markup=html;}
   hud.hidden=!view || ending;
@@ -133,7 +133,7 @@ function display() {
       return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} ${a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
-    const next=`<div class="topbar">Round ${view.round} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
+    const next=`<div class="topbar">Round ${view.round} / ${matchRounds} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
     if(hud.dataset.render!==next){hud.innerHTML=next;hud.dataset.render=next;}
   }
 }

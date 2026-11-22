@@ -102,6 +102,7 @@ async function lanRoom() {
   await host.getByText('Ada · 0 CR',{exact:true}).waitFor();
   await guest.getByText('Rowan <LAN> · 0 CR',{exact:true}).waitFor();
   await guest.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:18000});
+  await guest.getByText(/^Round 1 \/ 10/).waitFor();
   const before=await snapshot(guest);
   assert.equal(before.match.actors.length,6);
   assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);

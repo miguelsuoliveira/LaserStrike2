@@ -101,11 +101,14 @@ try {
     Object.assign(demo.actors[1],site);
     demo.interact(demo.actors[1],1);
     paint(ctx,demo,null);
+    demo.hit(demo.player,demo.actors[1],100);
+    paint(ctx,demo,null);
     return {labels,redX};
   });
   assert.ok(feedback.labels.includes('−44 HP'));
   assert.ok(feedback.labels.includes('Planting · 1.0s'));
   assert.ok(feedback.labels.includes('Defusing · 2.0s'));
+  assert.ok(feedback.labels.includes('FIRST BLOOD'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
   if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   assert.deepEqual(errors,[]);

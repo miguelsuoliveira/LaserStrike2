@@ -49,7 +49,7 @@ function display() {
     if (paused) html=shell('Paused',`<div class="actions grid">${btn('Resume','resume',true)}${btn('Restart match','restart')}${btn('Settings','settings')}${btn('Main menu','menu')}</div>`);
     else if (match.phase==='buy' && buyOpen) html=shop();
     else if (match.phase==='halftime' || match.phase==='result') html=`<section class="notice"><div class="kicker">${match.phase==='halftime'?'HALFTIME · ROLES SWITCH':'ROUND COMPLETE'}</div><h2>${sides[match.winner]} win the round</h2><p>${match.reason} · ${score()}</p></section>`;
-    else if (match.phase==='results') {
+    else if (match.phase==='results' && !match.announcement.time) {
       const [a,b]=match.score;
       html=shell(a===b?'Match drawn':`${sides[Number(b>a)]} win`,`<p class="tagline">${score()} · MVP ${match.standings()[0].name} <span class="muted">(${sides[match.standings()[0].team]})</span></p>${table()}<div class="actions">${btn('Play again','restart',true)}${btn('Main menu','menu')}</div>`,'FINAL SCORE · PORT MERIDIAN');
     }

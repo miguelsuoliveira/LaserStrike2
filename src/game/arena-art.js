@@ -1,5 +1,6 @@
 import { width,height,walls,sites,spawn,colors } from './arena.js';
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const backdrop = document.createElement('canvas');
 backdrop.width=width;
 backdrop.height=height;
@@ -105,6 +106,24 @@ export function paint(c, match, pointer, mini=false) {
   if (o.dropped) {
     c.fillStyle='#ffdd68';
     c.fillRect(o.dropped.x-5,o.dropped.y-5,10,10);
+  }
+  if (!mini && match.announcement.time>0) {
+    const {label,time,flash}=match.announcement;
+    if (flash>0 && !reducedMotion.matches) {
+      c.fillStyle=`rgba(210, 20, 35, ${flash*.42})`;
+      c.fillRect(0,0,width,height);
+    }
+    c.save();
+    c.globalAlpha=Math.min(1,time*6);
+    c.textAlign='center';
+    c.font='900 62px system-ui';
+    c.lineJoin='round';
+    c.lineWidth=9;
+    c.strokeStyle='#291218';
+    c.fillStyle=label==='FIRST BLOOD' ? '#ff5e69' : '#ffe097';
+    c.strokeText(label,width/2,height*.48);
+    c.fillText(label,width/2,height*.48);
+    c.restore();
   }
   const action=match.objectiveAction();
   if (!mini && action && match.phase==='active') {

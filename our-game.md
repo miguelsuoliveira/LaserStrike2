@@ -15,3 +15,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Built AK-Strike from the supplied brief.
 - [x] Details 2: Equipment damage stats, hit feedback, and patrolling bots with slower turns and less accurate aim.
 - [x] Details 3: Plant and defuse timers, range-aware bots, and damage per hit in the shop.
+- [x] Details 4: First Blood flash and announcements for 2, 3, and 5 player eliminations in a round.

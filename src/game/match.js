@@ -13,6 +13,7 @@ const patrols = [
   [{x:250,y:355},{x:330,y:86},{x:556,y:133},{x:720,y:350},{x:550,y:594},{x:325,y:642}],
   [{x:1086,y:369},{x:980,y:120},{x:832,y:223},{x:735,y:353},{x:815,y:501},{x:1000,y:592}],
 ];
+const streakNames = {2:'DOUBLE KILL',3:'RAMPAGE',5:'ABSOLUTE GODLIKE'};
 const plantTime = 2, defuseTime = 3;
 const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
@@ -39,6 +40,9 @@ export class Match {
     this.time = 10;
     this.traces.length = 0;
     this.feedback = { damage:0, time:0, marker:0 };
+    this.roundEliminations = 0;
+    this.playerRoundEliminations = 0;
+    this.announcement = {label:'',time:0,flash:0};
     this.objective = { site:null, carrier:null, dropped:null, progress:0, actor:null, clock:0 };
     this.target = sites[Math.floor(this.random()*sites.length)];
     for (const a of this.actors) {
@@ -100,6 +104,17 @@ export class Match {
     if (target.hp) return;
     target.deaths++;
     from.kills++;
+    this.roundEliminations++;
+    if (from===this.player) {
+      this.playerRoundEliminations++;
+      const firstBlood = this.roundEliminations===1;
+      const label = firstBlood ? 'FIRST BLOOD' : streakNames[this.playerRoundEliminations];
+      if (label) {
+        this.announcement.label = label;
+        this.announcement.time = firstBlood ? 1 : 1.4;
+        if (firstBlood) this.announcement.flash = 1;
+      }
+    }
     for (const [helper, amount] of target.hits) {
       if (helper !== from && amount >= 20) helper.assists++;
     }
@@ -206,6 +221,8 @@ export class Match {
   }
 
   step(dt, command) {
+    this.announcement.time = Math.max(0,this.announcement.time-dt);
+    this.announcement.flash = Math.max(0,this.announcement.flash-dt);
     if (this.phase==='results') return;
     this.time = Math.max(0,this.time-dt);
     if (this.phase!=='active') {

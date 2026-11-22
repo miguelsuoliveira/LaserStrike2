@@ -161,4 +161,29 @@ for (const opponentIsBot of [false,true]) {
   assert.equal(bot.ammo,gear[0].capacity);
 }
 
+{
+  const m=make(6);
+  const p=m.player;
+  const rivals=m.actors.slice(6);
+  m.hit(p,rivals[0],100);
+  assert.deepEqual(m.announcement,{label:'FIRST BLOOD',time:1,flash:1});
+  m.hit(p,rivals[1],100);
+  assert.equal(m.announcement.label,'DOUBLE KILL');
+  m.hit(p,rivals[2],100);
+  assert.equal(m.announcement.label,'RAMPAGE');
+  advance(m,1.4);
+  assert.equal(m.announcement.time,0);
+  assert.equal(m.announcement.flash,0);
+  m.hit(p,rivals[3],100);
+  assert.equal(m.announcement.time,0);
+  m.hit(p,rivals[4],100);
+  assert.equal(m.announcement.label,'ABSOLUTE GODLIKE');
+  m.begin();
+  m.hit(rivals[0],m.actors[1],100);
+  m.hit(p,rivals[0],100);
+  assert.equal(m.announcement.time,0);
+  m.hit(p,rivals[1],100);
+  assert.equal(m.announcement.label,'DOUBLE KILL');
+}
+
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

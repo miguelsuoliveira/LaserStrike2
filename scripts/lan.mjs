@@ -78,7 +78,10 @@ function snapshot(room, client) {
 }
 
 function api(path, data) {
-  if (path==='info') return {available:true};
+  if (path==='info') {
+    const address=lanAddress();
+    return {available:true,inviteBase:address ? `http://${address}:${lanPort}/lan.html` : null};
+  }
   if (path==='create') {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();

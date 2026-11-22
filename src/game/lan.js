@@ -16,7 +16,8 @@ let lastNotice=0, ending=false;
 const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
-let name='', roomCode='', markup='', pickupPressed=false, previousPhase;
+let inviteBase;
+let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false, previousPhase;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
@@ -82,6 +83,8 @@ function accept(next) {
 }
 
 function lobby() {
+  const invite=new URL(inviteBase || location.href);
+  invite.searchParams.set('room',state.code);
   const teams=sides.map((side,team)=>{
     const players=state.players.filter(player=>player.team===team);
     const current=team===state.team, full=players.length>=state.size;
@@ -96,7 +99,9 @@ function lobby() {
     <label class="settings-row">Rounds <select id="room-rounds">${roundOptions.map(n=>`<option ${n===state.rounds?'selected':''}>${n}</option>`).join('')}</select></label>
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host · ${state.rounds} rounds</p>`;
-  return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the code with players on the same network.</p>
+  return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the room link with players on the same Wi‑Fi.</p>
+    <label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
+    <div class="actions">${button('Copy room link','copy-invite')}</div>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
 }
@@ -112,7 +117,7 @@ function shop() {
 function display() {
   let html;
   if (ending) html=panel('Host has left the match',`<a class="lan-link" href="${mainMenu.href}">Main menu</a>`);
-  else if (!online) html=panel(title,`<p class="tagline">The LAN host couldn’t be reached. Connect to the host’s Wi‑Fi and try again.</p>
+  else if (!online) html=panel(title,`<p class="tagline">LAN rooms run on the host laptop. Ask the host to start the LAN server and share the room link. Open that link while connected to the same Wi‑Fi.</p>
     <div class="actions">${button('Try again','retry','primary')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
@@ -213,6 +218,12 @@ overlay.addEventListener('click',event=>{
   const action=event.target.closest('button')?.dataset.action;
   if (!action) return;
   if (action==='retry') location.reload();
+  if (action==='copy-invite') {
+    const field=document.querySelector('#room-invite');
+    field.select();
+    if (navigator.clipboard) navigator.clipboard.writeText(field.value).then(()=>announce('Room link copied.')).catch(()=>{});
+    else if (document.execCommand('copy')) announce('Room link copied.');
+  }
   if (action==='create') act('create',{name});
   if (action==='start' || action==='leave' || action==='pause') act(action);
   if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});
@@ -261,7 +272,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 try {
-  await api('info');
+  ({inviteBase}=await api('info'));
   online=true;
 } catch {
   try {

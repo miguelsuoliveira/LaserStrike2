@@ -13,6 +13,12 @@ npm run dev
 
 Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build for static hosting. The starter's `npm run status` starts or checks the competition sharing tunnel.
 
+## LAN edition
+
+Run `npm run lan` on the host computer and open the LAN address printed by the server. Other players on the same network open that same address, choose a display name, and enter the host’s room code. The host sets team size and bot difficulty before starting. Rooms stay in memory while the host is running.
+
+Choose the blue **Play Local Co-op** button in the LAN edition for two players on the same computer and team. The second player uses the arrow keys to move, IJKL to aim, Right Shift to shoot, O to reload, and Enter to interact.
+
 ## Play
 
 Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. The shop shows damage per hit for all five items. A countdown beside the active character shows how long planting or defusing has left. A red X confirms a hit and the crosshair briefly shows the combined damage of consecutive hits. Press E beside a dropped weapon to swap it for yours. Ground labels show the shop price, and swapping costs no credits. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.

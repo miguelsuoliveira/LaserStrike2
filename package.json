@@ -8,6 +8,7 @@
     "status": "node scripts/status.mjs",
     "share": "node scripts/setup.mjs --share",
     "dev": "vite --open",
+    "lan": "node scripts/lan.mjs",
     "spark": "node scripts/spark.mjs",
     "check": "node scripts/check.mjs",
     "snap": "node scripts/snap.mjs",

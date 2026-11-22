@@ -20,7 +20,7 @@ const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
 
 export class Match {
-  constructor(size, side, level, random = Math.random) {
+  constructor(size, side, level, random = Math.random, humanSlots = []) {
     this.random = random;
     this.level = level;
     this.score = [0,0];
@@ -32,6 +32,7 @@ export class Match {
     }));
     this.player = this.actors[side*size];
     this.player.name = 'You';
+    this.humans = new Set([this.player,...humanSlots.map(slot=>this.actors[slot])]);
     this.begin();
   }
 
@@ -55,7 +56,7 @@ export class Match {
         angle:a.team===this.attack?0:Math.PI, speed:0, path:[], plan:0, reaction:0,
         enemy:null, hits:new Map(), patrol:a.slot%patrols[0].length, patrolStep:a.slot%2 ? -1 : 1,
       });
-      if (a !== this.player) {
+      if (!this.humans.has(a)) {
         const options = gear.map((_,i)=>i).filter(i=>i>a.item && gear[i].cost<=a.credits);
         if (options.length) this.buy(a, options.at(-1));
       }
@@ -274,7 +275,7 @@ export class Match {
     move(a,Math.cos(angle)*step,Math.sin(angle)*step);
   }
 
-  step(dt, command) {
+  step(dt, command, extraCommands = new Map()) {
     this.announcement.time = Math.max(0,this.announcement.time-dt);
     this.announcement.flash = Math.max(0,this.announcement.flash-dt);
     if (this.phase==='results') return;
@@ -303,15 +304,17 @@ export class Match {
         a.reload = Math.max(0,a.reload-dt);
         if (!a.reload) a.ammo = gear[a.item].capacity;
       }
-      if (a===this.player) {
-        const length = Math.hypot(command.dx,command.dy)||1;
-        a.speed += ((length && (command.dx||command.dy) ? 175 : 0)-a.speed)*Math.min(1,dt*16);
-        move(a,command.dx/length*a.speed*dt,command.dy/length*a.speed*dt);
-        a.angle = Math.atan2(command.y-a.y,command.x-a.x);
-        if (command.reload) this.reload(a);
-        if (command.fire) this.fire(a,a.angle);
-        if (command.use && this.relaySite(a)) this.interact(a,dt);
-        else if (command.pickup) this.pickUpWeapon(a);
+      const controls=a===this.player ? command : extraCommands.get(a);
+      if (this.humans.has(a)) {
+        const inputCommand=controls || {dx:0,dy:0,x:a.x+Math.cos(a.angle),y:a.y+Math.sin(a.angle)};
+        const length = Math.hypot(inputCommand.dx,inputCommand.dy)||1;
+        a.speed += ((length && (inputCommand.dx||inputCommand.dy) ? 175 : 0)-a.speed)*Math.min(1,dt*16);
+        move(a,inputCommand.dx/length*a.speed*dt,inputCommand.dy/length*a.speed*dt);
+        a.angle = Math.atan2(inputCommand.y-a.y,inputCommand.x-a.x);
+        if (inputCommand.reload) this.reload(a);
+        if (inputCommand.fire) this.fire(a,a.angle);
+        if (inputCommand.use && this.relaySite(a)) this.interact(a,dt);
+        else if (inputCommand.pickup) this.pickUpWeapon(a);
       } else this.bot(a,dt);
       if (o.dropped && a.team===this.attack && distance(a,o.dropped)<25) {
         o.carrier = a;

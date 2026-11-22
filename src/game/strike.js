@@ -44,7 +44,7 @@ function table() {
 function menu() {
   return shell('LASER <span>STRIKE 2</span>',`<p class="tagline">Two crews. One relay. Take the harbor. Based off Counter-Strike 2.</p>
     <div class="settings-row"><span>Match size</span><div class="stepper"><button data-action="minus" aria-label="Fewer players" ${size===1?'disabled':''}>−</button><strong>${size}v${size}</strong><button data-action="plus" aria-label="More players" ${size===10?'disabled':''}>+</button></div></div>
-    <div class="actions">${btn('Play','teams',true)}${btn('Settings','settings')}</div>
+    <div class="actions">${btn('Play','teams',true)}${btn('Settings','settings')} <a class="lan-link coop-link" href="/lan.html?mode=local">Play Local Co-op</a> <a class="lan-link" href="/lan.html">Play LAN Server</a></div>
     <h2>Controls</h2><div class="controls">${controls}</div>`,'SINGLE PLAYER · TOP-DOWN ARCADE');
 }
 function shop() {

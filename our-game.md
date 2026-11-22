@@ -1,4 +1,4 @@
-# AK-Strike
+# Laser Strike
 
 **Theme:** Fictional crews contest a relay in Port Meridian.
 
@@ -22,3 +22,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Mechanics: Eliminated characters drop weapons. Players and bots can swap with drops.
 - [x] Details 8: Original top-down tactical characters with team uniforms and walking poses.
 - [x] Details 9: Dropped weapon labels show only within pickup range.
+- [x] Details 10: Renamed the game to Laser Strike.

@@ -1,6 +1,6 @@
-# AK-Strike
+# Laser Strike
 
-AK-Strike is a single-player, top-down Canvas arcade game set in Port Meridian. The map, interface, and animated crew designs are drawn by the source. They require no external asset downloads. Music and sound effects are synthesized in the browser and can be toggled separately in Settings.
+Laser Strike is a single-player, top-down Canvas arcade game set in Port Meridian. The map, interface, and animated crew designs are drawn by the source. They require no external asset downloads. Music and sound effects are synthesized in the browser and can be toggled separately in Settings.
 
 ## Launch locally
 

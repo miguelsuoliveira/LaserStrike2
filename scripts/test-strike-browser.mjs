@@ -24,6 +24,8 @@ try {
   });
   await page.clock.install();
   await page.goto(url);
+  assert.equal(await page.title(),'Laser Strike');
+  await page.getByRole('heading',{name:'LASER STRIKE',exact:true}).waitFor();
   await expect('5v5');
   for (let n=6;n<=10;n++) {
     await page.getByRole('button',{name:'More players'}).click();

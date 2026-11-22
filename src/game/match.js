@@ -282,8 +282,11 @@ export class Match {
     this.time = Math.max(0,this.time-dt);
     if (this.phase!=='active') {
       if (!this.time) {
-        if (this.phase==='buy') { this.phase='active'; this.time=120; }
-        else { this.round++; this.begin(); }
+        if (this.phase==='buy') {
+          this.phase='active';
+          this.time=120;
+          this.onSound?.('bell');
+        } else { this.round++; this.begin(); }
       }
       return;
     }

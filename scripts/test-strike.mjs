@@ -197,7 +197,13 @@ for (const opponentIsBot of [false,true]) {
   m.fire(m.player,0);
   m.reload(m.player);
   m.hit(m.player,m.actors[1],100);
-  assert.deepEqual(cues,['shot','hit','reload','eliminate']);
+  assert.deepEqual(cues,['bell','shot','hit','reload','eliminate']);
+  m.finish(0,'Test');
+  next(m);
+  assert.equal(cues.filter(cue=>cue==='bell').length,1);
+  active(m);
+  advance(m,.01);
+  assert.equal(cues.filter(cue=>cue==='bell').length,2);
 }
 
 for(let n=1;n<=10;n++) {

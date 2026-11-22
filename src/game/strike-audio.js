@@ -11,6 +11,7 @@ const cues = {
   eliminate: [[430,.075,'triangle',.26],[670,.11,'triangle',.24]],
   plant: [[290,.1,'sine',.28],[580,.19,'triangle',.29]],
   defuse: [[590,.11,'sine',.3],[410,.18,'triangle',.27]],
+  bell: [[735,.73,'sine',.27,735,0],[1475,.42,'sine',.17,1475,0],[2138,.22,'sine',.09,2138,0]],
   round: [[370,.12,'triangle',.22],[495,.19,'triangle',.28]],
   buy: [[560,.075,'sine',.25],[750,.1,'sine',.24]],
 };
@@ -78,9 +79,9 @@ export function createStrikeAudio() {
         if (start-lastBotShot<.09) return;
         lastBotShot=start;
       }
-      for (const [pitch,length,type,level,end] of cues[name]) {
+      for (const [pitch,length,type,level,end,spacing=length*.85] of cues[name]) {
         tone(effects,start,pitch,length,type,level*volume,end);
-        start+=length*.85;
+        start+=spacing;
       }
     },
   };

@@ -83,8 +83,10 @@ try {
   await page.clock.runFor(12000);
   assert.equal(await page.locator('#hud .topbar').textContent(),before);
   await page.getByRole('button',{name:'Resume'}).click();
+  const beforeBell=await page.evaluate(()=>window.testAudioStarts);
   await page.clock.runFor(10200);
   await expect('ACTIVE');
+  assert.equal(await page.evaluate(()=>window.testAudioStarts)-beforeBell,3);
   if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('w');
   await page.clock.runFor(400);

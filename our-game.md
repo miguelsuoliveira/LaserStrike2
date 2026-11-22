@@ -26,3 +26,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 11: Boosted music and sound effects.
 - [x] Details 12: Low, Medium, and High graphics presets, with High as the default.
 - [x] Details 13: Renamed the game to Laser Strike 2 and updated its description.
+- [x] Details 14: Ring bell at the end of each buy phase.

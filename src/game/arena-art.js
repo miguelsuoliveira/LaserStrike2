@@ -103,6 +103,19 @@ export function paint(c, match, pointer, mini=false) {
       c.fillStyle=colors[a.team]; c.fillRect(a.x-12,a.y-21,24*a.hp/100,3);
     }
   }
+  if (!mini) {
+    c.font='700 11px system-ui';
+    c.textAlign='center';
+    c.lineWidth=3;
+    c.strokeStyle='#152124';
+    for (const a of match.actors) {
+      if (!a.hp || a===match.player) continue;
+      const y=a.y<36 ? a.y+27 : a.y-25;
+      c.fillStyle=colors[a.team];
+      c.strokeText(a.name,a.x,y);
+      c.fillText(a.name,a.x,y);
+    }
+  }
   if (o.dropped) {
     c.fillStyle='#ffdd68';
     c.fillRect(o.dropped.x-5,o.dropped.y-5,10,10);
@@ -128,7 +141,7 @@ export function paint(c, match, pointer, mini=false) {
   const action=match.objectiveAction();
   if (!mini && action && match.phase==='active') {
     const x=Math.max(67,Math.min(width-67,action.actor.x));
-    const y=action.actor.y<54 ? action.actor.y+44 : action.actor.y-33;
+    const y=action.actor.y<54 ? action.actor.y+44 : action.actor.y-45;
     c.fillStyle='#152124ef';
     c.fillRect(x-65,y-17,130,24);
     c.fillStyle='#ffe097';

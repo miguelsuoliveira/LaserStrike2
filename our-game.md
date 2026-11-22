@@ -17,3 +17,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 3: Plant and defuse timers, range-aware bots, and damage per hit in the shop.
 - [x] Details 4: First Blood flash and announcements for 2, 3, and 5 player eliminations in a round.
 - [x] Details 5: Orange Liberals and blue Counter Liberals.
+- [x] Details 6: Original synth music, gameplay sound cues, and bot names.

@@ -186,4 +186,17 @@ for (const opponentIsBot of [false,true]) {
   assert.equal(m.announcement.label,'DOUBLE KILL');
 }
 
+{
+  const m=make(1);
+  const cues=[];
+  m.onSound=name=>cues.push(name);
+  active(m);
+  Object.assign(m.player,{x:200,y:350});
+  Object.assign(m.actors[1],{x:325,y:350});
+  m.fire(m.player,0);
+  m.reload(m.player);
+  m.hit(m.player,m.actors[1],100);
+  assert.deepEqual(cues,['shot','hit','reload','eliminate']);
+}
+
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

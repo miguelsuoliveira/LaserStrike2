@@ -2,6 +2,7 @@ import './strike.css';
 import { Match, gear } from './match.js';
 import { width,height,sides,colors,distance,sites } from './arena.js';
 import { paint } from './arena-art.js';
+import { createStrikeAudio } from './strike-audio.js';
 
 document.documentElement.style.setProperty('--liberals',colors[0]);
 document.documentElement.style.setProperty('--counter-liberals',colors[1]);
@@ -9,6 +10,8 @@ document.documentElement.style.setProperty('--counter-liberals',colors[1]);
 const $ = id => document.getElementById(id);
 const canvas=$('arena'), hud=$('hud'), map=$('map'), overlay=$('overlay'), board=$('board');
 const context=canvas.getContext('2d'), minimap=map.getContext('2d');
+const audio=createStrikeAudio();
+let musicOn=true, effectsOn=true;
 const keys=new Set(), pointer={x:600,y:360};
 let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
 let screen='menu', previousPhase, lastOverlay='', lastHud='', lastBoard='';
@@ -47,7 +50,9 @@ function display() {
   if (screen==='menu') html=menu();
   if (screen==='teams') html=shell('Choose your crew',`<p class="tagline">Your crew stays together when roles switch.</p><div class="teams">${sides.map((side,i)=>`<button class="crew ${i?'b':'a'}" data-action="team-${i}"><i></i><strong>${side}</strong><small>${i?'Round 1 · Defend':'Round 1 · Activate'}</small></button>`).join('')}</div>${btn('Back','menu')}`);
   if (screen==='settings') html=shell('Settings',`<label class="settings-row">Bot difficulty<select id="difficulty">${['Relaxed','Standard','Expert'].map(x=>`<option ${level===x?'selected':''}>${x}</option>`).join('')}</select></label>
-    <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>${btn('Back','settings-back',true)}`);
+    <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>
+    <label class="settings-row">Music<input type="checkbox" id="music" ${musicOn?'checked':''}></label>
+    <label class="settings-row">Sound effects<input type="checkbox" id="effects" ${effectsOn?'checked':''}></label>${btn('Back','settings-back',true)}`);
   if (screen==='match') {
     if (paused) html=shell('Paused',`<div class="actions grid">${btn('Resume','resume',true)}${btn('Restart match','restart')}${btn('Settings','settings')}${btn('Main menu','menu')}</div>`);
     else if (match.phase==='buy' && buyOpen) html=shop();
@@ -75,12 +80,14 @@ function drawHud() {
 
 function start(side) {
   match=new Match(size,side,level);
+  match.onSound=audio.play;
   previousPhase='buy'; paused=false; buyOpen=true; keys.clear(); fire=false; screen='match';
 }
 let settingsFrom='menu';
 overlay.addEventListener('click',event=>{
   const action=event.target.closest('button')?.dataset.action;
   if (!action) return;
+  audio.unlock();
   if (action==='minus') size=Math.max(1,size-1);
   if (action==='plus') size=Math.min(10,size+1);
   if (action==='teams') screen='teams';
@@ -100,6 +107,8 @@ overlay.addEventListener('change',event=>{
     if (match) match.level=level;
   }
   if (event.target.id==='motion') motion=event.target.checked;
+  if (event.target.id==='music') audio.setMusic(musicOn=event.target.checked);
+  if (event.target.id==='effects') audio.setEffects(effectsOn=event.target.checked);
 });
 const moveKeys=['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE','KeyB','Tab','Escape'];
 window.addEventListener('keydown',event=>{
@@ -125,6 +134,7 @@ let last=performance.now();
 function frame(now) {
   const dt=Math.min(.05,(now-last)/1000);
   last=now;
+  audio.update();
   if (match && screen==='match' && !paused) {
     match.step(dt,{...pointer,dx:Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
       dy:Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire,reload:keys.has('KeyR'),use:keys.has('KeyE')});

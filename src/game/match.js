@@ -69,6 +69,7 @@ export class Match {
     actor.item = item;
     actor.ammo = gear[item].capacity;
     actor.bought = true;
+    if (actor===this.player) this.onSound?.('buy');
     return true;
   }
 
@@ -77,6 +78,7 @@ export class Match {
     this.score[team]++;
     this.reason = reason;
     this.winner = team;
+    this.onSound?.(reason==='Relay disabled' ? 'defuse' : 'round');
     for (const a of this.actors) {
       a.credits += a.team === team ? 1500 : 1000;
       if (!a.hp) a.item = 0;
@@ -94,8 +96,10 @@ export class Match {
     if (from.team === target.team || !target.hp) return;
     const dealt = Math.min(target.hp, damage);
     target.hp -= dealt;
+    if (target===this.player) this.onSound?.('hurt');
     from.damage += dealt;
     if (from===this.player) {
+      this.onSound?.(target.hp ? 'hit' : 'eliminate');
       this.feedback.damage = (this.feedback.time>0 ? this.feedback.damage : 0) + dealt;
       this.feedback.time = 1.4;
       this.feedback.marker = .18;
@@ -125,7 +129,10 @@ export class Match {
   }
 
   reload(a) {
-    if (!a.reload && a.ammo < gear[a.item].capacity) a.reload = 1.1;
+    if (!a.reload && a.ammo < gear[a.item].capacity) {
+      a.reload = 1.1;
+      if (a===this.player) this.onSound?.('reload');
+    }
   }
 
   fire(a, angle) {
@@ -133,6 +140,8 @@ export class Match {
     if (!a.ammo) return this.reload(a);
     const item = gear[a.item];
     a.ammo--;
+    const bot = a!==this.player;
+    this.onSound?.('shot',{bot,volume:bot ? Math.max(0,.55-distance(a,this.player)/1100) : 1});
     a.cooldown = item.interval;
     const dx = Math.cos(angle), dy = Math.sin(angle);
     let limit = wallDistance(a.x,a.y,dx,dy,item.range), target;
@@ -169,6 +178,7 @@ export class Match {
     if (activating) {
       o.site = location;
       o.clock = 30;
+      this.onSound?.('plant');
       o.carrier = null;
     } else this.finish(a.team,'Relay disabled');
   }

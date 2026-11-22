@@ -9,6 +9,14 @@ page.on('pageerror', error => errors.push(error));
 const url = process.env.STRIKE_TEST_URL || 'http://localhost:5173/';
 const expect = (text) => page.getByText(text,{exact:true}).waitFor();
 try {
+  await page.addInitScript(()=>{
+    window.testAudioStarts=0;
+    const start=OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start=function(...args) {
+      window.testAudioStarts++;
+      return start.apply(this,args);
+    };
+  });
   await page.clock.install();
   await page.goto(url);
   await expect('5v5');
@@ -20,6 +28,15 @@ try {
   await page.getByRole('button',{name:'Settings'}).click();
   await page.locator('#difficulty').selectOption('Relaxed');
   await page.getByRole('checkbox',{name:'Pulse trails'}).waitFor();
+  await page.waitForFunction(()=>window.testAudioStarts>0);
+  const music=page.getByRole('checkbox',{name:'Music',exact:true});
+  const effects=page.getByRole('checkbox',{name:'Sound effects'});
+  assert.ok(await music.isChecked());
+  assert.ok(await effects.isChecked());
+  await music.uncheck();
+  await effects.uncheck();
+  await effects.check();
+  assert.ok(!(await music.isChecked()) && await effects.isChecked());
   assert.equal(await page.getByText(/HP per hit/).count(),0);
   await page.getByRole('button',{name:'Back'}).click();
   await page.getByRole('button',{name:'Play',exact:true}).click();
@@ -55,9 +72,11 @@ try {
   await page.clock.runFor(400);
   await page.keyboard.up('w');
   await page.mouse.move(600,390);
+  const soundCount=await page.evaluate(()=>window.testAudioStarts);
   await page.mouse.down();
   await page.clock.runFor(400);
   await page.mouse.up();
+  assert.ok(await page.evaluate(()=>window.testAudioStarts)>soundCount);
   assert.match(await page.locator('#hud .bottom').textContent(), /Spark · [78] \/ 9/);
   await page.keyboard.down('r');
   await page.clock.runFor(30);
@@ -112,6 +131,7 @@ try {
   assert.ok(feedback.labels.includes('Planting · 1.0s'));
   assert.ok(feedback.labels.includes('Defusing · 2.0s'));
   assert.ok(feedback.labels.includes('FIRST BLOOD'));
+  assert.ok(feedback.labels.includes('Vale'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
   assert.deepEqual(errors,[]);
   console.log('Browser flow passed at '+url+' using '+(channel || 'Chromium')+'.');

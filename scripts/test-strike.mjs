@@ -249,4 +249,4 @@ for(let n=1;n<=10;n++) {
   assert.equal(m.pickUpWeapon(m.player,m.weaponDrops[0]),false);
 }
 
-console.log('Laser Strike rules passed for both teams and all ten match sizes.');
+console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

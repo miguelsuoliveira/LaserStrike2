@@ -1,4 +1,4 @@
-# Laser Strike
+# Laser Strike 2
 
 **Theme:** Fictional crews contest a relay in Port Meridian.
 
@@ -25,3 +25,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 10: Renamed the game to Laser Strike.
 - [x] Details 11: Boosted music and sound effects.
 - [x] Details 12: Low, Medium, and High graphics presets, with High as the default.
+- [x] Details 13: Renamed the game to Laser Strike 2 and updated its description.

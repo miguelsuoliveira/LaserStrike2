@@ -8,9 +8,12 @@ import { createStrikeAudio } from './strike-audio.js';
 
 const canvas=document.querySelector('#arena'), context=canvas.getContext('2d');
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
+const notices=document.querySelector('#lan-notices');
 const audio=createStrikeAudio();
 const motion=createLanMotion();
 let needsPaint=true, lastFrame=performance.now(), pollTimer;
+let lastNotice=0, ending=false;
+const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
 let name='', roomCode='', markup='', pickupPressed=false, previousPhase;
@@ -29,8 +32,41 @@ async function api(action, data={}) {
   return result;
 }
 
+function stopInput() {
+  keys.clear();
+  held=false;
+  firePressed=false;
+  pickupPressed=false;
+}
+
+function announce(message) {
+  const note=document.createElement('p');
+  note.textContent=message;
+  notices.append(note);
+  setTimeout(()=>note.remove(),5000);
+}
+
+function hostLeft() {
+  if (ending) return;
+  ending=true;
+  session=null;
+  clearTimeout(pollTimer);
+  stopInput();
+  display();
+  setTimeout(()=>location.replace(mainMenu),2200);
+}
+
 function accept(next) {
+  if (ending) return;
+  if (next.ended) {hostLeft();return;}
+  if (state?.code===next.code && next.serial<state.serial) return;
+  if (next.pausedBy!==state?.pausedBy) stopInput();
   state=next;
+  for (const note of next.notices || []) {
+    if (note.id<=lastNotice) continue;
+    announce(note.message);
+    lastNotice=note.id;
+  }
   if (!next.match) {view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;return;}
   const snapshot=next.match;
   if (snapshot.phase==='active' && previousPhase==='buy') audio.play('bell');
@@ -74,21 +110,23 @@ function shop() {
 
 function display() {
   let html;
-  if (!online) html=panel(title,`<p class="tagline">The LAN host couldn’t be reached. Connect to the host’s Wi‑Fi and try again.</p>
+  if (ending) html=panel('Host has left the match',`<a class="lan-link" href="${mainMenu.href}">Main menu</a>`);
+  else if (!online) html=panel(title,`<p class="tagline">The LAN host couldn’t be reached. Connect to the host’s Wi‑Fi and try again.</p>
     <div class="actions">${button('Try again','retry','primary')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
     <button class="primary">Join room</button></form>
     <div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!view) html=lobby();
+  else if (state.pausedBy) html=panel('Match paused',`<p class="tagline">Paused by ${escape(state.pausedBy)}</p><div class="actions">${button('Resume match','pause','primary')}${button('Leave match','leave')}</div>`);
   else if (view.phase==='buy') html=shop();
   else if (view.phase==='results') html=panel(view.score[0]===view.score[1]?'Match drawn':sides[view.winner]+' win',
     `<p class="tagline">${view.score.join(' : ')}</p><div class="actions">${state.host?button('Play again','start','primary'):''}${button('Leave room','leave')}</div>`);
   else if (view.phase==='result' || view.phase==='halftime') html=`<section class="notice"><h2>${sides[view.winner]} win the round</h2><p>${view.score.join(' : ')} · ${escape(view.reason)}</p></section>`;
   else html='';
   if (html!==markup) {overlay.innerHTML=html;markup=html;}
-  hud.hidden=!view;
-  if (view) {
+  hud.hidden=!view || ending;
+  if (view && !ending) {
     const clock=Math.ceil(view.objective.site && view.phase==='active' ? view.objective.clock : view.time);
     const players=state.seats.map(id=>{
       const a=view.actors[id], drop=a.hp && view.nearbyWeapon(a);
@@ -115,7 +153,7 @@ async function poll() {
   const current=session;
   requestInFlight=true;
   try {
-    const commands=view?.phase==='active' ? [controlsNow()] : [];
+    const commands=view?.phase==='active' && !state.pausedBy ? [controlsNow()] : [];
     pickupPressed=false;
     firePressed=false;
     const next=await api('sync',{commands});
@@ -131,7 +169,7 @@ async function poll() {
     }
   } finally {
     requestInFlight=false;
-    schedulePoll(view?.phase==='active' ? 40 : 125);
+    schedulePoll(view?.phase==='active' && !state?.pausedBy ? 40 : 125);
   }
 }
 
@@ -140,8 +178,17 @@ async function act(action,data) {
   error='';
   try {
     const result=await api(action,data);
-    if (result.token) session={token:result.token,code:result.code};
-    if (action==='leave') {session=null;state=null;view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;}
+    if (result.token) {
+      lastNotice=0;
+      session={token:result.token,code:result.code};
+    }
+    if (action==='leave' && !result.ended) {
+      const wasHost=state.host;
+      session=null;state=null;view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;
+      notices.replaceChildren();
+      stopInput();
+      if (wasHost) location.replace(mainMenu);
+    }
     else accept(result);
     schedulePoll(0);
   } catch(e) {error=e.message;}
@@ -166,7 +213,7 @@ overlay.addEventListener('click',event=>{
   if (!action) return;
   if (action==='retry') location.reload();
   if (action==='create') act('create',{name});
-  if (action==='start' || action==='leave') act(action);
+  if (action==='start' || action==='leave' || action==='pause') act(action);
   if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});
   if (action.startsWith('buy-')) {
     const [,seat,item]=action.split('-');
@@ -175,7 +222,12 @@ overlay.addEventListener('click',event=>{
 });
 const gameplayKeys=new Set(['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE']);
 addEventListener('keydown',event=>{
-  if (view?.phase!=='active' || !gameplayKeys.has(event.code)) return;
+  if (event.code==='Escape' && view && view.phase!=='results' && !ending) {
+    event.preventDefault();
+    if (!event.repeat) act('pause');
+    return;
+  }
+  if (view?.phase!=='active' || state?.pausedBy || ending || !gameplayKeys.has(event.code)) return;
   event.preventDefault();
   keys.add(event.code);
   if (!event.repeat && event.code==='KeyE') pickupPressed=true;
@@ -188,13 +240,19 @@ canvas.addEventListener('pointermove',event=>{
   pointer.x=(event.clientX-rect.left)*width/rect.width;
   pointer.y=(event.clientY-rect.top)*height/rect.height;
 });
-canvas.addEventListener('pointerdown',event=>{if(event.button===0) {held=true;firePressed=true;schedulePoll(0);}});
+canvas.addEventListener('pointerdown',event=>{if(event.button===0 && view?.phase==='active' && !state?.pausedBy && !ending) {held=true;firePressed=true;schedulePoll(0);}});
 addEventListener('pointerup',()=>{if (held) {held=false;schedulePoll(0);}});
+addEventListener('pagehide',()=>{
+  if (!session) return;
+  fetch('/lan-api/leave',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(session),keepalive:true}).catch(()=>{});
+});
+
 function frame(now) {
   const dt=Math.min(.05,(now-lastFrame)/1000);
   lastFrame=now;
   audio.update();
-  const active=view?.phase==='active';
+  const active=view?.phase==='active' && !state?.pausedBy && !ending;
   if (active || needsPaint) {
     paint(context,motion.frame(now,dt,controlsNow()),active?pointer:null);
     needsPaint=false;

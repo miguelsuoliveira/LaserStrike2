@@ -56,13 +56,18 @@ async function lanRoom() {
   await button(guest,'Join Counter Liberals').click();
   await host.getByText('Rowan <LAN> · Counter Liberals',{exact:true}).waitFor();
   assert.equal(await button(guest,'Start match').count(),0);
+  const remaining=await pageAt();
+  await label(remaining,'Your name').fill('Nova');
+  await label(remaining,'Room code').fill(code);
+  await button(remaining,'Join room').click();
+  await host.getByText('Nova · Liberals',{exact:true}).waitFor();
   await button(host,'Start match').click();
   await host.getByText('Ada · 0 CR',{exact:true}).waitFor();
   await guest.getByText('Rowan <LAN> · 0 CR',{exact:true}).waitFor();
   await guest.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:18000});
   const before=await snapshot(guest);
   assert.equal(before.match.actors.length,6);
-  assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>'].includes(actor.name)).length,4);
+  assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);
   const guestSlot=before.seats[0];
   await guest.keyboard.down('a');
   await guest.waitForTimeout(450);
@@ -70,7 +75,23 @@ async function lanRoom() {
   const after=await snapshot(host);
   assert.ok(after.match.actors[guestSlot].x<before.match.actors[guestSlot].x-20);
   assert.equal(after.match.actors[guestSlot].name,'Rowan <LAN>');
-  await Promise.all([host.close(),guest.close()]);
+  await guest.keyboard.press('Escape');
+  await host.getByRole('heading',{name:'Match paused',exact:true}).waitFor();
+  await remaining.getByText('Paused by Rowan <LAN>',{exact:true}).waitFor();
+  const stopped=await snapshot(host);
+  await host.waitForTimeout(450);
+  assert.equal((await snapshot(host)).match.time,stopped.match.time);
+  await button(host,'Resume match').click();
+  await remaining.getByRole('heading',{name:'Match paused'}).waitFor({state:'hidden'});
+  await guest.context().setOffline(true);
+  await remaining.getByText('Rowan <LAN> has left the game',{exact:true}).waitFor({timeout:16000});
+  await host.keyboard.press('Escape');
+  await button(host,'Leave match').click();
+  await remaining.getByRole('heading',{name:'Host has left the match',exact:true}).waitFor();
+  await remaining.waitForURL(new URL('/',url).href);
+  await remaining.getByRole('heading',{name:'LASER STRIKE 2',exact:true}).waitFor();
+  await button(remaining,'Play').waitFor();
+  await Promise.all([host.close(),guest.close(),remaining.close()]);
 }
 
 try {
@@ -90,7 +111,7 @@ try {
   assert.equal(motion.frame(99,1/60,movement).actors[1].x,95);
   await lanRoom();
   assert.deepEqual(errors,[]);
-  console.log('LAN rooms, names, host settings, and remote movement passed at '+url);
+  console.log('LAN teams, movement, shared pause, disconnect notices, and host-exit return passed at '+url);
 } finally {
   await browser.close();
 }

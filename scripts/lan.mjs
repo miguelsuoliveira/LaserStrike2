@@ -5,6 +5,7 @@ import { Match } from '../src/game/match.js';
 
 const rooms = new Map();
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const disconnectAfter=12000, closedRoomLifetime=30000;
 const levels = ['Relaxed','Standard','Expert'];
 const fail = (message,status=400) => { throw Object.assign(new Error(message),{status}); };
 const code = () => Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('');
@@ -31,7 +32,25 @@ function join(room, name) {
   return client;
 }
 
+function removeClient(room, client, now=Date.now()) {
+  const wasHost=room.clients.values().next().value===client;
+  room.clients.delete(client.token);
+  if (wasHost) {
+    room.endedAt=now;
+    return;
+  }
+  const {name,slot}=client.seats[0];
+  room.notices.push({id:++room.noticeId,message:name+' has left the game'});
+  if (room.notices.length>20) room.notices.shift();
+  if (room.match) {
+    const actor=room.match.actors[slot];
+    room.match.humans.delete(actor);
+    actor.name='Bot '+(actor.slot+1);
+  }
+}
+
 function start(room) {
+  room.pausedBy=null;
   const seats=[...room.clients.values()].flatMap(client=>client.seats);
   const counts=[0,0];
   for (const seat of seats) seat.slot=seat.team*room.size+counts[seat.team]++;
@@ -42,8 +61,8 @@ function start(room) {
 
 function snapshot(room, client) {
   const clients=[...room.clients.values()];
-  const base={code:room.code,host:clients[0]===client,size:room.size,level:room.level,
-    team:client.seats[0].team,
+  const base={code:room.code,serial:++room.serial,host:clients[0]===client,size:room.size,level:room.level,
+    team:client.seats[0].team,pausedBy:room.pausedBy,notices:room.notices,
     players:clients.flatMap(peer=>peer.seats.map(seat=>({name:seat.name,team:seat.team}))),
     seats:client.seats.map(seat=>seat.slot),match:null};
   const m=room.match;
@@ -64,7 +83,7 @@ function api(path, data) {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();
     while (rooms.has(id)) id=code();
-    const room={code:id,size:5,level:'Standard',nextName:1,clients:new Map()};
+    const room={code:id,size:5,level:'Standard',nextName:1,clients:new Map(),notices:[],noticeId:0,serial:0,pausedBy:null,endedAt:null};
     const client=join(room,data.name);
     rooms.set(id,room);
     return {token:client.token,...snapshot(room,client)};
@@ -72,6 +91,7 @@ function api(path, data) {
   const room=rooms.get(String(data.code??'').toUpperCase().trim());
   if (!room) fail('Room not found. Check the code.',404);
   if (path==='join') {
+    if (room.endedAt) fail('The host has left the match.',410);
     if (room.match) fail('This room is already playing.',409);
     if (room.clients.size>=room.size*2) fail('This room is full.',409);
     const client=join(room,data.name);
@@ -79,13 +99,19 @@ function api(path, data) {
   }
   const client=room.clients.get(data.token);
   if (!client) fail('Your connection expired. Join again.',403);
+  if (room.endedAt) return {ended:true};
   client.seen=Date.now();
   const host=room.clients.values().next().value===client;
   if (path==='leave') {
-    room.clients.delete(client.token);
+    removeClient(room,client);
     return {};
   }
-  if (path==='team') {
+  if (path==='pause') {
+    if (!room.match || room.match.phase==='results') fail('There is no active match to pause.',409);
+    room.pausedBy=room.pausedBy ? null : client.seats[0].name;
+    room.clock=performance.now();
+    for (const peer of room.clients.values()) peer.commands=[];
+  } else if (path==='team') {
     if (room.match) fail('Teams are locked once the match starts.',409);
     if (data.team!==0 && data.team!==1) fail('Choose a valid team.');
     const seat=client.seats[0];
@@ -112,7 +138,7 @@ function api(path, data) {
     });
   } else if (path==='buy') {
     const seat=Number.isInteger(data.seat) && client.seats[data.seat];
-    if (!room.match || !seat || !Number.isInteger(data.item)) fail('Invalid purchase.');
+    if (room.pausedBy || !room.match || !seat || !Number.isInteger(data.item)) fail('Invalid purchase.');
     room.match.buy(room.match.actors[seat.slot],data.item);
   } else fail('Unknown room action.',404);
   return snapshot(room,client);
@@ -151,9 +177,16 @@ function lanRoutes() {
 const tick=setInterval(()=>{
   const now=Date.now(), time=performance.now();
   for (const [id,room] of rooms) {
-    for (const [token,client] of room.clients) if (now-client.seen>25000) room.clients.delete(token);
-    if (!room.clients.size) {rooms.delete(id);continue;}
-    if (!room.match || room.match.phase==='results') continue;
+    if (room.endedAt) {
+      if (now-room.endedAt>closedRoomLifetime || !room.clients.size) rooms.delete(id);
+      continue;
+    }
+    for (const client of room.clients.values()) {
+      if (now-client.seen<=disconnectAfter) continue;
+      removeClient(room,client,now);
+      if (room.endedAt) break;
+    }
+    if (room.endedAt || room.pausedBy || !room.match || room.match.phase==='results') continue;
     const m=room.match;
     const commands=new Map();
     for (const client of room.clients.values()) {

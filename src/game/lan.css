@@ -7,6 +7,8 @@
 .lan-team h2 span{white-space:nowrap}
 .lan-roster{flex:1;padding-left:18px;overflow-wrap:anywhere}
 .lan-team button{align-self:flex-start;font-size:.8rem}
+#lan-notices{position:fixed;top:82px;right:12px;max-width:calc(100vw - 24px);pointer-events:none;z-index:4}
+#lan-notices p{margin:0 0 6px;padding:8px 12px;border:1px solid #6d817e;background:#152124;color:#f3eedc;overflow-wrap:anywhere}
 .lan-error{color:#ffb0a8;margin:8px 0}
 .lan-equipment{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:5px}
 .lan-equipment button{font-size:.75rem;padding:6px}

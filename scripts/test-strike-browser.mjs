@@ -19,6 +19,9 @@ try {
   assert.ok(await page.getByRole('button',{name:'More players'}).isDisabled());
   await page.getByRole('button',{name:'Settings'}).click();
   await page.locator('#difficulty').selectOption('Relaxed');
+  await expect('Equipment damage per hit');
+  const damageList = await page.locator('.damage-list div').allTextContents();
+  assert.deepEqual(damageList,['Spark22 HP','Ripple16 HP','Prism34 HP','Vortex23 HP','Nova30 HP']);
   await page.getByRole('button',{name:'Back'}).click();
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await page.getByRole('button',{name:/Counter Liberals/}).click();
@@ -44,7 +47,6 @@ try {
   await page.getByRole('button',{name:'Resume'}).click();
   await page.clock.runFor(10200);
   await expect('ACTIVE');
-  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('w');
   await page.clock.runFor(400);
   await page.keyboard.up('w');
@@ -68,6 +70,33 @@ try {
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await page.getByRole('button',{name:/^Liberals/}).click();
   await expect('Equipment');
+  const feedback = await page.evaluate(async () => {
+    const [{ Match },{ paint }] = await Promise.all([
+      import('/src/game/match.js'), import('/src/game/arena-art.js'),
+    ]);
+    const demo=new Match(1,0,'Standard',()=>0);
+    demo.step(10,{});
+    Object.assign(demo.player,{x:200,y:350});
+    Object.assign(demo.actors[1],{x:325,y:350});
+    demo.fire(demo.player,0);
+    demo.player.cooldown=0;
+    demo.fire(demo.player,0);
+    const preview=document.createElement('canvas');
+    preview.width=1200;
+    preview.height=720;
+    Object.assign(preview.style,{position:'fixed',inset:'0',margin:'auto',zIndex:'10',maxWidth:'100vw'});
+    document.body.append(preview);
+    const ctx=preview.getContext('2d');
+    const labels=[];
+    const drawText=ctx.fillText.bind(ctx);
+    ctx.fillText=(text,...args)=>{labels.push(text); drawText(text,...args);};
+    paint(ctx,demo,{x:325,y:350});
+    const redX=Array.from(ctx.getImageData(320,345,1,1).data);
+    return {labels,redX};
+  });
+  assert.ok(feedback.labels.includes('−44 HP'));
+  assert.deepEqual(feedback.redX,[255,70,79,255]);
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   assert.deepEqual(errors,[]);
   console.log('Browser flow passed at '+url+' using '+(channel || 'Chromium')+'.');
 } finally {

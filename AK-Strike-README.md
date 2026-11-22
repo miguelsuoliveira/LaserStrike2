@@ -15,7 +15,7 @@ Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build
 
 ## Play
 
-Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
+Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. Settings shows the damage per hit for all five items. A red X confirms a hit and the crosshair briefly shows the combined damage of consecutive hits. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
 
 Win nine rounds. An 8–8 score ends in a draw. The crews keep their scores, roster, and statistics when activation and defense swap after round eight. Surviving characters carry equipment forward, and all roster members receive the same round reward for their team.
 

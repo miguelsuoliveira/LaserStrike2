@@ -35,6 +35,9 @@ button.a i{border-radius:50%}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;color:#c8d2cf}
 .controls div{display:flex;align-items:center;gap:7px}
 kbd{background:#10191b;border:1px solid #566563;padding:3px 6px;border-radius:4px;color:#eaf6f3;font-size:.8em}
+.damage-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin:0 0 18px}
+.damage-list div{background:#253234;padding:8px 10px;border-radius:4px}
+.damage-list dd{margin:3px 0 0;color:var(--mint);font-weight:700}
 .shop{display:grid;gap:6px}
 .shop button{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px}
 .shop small{display:block;font-weight:400}

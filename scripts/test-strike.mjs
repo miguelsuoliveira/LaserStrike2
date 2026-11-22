@@ -104,4 +104,41 @@ for(const draw of [false,true]) {
   assert.deepEqual(m.score,draw?[8,8]:[9,0]);
 }
 
+{
+  const m=make(1);
+  active(m);
+  const p=m.player, bot=m.actors[1];
+  Object.assign(p,{x:200,y:350});
+  Object.assign(bot,{x:260,y:350});
+  m.fire(p,0);
+  assert.equal(m.feedback.damage,22);
+  assert.ok(m.feedback.marker>0);
+  p.cooldown=0;
+  m.fire(p,0);
+  assert.equal(m.feedback.damage,44);
+  assert.equal(bot.hp,56);
+  for (let i=0;i<90;i++) advance(m,1/60);
+  assert.equal(m.feedback.marker,0);
+  assert.equal(m.feedback.time,0);
+}
+{
+  const m=make(1);
+  const bot=m.actors[1];
+  const start={x:bot.x,y:bot.y};
+  const facing=bot.angle;
+  m.bot(bot,1/60);
+  assert.ok(Math.abs(bot.angle-facing)<=2.4/60+1e-8);
+  const firstStop=bot.patrol;
+  for (let i=0;i<300;i++) m.bot(bot,1/60);
+  assert.ok(Math.hypot(bot.x-start.x,bot.y-start.y)>40);
+  assert.notEqual(bot.patrol,firstStop);
+  Object.assign(bot,{x:200,y:350,angle:0,plan:1,reaction:0,enemy:m.player});
+  Object.assign(m.player,{x:325,y:350});
+  let angle;
+  m.fire=(_actor, shotAngle)=>{angle=shotAngle;};
+  m.bot(bot,1/60);
+  assert.notEqual(angle,undefined);
+  assert.ok(Math.abs(angle)>.1);
+}
+
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

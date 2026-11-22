@@ -106,10 +106,30 @@ export function paint(c, match, pointer, mini=false) {
     c.fillStyle='#ffdd68';
     c.fillRect(o.dropped.x-5,o.dropped.y-5,10,10);
   }
-  if (!mini && pointer && match.phase==='active') {
+  if (!mini && pointer && match.player.hp && match.phase==='active') {
     c.strokeStyle='#fff'; c.lineWidth=1.5;
     circle(c,pointer.x,pointer.y,8); c.stroke();
     c.beginPath(); c.moveTo(pointer.x-12,pointer.y); c.lineTo(pointer.x+12,pointer.y);
     c.moveTo(pointer.x,pointer.y-12); c.lineTo(pointer.x,pointer.y+12); c.stroke();
+    const feedback=match.feedback;
+    if (feedback.marker>0) {
+      c.strokeStyle='#ff464f';
+      c.lineWidth=3;
+      c.beginPath();
+      c.moveTo(pointer.x-8,pointer.y-8); c.lineTo(pointer.x+8,pointer.y+8);
+      c.moveTo(pointer.x+8,pointer.y-8); c.lineTo(pointer.x-8,pointer.y+8);
+      c.stroke();
+    }
+    if (feedback.time>0) {
+      const text=`−${feedback.damage} HP`;
+      const x=Math.min(width-40,Math.max(40,pointer.x));
+      const y=pointer.y<36 ? pointer.y+34 : pointer.y-21;
+      c.font='bold 18px system-ui';
+      c.lineWidth=4;
+      c.strokeStyle='#1b1416';
+      c.fillStyle='#ff9298';
+      c.strokeText(text,x,y);
+      c.fillText(text,x,y);
+    }
   }
 }

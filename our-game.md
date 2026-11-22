@@ -13,3 +13,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 
 ## Rounds
 - [x] Built AK-Strike from the supplied brief.
+- [x] Details 2: Equipment damage stats, hit feedback, and patrolling bots with slower turns and less accurate aim.

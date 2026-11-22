@@ -8,7 +8,12 @@ export const gear = [
   ['Nova',4000,30,12,.32,405,'Heavy, versatile pulses'],
 ].map(([name,cost,damage,capacity,interval,range,description]) => ({name,cost,damage,capacity,interval,range,description}));
 
-const difficulty = { Relaxed:[.65,.18,102], Standard:[.4,.095,125], Expert:[.24,.052,146] };
+const difficulty = { Relaxed:[.72,.36,102,1.8], Standard:[.48,.23,125,2.4], Expert:[.3,.15,146,3.1] };
+const patrols = [
+  [{x:250,y:355},{x:330,y:86},{x:556,y:133},{x:720,y:350},{x:550,y:594},{x:325,y:642}],
+  [{x:1086,y:369},{x:980,y:120},{x:832,y:223},{x:735,y:353},{x:815,y:501},{x:1000,y:592}],
+];
+const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
 
 export class Match {
@@ -32,6 +37,7 @@ export class Match {
     this.phase = 'buy';
     this.time = 10;
     this.traces.length = 0;
+    this.feedback = { damage:0, time:0, marker:0 };
     this.objective = { site:null, carrier:null, dropped:null, progress:0, actor:null, clock:0 };
     this.target = sites[Math.floor(this.random()*sites.length)];
     for (const a of this.actors) {
@@ -40,7 +46,7 @@ export class Match {
         x:x+(a.slot%2)*31, y:y+Math.floor(a.slot/2)*30-60, hp:100,
         bought:false, ammo:gear[a.item].capacity, reload:0, cooldown:0,
         angle:a.team===this.attack?0:Math.PI, speed:0, path:[], plan:0, reaction:0,
-        enemy:null, hits:new Map(), preferred:sites[a.slot%2],
+        enemy:null, hits:new Map(), patrol:a.slot%patrols[0].length, patrolStep:a.slot%2 ? -1 : 1,
       });
       if (a !== this.player) {
         const options = gear.map((_,i)=>i).filter(i=>i>a.item && gear[i].cost<=a.credits);
@@ -84,6 +90,11 @@ export class Match {
     const dealt = Math.min(target.hp, damage);
     target.hp -= dealt;
     from.damage += dealt;
+    if (from===this.player) {
+      this.feedback.damage = (this.feedback.time>0 ? this.feedback.damage : 0) + dealt;
+      this.feedback.time = 1.4;
+      this.feedback.marker = .18;
+    }
     target.hits.set(from, (target.hits.get(from) || 0) + dealt);
     if (target.hp) return;
     target.deaths++;
@@ -140,8 +151,16 @@ export class Match {
   }
 
   bot(a, dt) {
-    const [delay,spread,speed] = difficulty[this.level];
+    const [delay,spread,speed,turnRate] = difficulty[this.level];
     const o = this.objective;
+    const carrying = o.carrier===a;
+    const defending = a.team!==this.attack;
+    const urgent = carrying ? this.target : defending ? o.site : o.dropped;
+    const stops = patrols[Number(defending)];
+    if (!urgent && distance(a,stops[a.patrol])<20) {
+      a.patrol = (a.patrol+a.patrolStep+stops.length)%stops.length;
+      a.plan = 0;
+    }
     a.plan -= dt;
     if (a.plan <= 0) {
       a.plan = .34 + this.random()*.24;
@@ -149,24 +168,29 @@ export class Match {
         .sort((left,right)=>distance(a,left)-distance(a,right))[0];
       if (threat!==a.enemy) a.reaction = delay + this.random()*.22;
       a.enemy = threat;
-      const point = o.site || (a.team===this.attack ? o.dropped || (o.carrier===a ? this.target : a.preferred) : a.preferred);
-      a.path = route(a,point);
+      a.path = route(a,urgent || stops[a.patrol]);
     }
-    if (a.enemy?.hp && visible(a,a.enemy) && distance(a,a.enemy)<gear[a.item].range && a.reaction<=0) {
-      a.angle = Math.atan2(a.enemy.y-a.y,a.enemy.x-a.x);
-      this.fire(a,a.angle+(this.random()-.5)*spread*2);
+
+    while (a.path.length && distance(a,a.path[0])<5) a.path.shift();
+    const point = a.path[0];
+    const threat = a.enemy?.hp && visible(a,a.enemy) && distance(a,a.enemy)<gear[a.item].range ? a.enemy : null;
+    const look = threat || point;
+    if (look) {
+      const desired = Math.atan2(look.y-a.y,look.x-a.x);
+      const maxTurn = turnRate*dt;
+      a.angle += Math.max(-maxTurn,Math.min(maxTurn,angleDelta(a.angle,desired)));
+      if (threat && a.reaction<=0 && Math.abs(angleDelta(a.angle,desired))<.32) {
+        this.fire(a,a.angle+(this.random()*2-1)*spread);
+      }
     }
-    if ((o.carrier===a && sites.some(site=>distance(a,site)<43)) ||
-        (o.site && a.team!==this.attack && distance(a,o.site)<44)) {
+    if ((carrying && sites.some(site=>distance(a,site)<43)) ||
+        (defending && o.site && distance(a,o.site)<44)) {
       this.interact(a,dt);
       return;
     }
-    while (a.path.length && distance(a,a.path[0])<5) a.path.shift();
-    const point = a.path[0];
     if (!point) return;
     const angle = Math.atan2(point.y-a.y,point.x-a.x);
-    if (!a.enemy?.hp) a.angle = angle;
-    const step = Math.min(distance(a,point),dt*speed*(a.enemy?.hp ? .65 : 1));
+    const step = Math.min(distance(a,point),dt*speed*(threat ? .65 : 1));
     move(a,Math.cos(angle)*step,Math.sin(angle)*step);
   }
 
@@ -181,6 +205,8 @@ export class Match {
       return;
     }
     const o = this.objective;
+    this.feedback.time = Math.max(0,this.feedback.time-dt);
+    this.feedback.marker = Math.max(0,this.feedback.marker-dt);
     o.engaged = false;
     for (const trace of this.traces) trace.life -= dt;
     this.traces = this.traces.filter(trace=>trace.life>0);

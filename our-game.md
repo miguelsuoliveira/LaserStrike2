@@ -23,3 +23,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 8: Original top-down tactical characters with team uniforms and walking poses.
 - [x] Details 9: Dropped weapon labels show only within pickup range.
 - [x] Details 10: Renamed the game to Laser Strike.
+- [x] Details 11: Boosted music and sound effects.

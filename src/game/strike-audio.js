@@ -35,8 +35,8 @@ export function createStrikeAudio() {
 
   function configure() {
     if (!context) return;
-    music.gain.setTargetAtTime(musicOn ? .2 : 0,context.currentTime,.04);
-    effects.gain.setTargetAtTime(effectsOn ? .36 : 0,context.currentTime,.025);
+    music.gain.setTargetAtTime(musicOn ? .36 : 0,context.currentTime,.04);
+    effects.gain.setTargetAtTime(effectsOn ? .65 : 0,context.currentTime,.025);
   }
 
   return {

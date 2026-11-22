@@ -36,7 +36,8 @@ try {
   await page.locator('#difficulty').selectOption('Relaxed');
   await page.getByRole('checkbox',{name:'Pulse trails'}).waitFor();
   const graphics=page.getByRole('combobox',{name:'Graphics'});
-  assert.equal(await graphics.inputValue(),'low');
+  assert.equal(await graphics.inputValue(),'high');
+  assert.equal(await page.locator('#arena').getAttribute('width'),'1800');
   await graphics.selectOption('medium');
   assert.equal(await page.locator('#arena').getAttribute('width'),'1500');
   await graphics.selectOption('high');

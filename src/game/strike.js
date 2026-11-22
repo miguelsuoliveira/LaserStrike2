@@ -13,7 +13,15 @@ const $ = id => document.getElementById(id);
 const canvas=$('arena'), hud=$('hud'), map=$('map'), overlay=$('overlay'), board=$('board');
 const context=canvas.getContext('2d'), minimap=map.getContext('2d');
 const audio=createStrikeAudio();
-let musicOn=true, effectsOn=true, graphics='low';
+let musicOn=true, effectsOn=true, graphics='high';
+
+function resizeArena() {
+  const {scale}=graphicsPresets[graphics];
+  canvas.width=width*scale;
+  canvas.height=height*scale;
+}
+
+resizeArena();
 const keys=new Set(), pointer={x:600,y:360};
 let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
 let pickupPressed=false;
@@ -121,9 +129,7 @@ overlay.addEventListener('change',event=>{
   }
   if (event.target.id==='graphics') {
     graphics=event.target.value;
-    const {scale}=graphicsPresets[graphics];
-    canvas.width=width*scale;
-    canvas.height=height*scale;
+    resizeArena();
   }
   if (event.target.id==='motion') motion=event.target.checked;
   if (event.target.id==='music') audio.setMusic(musicOn=event.target.checked);

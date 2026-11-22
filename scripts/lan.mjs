@@ -92,8 +92,8 @@ function api(path, data) {
   if (!room) fail('Room not found. Check the code.',404);
   if (path==='join') {
     if (room.endedAt) fail('The host has left the match.',410);
-    if (room.match) fail('This room is already playing.',409);
     if (room.clients.size>=room.size*2) fail('This room is full.',409);
+    if (room.match) fail('This room is already playing.',409);
     const client=join(room,data.name);
     return {token:client.token,...snapshot(room,client)};
   }

@@ -21,6 +21,43 @@ const label=(page,value)=>page.getByLabel(value);
 const button=(page,name)=>page.getByRole('button',{name,exact:true});
 const snapshot=async page=>(await page.waitForResponse(res=>res.url().endsWith('/lan-api/sync') && res.ok())).json();
 
+async function capacity() {
+  const page=await pageAt();
+  const room=await page.evaluate(async()=>{
+    const send=async(action,data={})=>{
+      const response=await fetch('/lan-api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)});
+      return {status:response.status,...await response.json()};
+    };
+    const {code,token}=await send('create',{name:'Host'});
+    const host={code,token};
+    await send('settings',{...host,size:1,level:'Standard'});
+    const first=await send('join',{code});
+    const oneFull=await send('join',{code});
+    await send('settings',{...host,size:2,level:'Standard'});
+    const next=await Promise.all([send('join',{code}),send('join',{code}),send('join',{code})]);
+    const tooSmall=await send('settings',{...host,size:1,level:'Standard'});
+    return {code,token,first,oneFull,next,tooSmall};
+  });
+  assert.equal(room.first.status,200);
+  assert.equal(room.oneFull.error,'This room is full.');
+  assert.deepEqual(room.next.map(r=>r.status).sort(),[200,200,409]);
+  assert.equal(room.tooSmall.status,400);
+  await label(page,'Room code').fill(room.code);
+  await button(page,'Join room').click();
+  await page.getByRole('alert').getByText('This room is full.').waitFor();
+  await page.evaluate(async({code,token})=>{
+    await fetch('/lan-api/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,token})});
+  },room);
+  const retry=page.waitForResponse(res=>res.url().endsWith('/lan-api/join'));
+  await button(page,'Join room').click();
+  assert.equal((await (await retry).json()).error,'This room is full.');
+  await page.evaluate(async({code,token})=>{
+    await fetch('/lan-api/leave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,token})});
+  },room);
+  await page.close();
+}
+
 async function lanRoom() {
   const host=await pageAt(), guest=await pageAt();
   assert.equal(await button(host,'Play Local Co-op').count(),0);
@@ -109,9 +146,10 @@ try {
   assert.ok(interpolated.actors[1].x>70 && interpolated.actors[1].x<95);
   motion.receive({...match,round:2,actors:[player,movedRival]},83);
   assert.equal(motion.frame(99,1/60,movement).actors[1].x,95);
+  await capacity();
   await lanRoom();
   assert.deepEqual(errors,[]);
-  console.log('LAN teams, movement, shared pause, disconnect notices, and host-exit return passed at '+url);
+  console.log('LAN capacity, teams, movement, shared pause, and departures passed at '+url);
 } finally {
   await browser.close();
 }

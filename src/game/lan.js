@@ -95,7 +95,7 @@ function lobby() {
     <label class="settings-row">Players per team <select id="roster-size">${Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.size?'selected':''}>${n}v${n}</option>`).join('')}</select></label>
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host</p>`;
-  return panel('Room '+state.code,`<p class="tagline">Share the code with players on the same network.</p>
+  return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the code with players on the same network.</p>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
 }

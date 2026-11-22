@@ -32,3 +32,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] LAN team selection respects the host’s team size and fills empty slots with bots at match start.
 - [x] LAN motion smoothing and faster active-match input updates.
 - [x] LAN shared pause, player departure notices, and return to the main menu when the host leaves.
+- [x] LAN rooms show and enforce the current total player limit.

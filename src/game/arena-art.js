@@ -61,6 +61,7 @@ for (const [x,y,w,h] of walls) {
   art.strokeRect(x+1,y+1,w-2,h-2);
 }
 
+const labelWidths=new WeakMap();
 const circle = (c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);};
 export function paint(c, match, pointer, mini=false, quality='low') {
   c.setTransform(c.canvas.width/width,0,0,c.canvas.height/height,0,0);
@@ -127,7 +128,11 @@ export function paint(c, match, pointer, mini=false, quality='low') {
     for (const a of match.actors) {
       if (!a.hp || a===match.player) continue;
       const y=a.y<36 ? a.y+27 : a.y-25;
-      const halfWidth=c.measureText(a.name).width/2+3;
+      let halfWidth=labelWidths.get(a);
+      if (halfWidth===undefined) {
+        halfWidth=c.measureText(a.name).width/2+3;
+        labelWidths.set(a,halfWidth);
+      }
       let spot;
       for (const dy of [0,-13,13,-26,26]) {
         for (const dx of [0,-12,12,-24,24]) {

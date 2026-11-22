@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
+import { createLanMotion } from '../src/game/lan-motion.js';
 
 const browser=await chromium.launch();
 const url=process.env.STRIKE_LAN_URL || 'http://localhost:5188/lan.html';
@@ -73,6 +74,20 @@ async function lanRoom() {
 }
 
 try {
+  const motion=createLanMotion();
+  const player={x:160,y:150,angle:0,hp:100}, rival={x:70,y:350,angle:0,hp:100};
+  const match={round:1,phase:'active',player,actors:[player,rival],objective:{}};
+  const movement={dx:1,dy:0,x:130,y:220};
+  motion.receive(match,0);
+  const first=motion.frame(16,1/60,movement);
+  assert.ok(first.player.x>160 && first.player.x<=167);
+  assert.ok(first.player.angle>0);
+  const movedRival={...rival,x:95};
+  motion.receive({...match,actors:[player,movedRival]},42);
+  const interpolated=motion.frame(58,1/60,movement);
+  assert.ok(interpolated.actors[1].x>70 && interpolated.actors[1].x<95);
+  motion.receive({...match,round:2,actors:[player,movedRival]},83);
+  assert.equal(motion.frame(99,1/60,movement).actors[1].x,95);
   await lanRoom();
   assert.deepEqual(errors,[]);
   console.log('LAN rooms, names, host settings, and remote movement passed at '+url);

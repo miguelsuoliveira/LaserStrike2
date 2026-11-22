@@ -3,13 +3,16 @@ import './lan.css';
 import { Match,gear } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
+import { createLanMotion } from './lan-motion.js';
 import { createStrikeAudio } from './strike-audio.js';
 
 const canvas=document.querySelector('#arena'), context=canvas.getContext('2d');
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
 const audio=createStrikeAudio();
+const motion=createLanMotion();
+let needsPaint=true, lastFrame=performance.now(), pollTimer;
 const keys=new Set(), pointer={x:600,y:360};
-let session, state, view, requestInFlight=false, online=false, held=false, error='';
+let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
 let name='', roomCode='', markup='', pickupPressed=false, previousPhase;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
@@ -28,7 +31,7 @@ async function api(action, data={}) {
 
 function accept(next) {
   state=next;
-  if (!next.match) {view=null;previousPhase=undefined;return;}
+  if (!next.match) {view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;return;}
   const snapshot=next.match;
   if (snapshot.phase==='active' && previousPhase==='buy') audio.play('bell');
   previousPhase=snapshot.phase;
@@ -38,6 +41,8 @@ function accept(next) {
     player:actors[id],feedback:{time:0,marker:0},announcement:{time:0},
     objective:{...objective,actor:actors[objective.actor],carrier:actors[objective.carrier]},
   });
+  motion.receive(view);
+  needsPaint=true;
 }
 
 function lobby() {
@@ -95,10 +100,14 @@ function display() {
   }
 }
 
-function input() {
-  if (!view) return [];
-  return [{...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
-    fire:held,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed}];
+function controlsNow() {
+  return {...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
+    fire:held||firePressed,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed};
+}
+
+function schedulePoll(delay) {
+  clearTimeout(pollTimer);
+  if (session) pollTimer=setTimeout(poll,delay);
 }
 
 async function poll() {
@@ -106,8 +115,9 @@ async function poll() {
   const current=session;
   requestInFlight=true;
   try {
-    const commands=input();
+    const commands=view?.phase==='active' ? [controlsNow()] : [];
     pickupPressed=false;
+    firePressed=false;
     const next=await api('sync',{commands});
     if (session===current) {
       accept(next);
@@ -116,10 +126,13 @@ async function poll() {
   } catch(e) {
     if (session===current) {
       error=e.message;
-      if (e.status===403 || e.status===404) {session=null;state=null;view=null;}
+      if (e.status===403 || e.status===404) {session=null;state=null;view=null;motion.receive(null);needsPaint=true;}
       display();
     }
-  } finally {requestInFlight=false;}
+  } finally {
+    requestInFlight=false;
+    schedulePoll(view?.phase==='active' ? 40 : 125);
+  }
 }
 
 async function act(action,data) {
@@ -128,8 +141,9 @@ async function act(action,data) {
   try {
     const result=await api(action,data);
     if (result.token) session={token:result.token,code:result.code};
-    if (action==='leave') {session=null;state=null;view=null;previousPhase=undefined;}
+    if (action==='leave') {session=null;state=null;view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;}
     else accept(result);
+    schedulePoll(0);
   } catch(e) {error=e.message;}
   display();
 }
@@ -165,19 +179,26 @@ addEventListener('keydown',event=>{
   event.preventDefault();
   keys.add(event.code);
   if (!event.repeat && event.code==='KeyE') pickupPressed=true;
+  if (!event.repeat) schedulePoll(0);
 });
-addEventListener('keyup',event=>keys.delete(event.code));
-addEventListener('blur',()=>{keys.clear();held=false;});
+addEventListener('keyup',event=>{if (keys.delete(event.code)) schedulePoll(0);});
+addEventListener('blur',()=>{keys.clear();held=false;firePressed=false;schedulePoll(0);});
 canvas.addEventListener('pointermove',event=>{
   const rect=canvas.getBoundingClientRect();
   pointer.x=(event.clientX-rect.left)*width/rect.width;
   pointer.y=(event.clientY-rect.top)*height/rect.height;
 });
-canvas.addEventListener('pointerdown',event=>{if(event.button===0) held=true;});
-addEventListener('pointerup',()=>{held=false;});
-function frame() {
+canvas.addEventListener('pointerdown',event=>{if(event.button===0) {held=true;firePressed=true;schedulePoll(0);}});
+addEventListener('pointerup',()=>{if (held) {held=false;schedulePoll(0);}});
+function frame(now) {
+  const dt=Math.min(.05,(now-lastFrame)/1000);
+  lastFrame=now;
   audio.update();
-  paint(context,view,view?.phase==='active'?pointer:null);
+  const active=view?.phase==='active';
+  if (active || needsPaint) {
+    paint(context,motion.frame(now,dt,controlsNow()),active?pointer:null);
+    needsPaint=false;
+  }
   requestAnimationFrame(frame);
 }
 try {
@@ -193,5 +214,4 @@ try {
   } catch {}
 }
 display();
-setInterval(poll,65);
 requestAnimationFrame(frame);

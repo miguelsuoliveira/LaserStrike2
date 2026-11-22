@@ -123,7 +123,6 @@ try {
   assert.equal(await stage.locator('li').count(),10);
   assert.deepEqual(await stage.locator('.stage-rank').allTextContents(),['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th']);
   assert.equal(await stage.locator('.stage-damage').first().textContent(),'900 DMG');
-  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   const wideFigure=await stage.locator('.stage-figure').first().evaluate(el=>el.getBoundingClientRect().width);
   await page.getByText('Match statistics',{exact:true}).click();
   assert.equal(await page.locator('.results-stats tbody tr').count(),20);
@@ -137,6 +136,23 @@ try {
   await page.evaluate(()=>{window.testCurrentMatch().score=[8,8];});
   await expect('Match drawn');
   assert.equal(await page.locator('.winners-stage').count(),0);
+  await page.getByRole('button',{name:'Play again'}).click();
+  await page.clock.runFor(10200);
+  await expect('ACTIVE');
+  await page.evaluate(()=>{
+    const m=window.testCurrentMatch();
+    m.actors.filter(a=>a!==m.player).forEach(a=>{a.plan=100; a.path=[]; a.enemy=null;});
+    Object.assign(m.player,{x:200,y:350});
+    Object.assign(m.actors[10],{x:229,y:350,item:2,ammo:3});
+    m.hit(m.player,m.actors[10],100);
+  });
+  await page.getByText(/E · Pick up Prism/).waitFor();
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
+  await page.keyboard.down('e');
+  await page.clock.runFor(400);
+  await page.keyboard.up('e');
+  await expect('Prism · 3 / 6');
+  assert.equal(await page.evaluate(()=>window.testCurrentMatch().weaponDrops[0].item),0);
   const feedback = await page.evaluate(async () => {
     const [{ Match },{ paint }] = await Promise.all([
       import('/src/game/match.js'), import('/src/game/arena-art.js'),
@@ -175,6 +191,7 @@ try {
   assert.ok(feedback.labels.includes('Planting · 1.0s'));
   assert.ok(feedback.labels.includes('Defusing · 2.0s'));
   assert.ok(feedback.labels.includes('FIRST BLOOD'));
+  assert.ok(feedback.labels.includes('Spark · 0 CR'));
   assert.ok(feedback.labels.includes('Vale'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
   assert.deepEqual(errors,[]);

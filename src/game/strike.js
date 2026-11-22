@@ -1,6 +1,6 @@
 import './strike.css';
 import { Match, gear } from './match.js';
-import { width,height,sides,colors,distance,sites } from './arena.js';
+import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
 import { createStrikeAudio } from './strike-audio.js';
 import { winnersStage } from './winners-stage.js';
@@ -15,13 +15,14 @@ const audio=createStrikeAudio();
 let musicOn=true, effectsOn=true;
 const keys=new Set(), pointer={x:600,y:360};
 let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
+let pickupPressed=false;
 let screen='menu', previousPhase, lastOverlay='', lastHud='', lastBoard='';
 const shell=(title,body,kicker='PORT MERIDIAN · ARCADE LEAGUE', extraClass='') =>
   `<section class="panel${extraClass?' '+extraClass:''}"><div class="kicker">${kicker}</div><h1>${title}</h1>${body}</section>`;
 const btn=(label,action,primary=false)=>`<button data-action="${action}" ${primary?'class="primary"':''}>${label}</button>`;
 const score=()=>`<span class="a">${match.score[0]}</span> <span class="divider">:</span> <span class="b">${match.score[1]}</span>`;
 const controls=[
-  ['W A S D','Move'],['Mouse','Aim'],['Left click','Pulse'],['R','Reload'],['E','Interact'],
+  ['W A S D','Move'],['Mouse','Aim'],['Left click','Pulse'],['R','Reload'],['E','Pick up / hold for relay'],
   ['B','Shop'],['Tab','Hold scoreboard'],['Esc','Pause'],
 ].map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('');
 
@@ -78,9 +79,12 @@ function drawHud() {
   const p=match.player,o=match.objective,alive=match.alive(),item=gear[p.item];
   const time=Math.ceil(o.site && match.phase==='active'?o.clock:match.time);
   const objective=o.site?`Relay active at ${o.site.name}`:o.dropped?'Relay dropped':o.carrier===p?'You carry the relay':`${sides[match.attack]} carry the relay`;
-  const hint=p.hp && match.phase==='active' && ((o.carrier===p && sites.some(s=>distance(p,s)<55)) || (o.site && match.attack!==p.team && distance(p,o.site)<55));
+  const canInteract=p.hp && match.phase==='active';
+  const relayHint=canInteract && match.relaySite(p);
+  const drop=!relayHint && canInteract && match.nearbyWeapon(p);
+  const hint=relayHint ? 'Hold E' : drop ? `E · Pick up ${gear[drop.item].name}` : '';
   const html=`<div class="topbar"><span class="a">LIB · ${alive[0]} LIVE</span><strong>${score()}</strong><span class="b">CL · ${alive[1]} LIVE</span><span>ROUND ${match.round} / 16</span><span>${Math.floor(time/60)}:${String(time%60).padStart(2,'0')}</span><span>${match.phase.toUpperCase()}</span></div>
-  <div class="objective">${objective}${hint?' · Hold E':''}${o.actor===p? `<progress value="${o.progress}" max="1"></progress>`:''}</div>
+  <div class="objective">${objective}${hint?' · '+hint:''}${o.actor===p? `<progress value="${o.progress}" max="1"></progress>`:''}</div>
   <div class="bottom"><b>${p.hp} HP</b><b>${item.name} · ${p.reload?'Reloading':p.ammo+' / '+item.capacity}</b><b>${p.credits.toLocaleString()} CR</b></div>`;
   if (html!==lastHud) { hud.innerHTML=html; lastHud=html; }
 }
@@ -124,11 +128,12 @@ window.addEventListener('keydown',event=>{
   event.preventDefault();
   keys.add(event.code);
   if (event.repeat) return;
-  if (event.code==='Escape') { paused=!paused; fire=false; }
+  if (event.code==='Escape') { paused=!paused; fire=false; pickupPressed=false; }
+  if (event.code==='KeyE' && !paused && match.phase==='active') pickupPressed=true;
   if (event.code==='KeyB' && !paused && match.phase==='buy') buyOpen=!buyOpen;
 });
 window.addEventListener('keyup',event=>keys.delete(event.code));
-window.addEventListener('blur',()=>{keys.clear();fire=false;});
+window.addEventListener('blur',()=>{keys.clear();fire=false;pickupPressed=false;});
 canvas.addEventListener('pointermove',event=>{
   const rect=canvas.getBoundingClientRect();
   pointer.x=(event.clientX-rect.left)*width/rect.width;
@@ -144,7 +149,8 @@ function frame(now) {
   audio.update();
   if (match && screen==='match' && !paused) {
     match.step(dt,{...pointer,dx:Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
-      dy:Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire,reload:keys.has('KeyR'),use:keys.has('KeyE')});
+      dy:Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});
+    pickupPressed=false;
     if (!motion) match.traces.length=0;
     if (match.phase!==previousPhase) {buyOpen=match.phase==='buy';previousPhase=match.phase;}
   }

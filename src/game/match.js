@@ -14,6 +14,7 @@ const patrols = [
   [{x:1086,y:369},{x:980,y:120},{x:832,y:223},{x:735,y:353},{x:815,y:501},{x:1000,y:592}],
 ];
 const streakNames = {2:'DOUBLE KILL',3:'RAMPAGE',5:'ABSOLUTE GODLIKE'};
+const pickupRange = 38, lootSearchRange = 130;
 const plantTime = 2, defuseTime = 3;
 const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
@@ -39,6 +40,7 @@ export class Match {
     this.phase = 'buy';
     this.time = 10;
     this.traces.length = 0;
+    this.weaponDrops = [];
     this.feedback = { damage:0, time:0, marker:0 };
     this.roundEliminations = 0;
     this.playerRoundEliminations = 0;
@@ -106,6 +108,7 @@ export class Match {
     }
     target.hits.set(from, (target.hits.get(from) || 0) + dealt);
     if (target.hp) return;
+    this.weaponDrops.push(this.droppedWeapon(target));
     target.deaths++;
     from.kills++;
     this.roundEliminations++;
@@ -156,6 +159,41 @@ export class Match {
     if (target) this.hit(a,target,item.damage);
   }
 
+  droppedWeapon(actor) {
+    return {x:actor.x,y:actor.y,item:actor.item,ammo:actor.ammo};
+  }
+
+  nearbyWeapon(actor, range=pickupRange, upgradesOnly=false) {
+    let closest=null, nearest=range;
+    for (const drop of this.weaponDrops) {
+      if (upgradesOnly && gear[drop.item].cost<=gear[actor.item].cost) continue;
+      const gap=distance(actor,drop);
+      if (gap>=nearest || !visible(actor,drop)) continue;
+      closest=drop;
+      nearest=gap;
+    }
+    return closest;
+  }
+
+  pickUpWeapon(actor, drop=this.nearbyWeapon(actor)) {
+    if (!drop || this.phase!=='active' || !actor.hp ||
+        distance(actor,drop)>=pickupRange || !visible(actor,drop)) return false;
+    const index=this.weaponDrops.indexOf(drop);
+    if (index<0) return false;
+    this.weaponDrops[index]=this.droppedWeapon(actor);
+    actor.item=drop.item;
+    actor.ammo=drop.ammo;
+    actor.reload=0;
+    if (actor===this.player) this.onSound?.('buy');
+    return true;
+  }
+
+  relaySite(actor) {
+    const {site,carrier}=this.objective;
+    if (site) return actor.team!==this.attack && distance(actor,site)<55 ? site : null;
+    return carrier===actor ? sites.find(zone=>distance(actor,zone)<55) : null;
+  }
+
   objectiveAction() {
     const { actor, site, progress } = this.objective;
     if (!actor?.hp) return null;
@@ -167,8 +205,8 @@ export class Match {
     const o = this.objective;
     if (o.actor && o.actor!==a) return;
     const activating = !o.site && o.carrier===a;
-    const location = activating ? sites.find(site=>distance(a,site)<55) : o.site;
-    if (!location || distance(a,location)>55 || (!activating && a.team===this.attack)) return;
+    const location = this.relaySite(a);
+    if (!location) return;
     o.engaged = true;
     o.actor = a;
     o.progress += dt / (activating ? plantTime : defuseTime);
@@ -203,7 +241,8 @@ export class Match {
       if (threat!==a.enemy) a.reaction = delay + this.random()*.22;
       a.enemy = threat;
       const approach = threat && !canReach(a,threat) && canReach(threat,a);
-      a.path = route(a,approach ? threat : urgent || stops[a.patrol]);
+      const loot = !threat && !urgent && this.nearbyWeapon(a,lootSearchRange,true);
+      a.path = route(a,approach ? threat : urgent || loot || stops[a.patrol]);
     }
 
     while (a.path.length && distance(a,a.path[0])<5) a.path.shift();
@@ -224,6 +263,8 @@ export class Match {
       this.interact(a,dt);
       return;
     }
+    const upgrade=this.nearbyWeapon(a,pickupRange,true);
+    if (upgrade && this.pickUpWeapon(a,upgrade)) a.plan=0;
     if (!point) return;
     const angle = Math.atan2(point.y-a.y,point.x-a.x);
     const step = Math.min(distance(a,point),dt*speed*(inRange ? .65 : 1));
@@ -263,7 +304,8 @@ export class Match {
         a.angle = Math.atan2(command.y-a.y,command.x-a.x);
         if (command.reload) this.reload(a);
         if (command.fire) this.fire(a,a.angle);
-        if (command.use) this.interact(a,dt);
+        if (command.use && this.relaySite(a)) this.interact(a,dt);
+        else if (command.pickup) this.pickUpWeapon(a);
       } else this.bot(a,dt);
       if (o.dropped && a.team===this.attack && distance(a,o.dropped)<25) {
         o.carrier = a;

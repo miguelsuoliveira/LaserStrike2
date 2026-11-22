@@ -1,3 +1,4 @@
+import { gear } from './match.js';
 import { width,height,walls,sites,spawn,colors } from './arena.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -130,6 +131,37 @@ export function paint(c, match, pointer, mini=false) {
       c.fillStyle=colors[a.team];
       c.strokeText(a.name,spot.x,spot.y);
       c.fillText(a.name,spot.x,spot.y);
+    }
+  }
+  if (!mini) {
+    const selected=match.player.hp && match.phase==='active' && !match.relaySite(match.player) &&
+      match.nearbyWeapon(match.player);
+    const labels=[];
+    c.font='700 12px system-ui';
+    c.textAlign='center';
+    for (const drop of match.weaponDrops) {
+      const item=gear[drop.item];
+      const text=`${item.name} · ${item.cost.toLocaleString()} CR`;
+      const halfWidth=c.measureText(text).width/2+6;
+      const x=Math.max(halfWidth,Math.min(width-halfWidth,drop.x));
+      const baseline=drop.y<height-36 ? drop.y+22 : drop.y-15;
+      let y=baseline;
+      for (let offset=0;offset<=labels.length*2;offset++) {
+        const candidate=baseline+Math.ceil(offset/2)*17*(offset%2 ? -1 : 1);
+        if (candidate<14 || candidate>height-4 ||
+            labels.some(label=>Math.abs(label.y-candidate)<17 && Math.abs(label.x-x)<label.halfWidth+halfWidth)) continue;
+        y=candidate;
+        break;
+      }
+      labels.push({x,y,halfWidth});
+      c.fillStyle='#17242a';
+      c.fillRect(drop.x-11,drop.y-5,22,10);
+      c.fillStyle=drop===selected ? '#ffe097' : '#cadbdd';
+      c.fillRect(drop.x-8,drop.y-2,16,4);
+      c.fillStyle='#152124ef';
+      c.fillRect(x-halfWidth,y-12,halfWidth*2,16);
+      c.fillStyle=drop===selected ? '#ffe097' : '#ecf2f3';
+      c.fillText(text,x,y);
     }
   }
   if (o.dropped) {

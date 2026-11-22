@@ -15,7 +15,7 @@ Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build
 
 ## Play
 
-Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. The shop shows damage per hit for all five items. A countdown beside the active character shows how long planting or defusing has left. A red X confirms a hit and the crosshair briefly shows the combined damage of consecutive hits. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
+Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. The shop shows damage per hit for all five items. A countdown beside the active character shows how long planting or defusing has left. A red X confirms a hit and the crosshair briefly shows the combined damage of consecutive hits. Press E beside a dropped weapon to swap it for yours. Ground labels show the shop price, and swapping costs no credits. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
 
 Win nine rounds. An 8–8 score ends in a draw. The crews keep their scores, roster, and statistics when activation and defense swap after round eight. At the end of a decisive match, the winners’ stage ranks the entire winning crew by total damage. Surviving characters carry equipment forward, and all roster members receive the same round reward for their team.
 

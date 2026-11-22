@@ -216,4 +216,37 @@ for(let n=1;n<=10;n++) {
   assert.deepEqual(lineup.map(a=>a.damage),Array.from({length:n},(_,i)=>(n-1-i)*50));
 }
 
+{
+  const m=make(2);
+  active(m);
+  const p=m.player, ally=m.actors[1], rival=m.actors[2];
+  Object.assign(rival,{x:233,y:350,item:2,ammo:3});
+  Object.assign(p,{x:200,y:350,ammo:4});
+  m.hit(p,rival,100);
+  assert.deepEqual(m.weaponDrops,[{x:233,y:350,item:2,ammo:3}]);
+  const drop=m.nearbyWeapon(p);
+  assert.ok(m.pickUpWeapon(p,drop));
+  assert.deepEqual(m.weaponDrops,[{x:200,y:350,item:0,ammo:4}]);
+  assert.equal(p.item,2);
+  assert.equal(p.ammo,3);
+  assert.equal(p.credits,0);
+  assert.equal(m.pickUpWeapon(p,drop),false);
+  Object.assign(ally,{x:205,y:350});
+  m.hit(m.actors[3],p,100);
+  m.bot(ally,1/60);
+  assert.equal(ally.item,2);
+  assert.equal(ally.ammo,3);
+  assert.equal(m.weaponDrops.length,2);
+  m.begin();
+  assert.equal(m.weaponDrops.length,0);
+}
+{
+  const m=make(1);
+  active(m);
+  Object.assign(m.player,{x:168,y:150});
+  m.weaponDrops.push({x:188,y:150,item:4,ammo:9});
+  assert.equal(m.nearbyWeapon(m.player),null);
+  assert.equal(m.pickUpWeapon(m.player,m.weaponDrops[0]),false);
+}
+
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

@@ -28,9 +28,8 @@ try {
   await page.getByRole('heading',{name:'LASER STRIKE 2',exact:true}).waitFor();
   await page.getByText(/Based off Counter-Strike 2/).waitFor();
   await expect('5v5');
-  const rounds=page.getByRole('combobox',{name:'Rounds',exact:true});
-  assert.equal(await rounds.inputValue(),'11');
-  await rounds.selectOption('10');
+  await expect('11');
+  await page.getByRole('button',{name:'Fewer rounds'}).click();
   for (let n=6;n<=10;n++) {
     await page.getByRole('button',{name:'More players'}).click();
     await expect(n+'v'+n);
@@ -71,9 +70,8 @@ try {
   assert.ok(await page.locator('[data-action="item-0"]').isDisabled());
   assert.ok(await page.locator('[data-action="item-1"]').isDisabled());
   await expect('OWNED');
-  await page.keyboard.press('b');
-  await page.getByText('Equipment',{exact:true}).waitFor({state:'hidden'});
-  await page.keyboard.press('b');
+  await page.getByRole('button',{name:'Sound effects on',exact:true}).click();
+  await page.getByRole('button',{name:'Sound effects off',exact:true}).click();
   await expect('Equipment');
   await page.keyboard.down('Tab');
   await expect('Scoreboard');
@@ -87,7 +85,8 @@ try {
   assert.equal(await page.locator('#hud .topbar').textContent(),before);
   await page.getByRole('button',{name:'Resume'}).click();
   const beforeBell=await page.evaluate(()=>window.testAudioStarts);
-  await page.clock.runFor(10200);
+  await page.getByRole('button',{name:'Ready',exact:true}).click();
+  await page.clock.runFor(1100);
   await expect('ACTIVE');
   assert.equal(await page.evaluate(()=>window.testAudioStarts)-beforeBell,3);
   if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
@@ -156,7 +155,8 @@ try {
   await expect('Match drawn');
   assert.equal(await page.locator('.winners-stage').count(),0);
   await page.getByRole('button',{name:'Play again'}).click();
-  await page.clock.runFor(10200);
+  await page.getByRole('button',{name:'Ready',exact:true}).click();
+  await page.clock.runFor(1100);
   await expect('ACTIVE');
   await page.evaluate(()=>{
     const m=window.testCurrentMatch();
@@ -176,7 +176,8 @@ try {
       import('/src/game/match.js'), import('/src/game/arena-art.js'),
     ]);
     const demo=new Match(1,0,'Standard',()=>0);
-    demo.step(10,{});
+    demo.markReady(demo.player);
+    demo.step(1,{});
     Object.assign(demo.player,{x:200,y:350});
     Object.assign(demo.actors[1],{x:325,y:350});
     demo.fire(demo.player,0);

@@ -44,10 +44,10 @@ export class Match {
   begin() {
     this.attack = Number(this.round > this.roundsBeforeSwitch);
     this.phase = 'buy';
-    this.time = 10;
+    this.time = 0;
+    this.readyCountdown = false;
     this.traces.length = 0;
     this.weaponDrops = [];
-    this.feedback = { damage:0, time:0, marker:0 };
     this.roundEliminations = 0;
     this.playerRoundEliminations = 0;
     this.announcement = {label:'',time:0,flash:0};
@@ -57,7 +57,7 @@ export class Match {
       const [x,y] = spawn[Number(a.team !== this.attack)];
       Object.assign(a, {
         x:x+(a.slot%2)*31, y:y+Math.floor(a.slot/2)*30-60, hp:100,
-        bought:false, ammo:gear[a.item].capacity, reload:0, cooldown:0,
+        bought:false, ready:false, feedback:{damage:0,time:0,marker:0}, ammo:gear[a.item].capacity, reload:0, cooldown:0,
         angle:a.team===this.attack?0:Math.PI, speed:0, path:[], plan:0, reaction:0,
         enemy:null, hits:new Map(), patrol:a.slot%patrols[0].length, patrolStep:a.slot%2 ? -1 : 1,
       });
@@ -66,18 +66,33 @@ export class Match {
         if (options.length) this.buy(a, options.at(-1));
       }
     }
+    this.feedback=this.player.feedback;
     const attackers = this.actors.filter(a=>a.team===this.attack);
     this.objective.carrier = attackers[Math.floor(this.random()*attackers.length)];
   }
 
+  markReady(actor) {
+    if (this.phase!=='buy' || !this.humans.has(actor)) return;
+    actor.ready=true;
+    this.checkReady();
+  }
+
+  checkReady() {
+    if (this.phase==='buy' && !this.readyCountdown && [...this.humans].every(actor=>actor.ready)) {
+      this.readyCountdown=true;
+      this.time=1;
+    }
+  }
+
   buy(actor, item) {
-    if (!gear[item] || this.phase !== 'buy' || !actor.hp || actor.bought ||
+    if (!gear[item] || this.phase !== 'buy' || !actor.hp || actor.bought || actor.ready ||
       actor.item === item || actor.credits < gear[item].cost) return false;
     actor.credits -= gear[item].cost;
     actor.item = item;
     actor.ammo = gear[item].capacity;
     actor.bought = true;
     if (actor===this.player) this.onSound?.('buy');
+    if (this.humans.has(actor)) this.onNetworkSound?.('buy',actor);
     return true;
   }
 
@@ -87,6 +102,7 @@ export class Match {
     this.reason = reason;
     this.winner = team;
     this.onSound?.(reason==='Relay disabled' ? 'defuse' : 'round');
+    this.onNetworkSound?.(reason==='Relay disabled' ? 'defuse' : 'round');
     for (const a of this.actors) {
       a.credits += a.team === team ? 1500 : 1000;
       if (!a.hp) a.item = 0;
@@ -105,12 +121,15 @@ export class Match {
     const dealt = Math.min(target.hp, damage);
     target.hp -= dealt;
     if (target===this.player) this.onSound?.('hurt');
+    if (this.humans.has(target)) this.onNetworkSound?.('hurt',target);
     from.damage += dealt;
-    if (from===this.player) {
-      this.onSound?.(target.hp ? 'hit' : 'eliminate');
-      this.feedback.damage = (this.feedback.time>0 ? this.feedback.damage : 0) + dealt;
-      this.feedback.time = 1.4;
-      this.feedback.marker = .18;
+    if (from===this.player) this.onSound?.(target.hp ? 'hit' : 'eliminate');
+    if (this.humans.has(from)) {
+      this.onNetworkSound?.(target.hp ? 'hit' : 'eliminate',from);
+      const feedback=from.feedback;
+      feedback.damage=(feedback.time>0 ? feedback.damage : 0)+dealt;
+      feedback.time=1.4;
+      feedback.marker=.18;
     }
     target.hits.set(from, (target.hits.get(from) || 0) + dealt);
     if (target.hp) return;
@@ -141,6 +160,7 @@ export class Match {
     if (!a.reload && a.ammo < gear[a.item].capacity) {
       a.reload = 1.1;
       if (a===this.player) this.onSound?.('reload');
+      if (this.humans.has(a)) this.onNetworkSound?.('reload',a);
     }
   }
 
@@ -151,6 +171,7 @@ export class Match {
     a.ammo--;
     const bot = a!==this.player;
     this.onSound?.('shot',{bot,volume:bot ? Math.max(0,.55-distance(a,this.player)/1100) : 1});
+    this.onNetworkSound?.('shot',a);
     a.cooldown = item.interval;
     const dx = Math.cos(angle), dy = Math.sin(angle);
     const limit = wallDistance(a.x,a.y,dx,dy,item.range);
@@ -194,6 +215,7 @@ export class Match {
     actor.ammo=drop.ammo;
     actor.reload=0;
     if (actor===this.player) this.onSound?.('buy');
+    if (this.humans.has(actor)) this.onNetworkSound?.('buy',actor);
     return true;
   }
 
@@ -226,6 +248,7 @@ export class Match {
       o.site = location;
       o.clock = 30;
       this.onSound?.('plant');
+      this.onNetworkSound?.('plant');
       o.carrier = null;
     } else this.finish(a.team,'Relay disabled');
   }
@@ -283,7 +306,7 @@ export class Match {
   step(dt, command, extraCommands = new Map()) {
     this.announcement.time = Math.max(0,this.announcement.time-dt);
     this.announcement.flash = Math.max(0,this.announcement.flash-dt);
-    if (this.phase==='results') return;
+    if (this.phase==='results' || (this.phase==='buy' && !this.readyCountdown)) return;
     this.time = Math.max(0,this.time-dt);
     if (this.phase!=='active') {
       if (!this.time) {
@@ -291,13 +314,16 @@ export class Match {
           this.phase='active';
           this.time=120;
           this.onSound?.('bell');
+          this.onNetworkSound?.('bell');
         } else { this.round++; this.begin(); }
       }
       return;
     }
     const o = this.objective;
-    this.feedback.time = Math.max(0,this.feedback.time-dt);
-    this.feedback.marker = Math.max(0,this.feedback.marker-dt);
+    for (const {feedback} of this.humans) {
+      feedback.time=Math.max(0,feedback.time-dt);
+      feedback.marker=Math.max(0,feedback.marker-dt);
+    }
     o.engaged = false;
     for (const trace of this.traces) trace.life -= dt;
     this.traces = this.traces.filter(trace=>trace.life>0);

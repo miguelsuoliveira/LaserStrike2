@@ -45,6 +45,7 @@ function removeClient(room, client, now=Date.now()) {
   if (room.match) {
     const actor=room.match.actors[slot];
     room.match.humans.delete(actor);
+    room.match.checkReady();
     actor.name='Bot '+(actor.slot+1);
   }
 }
@@ -56,6 +57,11 @@ function start(room) {
   for (const seat of seats) seat.slot=seat.team*room.size+counts[seat.team]++;
   room.match=new Match(room.size,seats[0].team,room.level,Math.random,seats.map(seat=>seat.slot),room.rounds);
   for (const seat of seats) room.match.actors[seat.slot].name=seat.name;
+  room.sounds=[];
+  room.match.onNetworkSound=(name,actor)=>{
+    room.sounds.push({id:++room.soundId,name,actor:actor ? room.match.actors.indexOf(actor) : -1,x:actor?.x,y:actor?.y,at:Date.now()});
+    if (room.sounds.length>48) room.sounds.shift();
+  };
   room.clock=performance.now();
 }
 
@@ -69,7 +75,11 @@ function snapshot(room, client) {
   if (!m) return base;
   const actorIndex = actor => actor ? m.actors.indexOf(actor) : -1;
   const o=m.objective;
-  base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
+  const slot=client.seats[0].slot;
+  base.sounds=room.sounds.filter(sound=>Date.now()-sound.at<650 && (sound.name==='shot' || sound.actor<0 || sound.actor===slot));
+  base.ready=[...m.humans].filter(actor=>actor.ready).length;
+  base.isReady=m.actors[slot].ready;
+  base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
     actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})=>
       ({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})),
     traces:m.traces, weaponDrops:m.weaponDrops,
@@ -86,7 +96,7 @@ function api(path, data) {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();
     while (rooms.has(id)) id=code();
-    const room={code:id,size:5,rounds:defaultRounds,level:'Standard',nextName:1,clients:new Map(),notices:[],noticeId:0,serial:0,pausedBy:null,endedAt:null};
+    const room={code:id,size:5,rounds:defaultRounds,level:'Standard',nextName:1,clients:new Map(),notices:[],noticeId:0,soundId:0,serial:0,pausedBy:null,endedAt:null};
     const client=join(room,data.name);
     rooms.set(id,room);
     return {token:client.token,...snapshot(room,client)};
@@ -142,6 +152,9 @@ function api(path, data) {
       next.pickup ||= Boolean(client.commands[i]?.pickup);
       return next;
     });
+  } else if (path==='ready') {
+    if (room.pausedBy || room.match?.phase!=='buy') fail('The buy phase is closed.',409);
+    room.match.markReady(room.match.actors[client.seats[0].slot]);
   } else if (path==='buy') {
     const seat=Number.isInteger(data.seat) && client.seats[data.seat];
     if (room.pausedBy || !room.match || !seat || !Number.isInteger(data.item)) fail('Invalid purchase.');

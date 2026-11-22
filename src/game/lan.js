@@ -1,15 +1,18 @@
 import './strike.css';
 import './lan.css';
-import { Match,gear,roundOptions } from './match.js';
+import { Match,gear } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
 import { createLanMotion } from './lan-motion.js';
+import { mountAudioToggles,roundStepper } from './match-controls.js';
 import { createStrikeAudio } from './strike-audio.js';
 
 const canvas=document.querySelector('#arena'), context=canvas.getContext('2d');
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
 const notices=document.querySelector('#lan-notices');
 const audio=createStrikeAudio();
+const audioToggles=mountAudioToggles(audio);
+let lastSound=0;
 const motion=createLanMotion();
 let needsPaint=true, lastFrame=performance.now(), pollTimer;
 let lastNotice=0, ending=false;
@@ -17,7 +20,7 @@ const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
 let inviteBase;
-let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false, previousPhase;
+let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
@@ -68,14 +71,19 @@ function accept(next) {
     announce(note.message);
     lastNotice=note.id;
   }
-  if (!next.match) {view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;return;}
+  if (!next.match) {view=null;motion.receive(null);needsPaint=true;return;}
   const snapshot=next.match;
-  if (snapshot.phase==='active' && previousPhase==='buy') audio.play('bell');
-  previousPhase=snapshot.phase;
   const {actors,objective}=snapshot;
   const id=next.seats[0];
+  for (const sound of next.sounds || []) {
+    if (sound.id<=lastSound) continue;
+    lastSound=sound.id;
+    const remoteShot=sound.name==='shot' && sound.actor!==id;
+    const gap=remoteShot ? Math.hypot(sound.x-actors[id].x,sound.y-actors[id].y) : 0;
+    audio.play(sound.name,{bot:remoteShot,volume:remoteShot ? Math.max(0,.55-gap/1100) : 1});
+  }
   view=Object.assign(Object.create(Match.prototype),snapshot,{
-    player:actors[id],feedback:{time:0,marker:0},announcement:{time:0},
+    player:actors[id],feedback:snapshot.feedback,announcement:{time:0},
     objective:{...objective,actor:actors[objective.actor],carrier:actors[objective.carrier]},
   });
   motion.receive(view);
@@ -96,7 +104,7 @@ function lobby() {
   }).join('');
   const fields=state.host ? `<form id="room-settings">
     <label class="settings-row">Players per team <select id="roster-size">${Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.size?'selected':''}>${n}v${n}</option>`).join('')}</select></label>
-    <label class="settings-row">Rounds <select id="room-rounds">${roundOptions.map(n=>`<option ${n===state.rounds?'selected':''}>${n}</option>`).join('')}</select></label>
+    ${roundStepper(state.rounds)}
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host · ${state.rounds} rounds</p>`;
   return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the room link with players on the same Wi‑Fi.</p>
@@ -107,14 +115,15 @@ function lobby() {
 }
 
 function shop() {
-  return panel('Preparation',`<p class="tagline">The match starts when the buy timer reaches zero.</p>${state.seats.map((slot,index)=>{
+  return panel('Preparation',`<p class="tagline">${state.ready} / ${state.players.length} ready · ${view.readyCountdown?'Round starts in 1 second…':'Waiting for all players'}</p>${state.seats.map((slot,index)=>{
     const actor=view.actors[slot];
     return `<h2>${escape(actor.name)} · ${actor.credits} CR</h2><div class="lan-equipment">${gear.map((item,i)=>`
-      <button data-action="buy-${index}-${i}" ${i===actor.item||actor.bought||actor.credits<item.cost?'disabled':''}>${item.name} · ${i===actor.item?'Owned':item.cost+' CR'} · ${item.damage} HP</button>`).join('')}</div>`;
-  }).join('')}`);
+      <button data-action="buy-${index}-${i}" ${i===actor.item||actor.bought||actor.credits<item.cost||state.isReady?'disabled':''}>${item.name} · ${i===actor.item?'Owned':item.cost+' CR'} · ${item.damage} HP</button>`).join('')}</div>`;
+  }).join('')}<div class="actions">${state.isReady?'':button('Ready','ready','primary')}</div>`);
 }
 
 function display() {
+  audioToggles.show(Boolean(view && !ending));
   let html;
   if (ending) html=panel('Host has left the match',`<a class="lan-link" href="${mainMenu.href}">Main menu</a>`);
   else if (!online) html=panel(title,`<p class="tagline">LAN rooms run on the host laptop. Ask the host to start the LAN server and share the room link. Open that link while connected to the same Wi‑Fi.</p>
@@ -136,7 +145,7 @@ function display() {
     const clock=Math.ceil(view.objective.site && view.phase==='active' ? view.objective.clock : view.time);
     const players=state.seats.map(id=>{
       const a=view.actors[id], drop=a.hp && view.nearbyWeapon(a);
-      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} ${a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
+      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
     const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
@@ -186,11 +195,12 @@ async function act(action,data) {
     const result=await api(action,data);
     if (result.token) {
       lastNotice=0;
+      lastSound=0;
       session={token:result.token,code:result.code};
     }
     if (action==='leave' && !result.ended) {
       const wasHost=state.host;
-      session=null;state=null;view=null;motion.receive(null);needsPaint=true;previousPhase=undefined;
+      session=null;state=null;view=null;motion.receive(null);needsPaint=true;
       notices.replaceChildren();
       stopInput();
       if (wasHost) location.replace(mainMenu);
@@ -207,7 +217,7 @@ overlay.addEventListener('input',event=>{
 });
 overlay.addEventListener('change',event=>{
   if (event.target.closest('#room-settings')) {
-    act('settings',{size:Number(document.querySelector('#roster-size').value),rounds:Number(document.querySelector('#room-rounds').value),level:document.querySelector('#bot-level').value});
+    act('settings',{size:Number(document.querySelector('#roster-size').value),rounds:state.rounds,level:document.querySelector('#bot-level').value});
   }
 });
 overlay.addEventListener('submit',event=>{
@@ -225,7 +235,8 @@ overlay.addEventListener('click',event=>{
     else if (document.execCommand('copy')) announce('Room link copied.');
   }
   if (action==='create') act('create',{name});
-  if (action==='start' || action==='leave' || action==='pause') act(action);
+  if (action==='start' || action==='leave' || action==='pause' || action==='ready') act(action);
+  if (action==='round-minus' || action==='round-plus') act('settings',{size:state.size,level:state.level,rounds:state.rounds+(action==='round-plus'?1:-1)});
   if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});
   if (action.startsWith('buy-')) {
     const [,seat,item]=action.split('-');

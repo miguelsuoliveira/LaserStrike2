@@ -8,6 +8,14 @@ const publicGame=process.env.STRIKE_PUBLIC_URL;
 const errors=[];
 async function pageAt(address=url) {
   const page=await browser.newPage();
+  await page.addInitScript(()=>{
+    window.lanSoundStarts=0;
+    const start=OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start=function(...args) {
+      window.lanSoundStarts++;
+      return start.apply(this,args);
+    };
+  });
   page.on('pageerror',error=>errors.push(error));
   if (publicGame) {
     await page.goto(publicGame);
@@ -86,8 +94,8 @@ async function lanRoom() {
   assert.equal(blocked,409);
   await label(host,'Players per team').selectOption('3');
   await guest.getByText(/3v3 · Standard bots/).waitFor();
-  assert.equal(await label(host,'Rounds').inputValue(),'11');
-  await label(host,'Rounds').selectOption('10');
+  await host.getByText('11',{exact:true}).waitFor();
+  await button(host,'Fewer rounds').click();
   await guest.getByText(/Waiting for host · 10 rounds/).waitFor();
   await label(host,'Bot difficulty').selectOption('Expert');
   await guest.getByText(/3v3 · Expert bots/).waitFor();
@@ -104,12 +112,28 @@ async function lanRoom() {
   await button(host,'Start match').click();
   await host.getByText('Ada · 0 CR',{exact:true}).waitFor();
   await guest.getByText('Rowan <LAN> · 0 CR',{exact:true}).waitFor();
-  await guest.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:18000});
+  await button(guest,'Music on').click();
+  await button(guest,'Music off').waitFor();
+  await button(guest,'Sound effects on').click();
+  await button(guest,'Sound effects off').click();
+  await button(host,'Ready').click();
+  await guest.getByText(/1 \/ 3 ready/).waitFor();
+  assert.equal((await snapshot(host)).match.phase,'buy');
+  await button(guest,'Ready').click();
+  await remaining.getByText(/2 \/ 3 ready/).waitFor();
+  await button(remaining,'Ready').click();
+  await host.getByText(/3 \/ 3 ready/).waitFor();
+  await guest.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:8000});
   await guest.getByText(/^Round 1 \/ 10/).waitFor();
   const before=await snapshot(guest);
   assert.equal(before.match.actors.length,6);
   assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);
   const guestSlot=before.seats[0];
+  await guest.getByText(/Ammo 9\/9/).waitFor();
+  const soundCount=await guest.evaluate(()=>window.lanSoundStarts);
+  await guest.locator('#arena').click({position:{x:300,y:200}});
+  await guest.getByText(/Ammo 8\/9/).waitFor();
+  await guest.waitForFunction(count=>window.lanSoundStarts>count,soundCount);
   await guest.keyboard.down('a');
   await guest.waitForTimeout(450);
   await guest.keyboard.up('a');

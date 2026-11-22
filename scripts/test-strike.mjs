@@ -5,7 +5,7 @@ import { spawn, sites, clear, move, route } from '../src/game/arena.js';
 const idle={dx:0,dy:0,x:0,y:0};
 const make=(size=5,side=0,rounds)=>new Match(size,side,'Standard',()=>.2,[],rounds);
 const advance=(m,seconds)=>m.step(seconds,idle);
-const active=m=>advance(m,10);
+const active=m=>{m.markReady(m.player);advance(m,1);};
 const next=m=>advance(m,m.time);
 
 for(let n=1;n<=10;n++) for(const side of [0,1]) {
@@ -276,6 +276,22 @@ for(let n=1;n<=10;n++) {
   m.fire(p,0);
   assert.deepEqual(rivals.slice(0,3).map(a=>a.hp),[48,48,100]);
   assert.equal(m.traces[1].bx,365);
+}
+
+{
+  const m=new Match(2,0,'Standard',()=>.2,[2]);
+  const guest=m.actors[2];
+  m.markReady(m.player);
+  advance(m,20);
+  assert.equal(m.phase,'buy');
+  m.markReady(guest);
+  advance(m,.5);
+  assert.equal(m.phase,'buy');
+  advance(m,.5);
+  assert.equal(m.phase,'active');
+  m.hit(guest,m.player,22);
+  assert.equal(guest.feedback.damage,22);
+  assert.equal(m.player.feedback.damage,0);
 }
 
 console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

@@ -33,3 +33,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] LAN motion smoothing and faster active-match input updates.
 - [x] LAN shared pause, player departure notices, and return to the main menu when the host leaves.
 - [x] LAN rooms show and enforce the current total player limit.
+- [x] Shared ready flow, round steppers, in-match audio controls, and LAN hit feedback.

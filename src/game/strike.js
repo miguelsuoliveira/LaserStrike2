@@ -1,8 +1,9 @@
 import './strike.css';
-import { Match, gear, defaultRounds, roundOptions } from './match.js';
+import { Match, gear, defaultRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { graphicsPresets } from './arena-quality.js';
 import { paint } from './arena-art.js';
+import { mountAudioToggles,roundStepper } from './match-controls.js';
 import { createStrikeAudio } from './strike-audio.js';
 import { winnersStage } from './winners-stage.js';
 
@@ -13,7 +14,8 @@ const $ = id => document.getElementById(id);
 const canvas=$('arena'), hud=$('hud'), map=$('map'), overlay=$('overlay'), board=$('board');
 const context=canvas.getContext('2d'), minimap=map.getContext('2d');
 const audio=createStrikeAudio();
-let musicOn=true, effectsOn=true, graphics='high';
+const audioToggles=mountAudioToggles(audio);
+let graphics='high';
 
 function resizeArena() {
   const {scale}=graphicsPresets[graphics];
@@ -23,16 +25,16 @@ function resizeArena() {
 
 resizeArena();
 const keys=new Set(), pointer={x:600,y:360};
-let size=5, rounds=defaultRounds, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
+let size=5, rounds=defaultRounds, level='Standard', motion=true, match, paused=false, fire=false;
 let pickupPressed=false;
-let screen='menu', previousPhase, lastOverlay='', lastHud='', lastBoard='';
+let screen='menu', lastOverlay='', lastHud='', lastBoard='';
 const shell=(title,body,kicker='PORT MERIDIAN · ARCADE LEAGUE', extraClass='') =>
   `<section class="panel${extraClass?' '+extraClass:''}"><div class="kicker">${kicker}</div><h1>${title}</h1>${body}</section>`;
 const btn=(label,action,primary=false)=>`<button data-action="${action}" ${primary?'class="primary"':''}>${label}</button>`;
 const score=()=>`<span class="a">${match.score[0]}</span> <span class="divider">:</span> <span class="b">${match.score[1]}</span>`;
 const controls=[
   ['W A S D','Move'],['Mouse','Aim'],['Left click','Pulse'],['R','Reload'],['E','Pick up / hold for relay'],
-  ['B','Shop'],['Tab','Hold scoreboard'],['Esc','Pause'],
+  ['Tab','Hold scoreboard'],['Esc','Pause'],
 ].map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('');
 
 function table() {
@@ -44,7 +46,7 @@ function table() {
 function menu() {
   return shell('LASER <span>STRIKE 2</span>',`<p class="tagline">Two crews. One relay. Take the harbor. Based off Counter-Strike 2.</p>
     <div class="settings-row"><span>Match size</span><div class="stepper"><button data-action="minus" aria-label="Fewer players" ${size===1?'disabled':''}>−</button><strong>${size}v${size}</strong><button data-action="plus" aria-label="More players" ${size===10?'disabled':''}>+</button></div></div>
-    <label class="settings-row">Rounds<select id="match-rounds">${roundOptions.map(n=>`<option ${n===rounds?'selected':''}>${n}</option>`).join('')}</select></label>
+    ${roundStepper(rounds)}
     <div class="actions">${btn('Play','teams',true)}${btn('Settings','settings')} <a class="lan-link" href="/lan.html">Play LAN Server</a></div>
     <h2>Controls</h2><div class="controls">${controls}</div>`,'SINGLE PLAYER · TOP-DOWN ARCADE');
 }
@@ -52,23 +54,24 @@ function shop() {
   const p=match.player;
   return shell('Equipment',`<p class="tagline">${p.credits.toLocaleString()} credits · One purchase per round</p>
     <div class="shop">${gear.map((item,i)=>{
-      const owned=i===p.item, blocked=owned||p.bought||p.credits<item.cost;
+      const owned=i===p.item, blocked=owned||p.bought||p.credits<item.cost||p.ready;
       return `<button data-action="item-${i}" ${blocked?'disabled':''}><span><strong>${item.name}</strong><small>${item.damage} HP per hit · ${item.description}</small></span><b>${owned?'OWNED':item.cost?item.cost.toLocaleString():'FREE'}</b></button>`;
-    }).join('')}</div><div class="actions">${btn('Close shop · B','close-buy')}</div>`,'PREPARATION · SUPPLY DESK');
+    }).join('')}</div><div class="actions">${match.readyCountdown?'<strong>Round starts in 1 second…</strong>':btn('Ready','ready',true)}</div>`,'PREPARATION · SUPPLY DESK');
 }
 
 function display() {
+  audioToggles.show(screen==='match');
   let html='';
   if (screen==='menu') html=menu();
   if (screen==='teams') html=shell('Choose your crew',`<p class="tagline">Your crew stays together when roles switch.</p><div class="teams">${sides.map((side,i)=>`<button class="crew ${i?'b':'a'}" data-action="team-${i}"><i></i><strong>${side}</strong><small>${i?'Round 1 · Defend':'Round 1 · Activate'}</small></button>`).join('')}</div>${btn('Back','menu')}`);
   if (screen==='settings') html=shell('Settings',`<label class="settings-row">Bot difficulty<select id="difficulty">${['Relaxed','Standard','Expert'].map(x=>`<option ${level===x?'selected':''}>${x}</option>`).join('')}</select></label>
     <label class="settings-row">Graphics<select id="graphics">${Object.entries(graphicsPresets).map(([key,preset])=>`<option value="${key}" ${graphics===key?'selected':''}>${preset.label}</option>`).join('')}</select></label>
     <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>
-    <label class="settings-row">Music<input type="checkbox" id="music" ${musicOn?'checked':''}></label>
-    <label class="settings-row">Sound effects<input type="checkbox" id="effects" ${effectsOn?'checked':''}></label>${btn('Back','settings-back',true)}`);
+    <label class="settings-row">Music<input type="checkbox" id="music" ${audioToggles.enabled('music')?'checked':''}></label>
+    <label class="settings-row">Sound effects<input type="checkbox" id="effects" ${audioToggles.enabled('effects')?'checked':''}></label>${btn('Back','settings-back',true)}`);
   if (screen==='match') {
     if (paused) html=shell('Paused',`<div class="actions grid">${btn('Resume','resume',true)}${btn('Restart match','restart')}${btn('Settings','settings')}${btn('Main menu','menu')}</div>`);
-    else if (match.phase==='buy' && buyOpen) html=shop();
+    else if (match.phase==='buy') html=shop();
     else if (match.phase==='halftime' || match.phase==='result') {
       const elimination = match.reason==='Opposing team eliminated';
       const heading = elimination ? (match.winner===match.player.team ? 'Your team won' : 'Opposing team won') : `${sides[match.winner]} win the round`;
@@ -103,7 +106,7 @@ function drawHud() {
 function start(side) {
   match=new Match(size,side,level,Math.random,[],rounds);
   match.onSound=audio.play;
-  previousPhase='buy'; paused=false; buyOpen=true; keys.clear(); fire=false; screen='match';
+  paused=false; keys.clear(); fire=false; screen='match';
 }
 let settingsFrom='menu';
 overlay.addEventListener('click',event=>{
@@ -118,13 +121,14 @@ overlay.addEventListener('click',event=>{
   if (action==='settings-back') screen=settingsFrom;
   if (action==='resume') paused=false;
   if (action==='restart') start(match.player.team);
-  if (action==='close-buy') buyOpen=false;
+  if (action==='ready') match.markReady(match.player);
+  if (action==='round-minus') rounds--;
+  if (action==='round-plus') rounds++;
   if (action.startsWith('team-')) start(Number(action.at(-1)));
   if (action.startsWith('item-')) match.buy(match.player,Number(action.at(-1)));
   display();
 });
 overlay.addEventListener('change',event=>{
-  if (event.target.id==='match-rounds') rounds=Number(event.target.value);
   if (event.target.id==='difficulty') {
     level=event.target.value;
     if (match) match.level=level;
@@ -134,10 +138,10 @@ overlay.addEventListener('change',event=>{
     resizeArena();
   }
   if (event.target.id==='motion') motion=event.target.checked;
-  if (event.target.id==='music') audio.setMusic(musicOn=event.target.checked);
-  if (event.target.id==='effects') audio.setEffects(effectsOn=event.target.checked);
+  if (event.target.id==='music') audioToggles.set('music',event.target.checked);
+  if (event.target.id==='effects') audioToggles.set('effects',event.target.checked);
 });
-const moveKeys=['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE','KeyB','Tab','Escape'];
+const moveKeys=['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE','Tab','Escape'];
 window.addEventListener('keydown',event=>{
   if (screen!=='match' || match.phase==='results' || !moveKeys.includes(event.code)) return;
   if (event.code==='Tab' && paused) return;
@@ -146,7 +150,6 @@ window.addEventListener('keydown',event=>{
   if (event.repeat) return;
   if (event.code==='Escape') { paused=!paused; fire=false; pickupPressed=false; }
   if (event.code==='KeyE' && !paused && match.phase==='active') pickupPressed=true;
-  if (event.code==='KeyB' && !paused && match.phase==='buy') buyOpen=!buyOpen;
 });
 window.addEventListener('keyup',event=>keys.delete(event.code));
 window.addEventListener('blur',()=>{keys.clear();fire=false;pickupPressed=false;});
@@ -168,7 +171,6 @@ function frame(now) {
       dy:Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});
     pickupPressed=false;
     if (!motion) match.traces.length=0;
-    if (match.phase!==previousPhase) {buyOpen=match.phase==='buy';previousPhase=match.phase;}
   }
   paint(context,match,match && !paused?pointer:null,false,graphics);
   if (match && screen==='match') paint(minimap,match,null,true);

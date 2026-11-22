@@ -43,6 +43,7 @@ function start(room) {
 function snapshot(room, client) {
   const clients=[...room.clients.values()];
   const base={code:room.code,host:clients[0]===client,size:room.size,level:room.level,
+    team:client.seats[0].team,
     players:clients.flatMap(peer=>peer.seats.map(seat=>({name:seat.name,team:seat.team}))),
     seats:client.seats.map(seat=>seat.slot),match:null};
   const m=room.match;
@@ -84,7 +85,15 @@ function api(path, data) {
     room.clients.delete(client.token);
     return {};
   }
-  if (path==='settings' || path==='start') {
+  if (path==='team') {
+    if (room.match) fail('Teams are locked once the match starts.',409);
+    if (data.team!==0 && data.team!==1) fail('Choose a valid team.');
+    const seat=client.seats[0];
+    const occupied=[...room.clients.values()].flatMap(peer=>peer.seats)
+      .filter(other=>other!==seat && other.team===data.team).length;
+    if (occupied>=room.size) fail('That team is full.',409);
+    seat.team=data.team;
+  } else if (path==='settings' || path==='start') {
     if (!host || (room.match && room.match.phase!=='results')) fail('Only the host can change the lobby.',403);
     if (path==='start') start(room);
     else {

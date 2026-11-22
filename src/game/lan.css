@@ -1,7 +1,12 @@
 .lan-panel h1{font-size:clamp(2rem,6vw,3.8rem)}
 .lan-panel input{width:min(58%,290px);border:1px solid #546463;border-radius:4px;background:#10191b;color:#eaf6f3;padding:8px;font:inherit}
 #room-code{text-transform:uppercase}
-.lan-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:4px 12px;padding-left:18px}
+.lan-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.lan-team{display:flex;flex-direction:column;border:1px solid #546463;border-top:2px solid var(--team-color);padding:8px;min-width:0}
+.lan-team h2{color:var(--team-color);margin:0;display:flex;justify-content:space-between;gap:4px;font-size:.9rem}
+.lan-team h2 span{white-space:nowrap}
+.lan-roster{flex:1;padding-left:18px;overflow-wrap:anywhere}
+.lan-team button{align-self:flex-start;font-size:.8rem}
 .lan-error{color:#ffb0a8;margin:8px 0}
 .lan-equipment{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:5px}
 .lan-equipment button{font-size:.75rem;padding:6px}

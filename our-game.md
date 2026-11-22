@@ -29,3 +29,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 14: Ring bell at the end of each buy phase.
 - [x] Mechanics: Lasers pierce enemies until a wall or their maximum range.
 - [x] Added a link to the separate LAN edition for players on different devices, with automatic LAN host discovery.
+- [x] LAN team selection respects the host’s team size and fills empty slots with bots at match start.

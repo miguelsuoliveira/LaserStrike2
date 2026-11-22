@@ -41,13 +41,21 @@ function accept(next) {
 }
 
 function lobby() {
-  const players=state.players.map(player=>`<li style="color:${colors[player.team]}">${escape(player.name)} · ${sides[player.team]}</li>`).join('');
+  const teams=sides.map((side,team)=>{
+    const players=state.players.filter(player=>player.team===team);
+    const current=team===state.team, full=players.length>=state.size;
+    return `<section class="lan-team" style="--team-color:${colors[team]}">
+      <h2>${side} <span>${players.length} / ${state.size}</span></h2>
+      <ul class="lan-roster">${players.map(player=>`<li>${escape(player.name)} · ${side}</li>`).join('')}</ul>
+      <button data-action="team-${team}" aria-pressed="${current}" ${current||full?'disabled':''}>${current?'Your team':full?'Team full':'Join '+side}</button>
+    </section>`;
+  }).join('');
   const fields=state.host ? `<form id="room-settings">
     <label class="settings-row">Players per team <select id="roster-size">${Array.from({length:10},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.size?'selected':''}>${n}v${n}</option>`).join('')}</select></label>
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host</p>`;
   return panel('Room '+state.code,`<p class="tagline">Share the code with players on the same network.</p>
-    <ul class="lan-roster">${players}</ul>${fields}${controls}
+    <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
 }
 
@@ -145,6 +153,7 @@ overlay.addEventListener('click',event=>{
   if (action==='retry') location.reload();
   if (action==='create') act('create',{name});
   if (action==='start' || action==='leave') act(action);
+  if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});
   if (action.startsWith('buy-')) {
     const [,seat,item]=action.split('-');
     act('buy',{seat:Number(seat),item:Number(item)});

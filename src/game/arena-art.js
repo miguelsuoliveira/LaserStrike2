@@ -1,4 +1,5 @@
 import { paintTacticalCharacter } from './tactical-art.js';
+import { arenaDetail } from './arena-quality.js';
 import { gear } from './match.js';
 import { width,height,walls,sites,spawn,colors } from './arena.js';
 
@@ -61,12 +62,22 @@ for (const [x,y,w,h] of walls) {
 }
 
 const circle = (c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);};
-export function paint(c, match, pointer, mini=false) {
+export function paint(c, match, pointer, mini=false, quality='low') {
   c.setTransform(c.canvas.width/width,0,0,c.canvas.height/height,0,0);
   c.drawImage(backdrop,0,0);
+  const detail=mini ? null : arenaDetail(quality);
+  const high=!mini && quality==='high';
+  if (detail) c.drawImage(detail,0,0,width,height);
   const o=match?.objective;
   for (const site of sites) {
     const armed=o?.site===site;
+    if (high) {
+      const light=c.createRadialGradient(site.x,site.y,27,site.x,site.y,73);
+      light.addColorStop(0,armed?'#ffac6075':'#65e8da55');
+      light.addColorStop(1,'#00000000');
+      c.fillStyle=light;
+      c.fillRect(site.x-73,site.y-73,146,146);
+    }
     c.fillStyle=armed?'#f0a05088':'#183e3f9e';
     circle(c,site.x,site.y,53); c.fill();
     c.strokeStyle=armed?'#fff08f':'#88c6bd';
@@ -78,7 +89,15 @@ export function paint(c, match, pointer, mini=false) {
   for (const trace of match.traces) {
     c.strokeStyle=colors[trace.team];
     c.globalAlpha=Math.min(1,trace.life*8);
-    c.lineWidth=3; c.beginPath(); c.moveTo(trace.x,trace.y); c.lineTo(trace.bx,trace.by); c.stroke();
+    c.beginPath(); c.moveTo(trace.x,trace.y); c.lineTo(trace.bx,trace.by);
+    if (high) {
+      c.globalAlpha*=.22;
+      c.lineWidth=11;
+      c.stroke();
+      c.globalAlpha=Math.min(1,trace.life*8);
+    }
+    c.lineWidth=3;
+    c.stroke();
   }
   c.globalAlpha=1;
   for (const a of match.actors) {

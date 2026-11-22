@@ -1,6 +1,7 @@
 import './strike.css';
 import { Match, gear } from './match.js';
 import { width,height,sides,colors } from './arena.js';
+import { graphicsPresets } from './arena-quality.js';
 import { paint } from './arena-art.js';
 import { createStrikeAudio } from './strike-audio.js';
 import { winnersStage } from './winners-stage.js';
@@ -12,7 +13,7 @@ const $ = id => document.getElementById(id);
 const canvas=$('arena'), hud=$('hud'), map=$('map'), overlay=$('overlay'), board=$('board');
 const context=canvas.getContext('2d'), minimap=map.getContext('2d');
 const audio=createStrikeAudio();
-let musicOn=true, effectsOn=true;
+let musicOn=true, effectsOn=true, graphics='low';
 const keys=new Set(), pointer={x:600,y:360};
 let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
 let pickupPressed=false;
@@ -52,6 +53,7 @@ function display() {
   if (screen==='menu') html=menu();
   if (screen==='teams') html=shell('Choose your crew',`<p class="tagline">Your crew stays together when roles switch.</p><div class="teams">${sides.map((side,i)=>`<button class="crew ${i?'b':'a'}" data-action="team-${i}"><i></i><strong>${side}</strong><small>${i?'Round 1 · Defend':'Round 1 · Activate'}</small></button>`).join('')}</div>${btn('Back','menu')}`);
   if (screen==='settings') html=shell('Settings',`<label class="settings-row">Bot difficulty<select id="difficulty">${['Relaxed','Standard','Expert'].map(x=>`<option ${level===x?'selected':''}>${x}</option>`).join('')}</select></label>
+    <label class="settings-row">Graphics<select id="graphics">${Object.entries(graphicsPresets).map(([key,preset])=>`<option value="${key}" ${graphics===key?'selected':''}>${preset.label}</option>`).join('')}</select></label>
     <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>
     <label class="settings-row">Music<input type="checkbox" id="music" ${musicOn?'checked':''}></label>
     <label class="settings-row">Sound effects<input type="checkbox" id="effects" ${effectsOn?'checked':''}></label>${btn('Back','settings-back',true)}`);
@@ -117,6 +119,12 @@ overlay.addEventListener('change',event=>{
     level=event.target.value;
     if (match) match.level=level;
   }
+  if (event.target.id==='graphics') {
+    graphics=event.target.value;
+    const {scale}=graphicsPresets[graphics];
+    canvas.width=width*scale;
+    canvas.height=height*scale;
+  }
   if (event.target.id==='motion') motion=event.target.checked;
   if (event.target.id==='music') audio.setMusic(musicOn=event.target.checked);
   if (event.target.id==='effects') audio.setEffects(effectsOn=event.target.checked);
@@ -154,7 +162,7 @@ function frame(now) {
     if (!motion) match.traces.length=0;
     if (match.phase!==previousPhase) {buyOpen=match.phase==='buy';previousPhase=match.phase;}
   }
-  paint(context,match,match && !paused?pointer:null);
+  paint(context,match,match && !paused?pointer:null,false,graphics);
   if (match && screen==='match') paint(minimap,match,null,true);
   drawHud();
   display();

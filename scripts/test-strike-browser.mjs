@@ -35,6 +35,15 @@ try {
   await page.getByRole('button',{name:'Settings'}).click();
   await page.locator('#difficulty').selectOption('Relaxed');
   await page.getByRole('checkbox',{name:'Pulse trails'}).waitFor();
+  const graphics=page.getByRole('combobox',{name:'Graphics'});
+  assert.equal(await graphics.inputValue(),'low');
+  await graphics.selectOption('medium');
+  assert.equal(await page.locator('#arena').getAttribute('width'),'1500');
+  await graphics.selectOption('high');
+  assert.equal(await page.locator('#arena').getAttribute('width'),'1800');
+  await graphics.selectOption('low');
+  assert.equal(await page.locator('#arena').getAttribute('width'),'1200');
+  await graphics.selectOption('high');
   await page.waitForFunction(()=>window.testAudioStarts>0);
   const music=page.getByRole('checkbox',{name:'Music',exact:true});
   const effects=page.getByRole('checkbox',{name:'Sound effects'});
@@ -175,6 +184,10 @@ try {
     const labels=[];
     const drawText=ctx.fillText.bind(ctx);
     ctx.fillText=(text,...args)=>{labels.push(text); drawText(text,...args);};
+    const presets=['low','medium','high'].map(quality=>{
+      paint(ctx,null,null,false,quality);
+      return Array.from(ctx.getImageData(200,118,1,1).data).join(',');
+    });
     paint(ctx,demo,{x:325,y:350});
     const redX=Array.from(ctx.getImageData(320,345,1,1).data);
     const site={x:894,y:147};
@@ -192,7 +205,7 @@ try {
     const previousLabelCount=labels.length;
     paint(ctx,demo,null);
     const farLabel=labels.slice(previousLabelCount).includes('Spark · 0 CR');
-    return {labels,redX,nearLabel,farLabel};
+    return {labels,redX,nearLabel,farLabel,presets};
   });
   assert.ok(feedback.labels.includes('−44 HP'));
   assert.ok(feedback.labels.includes('Planting · 1.0s'));
@@ -200,6 +213,7 @@ try {
   assert.ok(feedback.labels.includes('FIRST BLOOD'));
   assert.equal(feedback.nearLabel,true);
   assert.equal(feedback.farLabel,false);
+  assert.equal(new Set(feedback.presets).size,3);
   assert.ok(feedback.labels.includes('Vale'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
   assert.deepEqual(errors,[]);

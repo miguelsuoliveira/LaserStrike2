@@ -1,6 +1,6 @@
 # Laser Strike
 
-Laser Strike is a single-player, top-down Canvas arcade game set in Port Meridian. The map, interface, and animated crew designs are drawn by the source. They require no external asset downloads. Music and sound effects are synthesized in the browser and can be toggled separately in Settings.
+Laser Strike is a single-player, top-down Canvas arcade game set in Port Meridian. The map, interface, and animated crew designs are drawn by the source. They require no external asset downloads. Music and sound effects are synthesized in the browser and can be toggled separately in Settings. Graphics presets range from the original Low look to higher-resolution Medium and High, with added lighting and arena detail.
 
 ## Launch locally
 

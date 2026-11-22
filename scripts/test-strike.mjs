@@ -61,11 +61,18 @@ assert.ok(route({x:spawn[0][0],y:360},sites[0]).length);
   Object.assign(m.player,sites[0]);
   m.interact(m.player,1);
   assert.equal(o.progress,.5);
+  assert.deepEqual(m.objectiveAction(),{actor:m.player,label:'Planting',remaining:1});
   m.interact(m.player,1);
   assert.equal(o.clock,30);
   const defender=m.actors[1];
   Object.assign(defender,sites[0]);
-  m.interact(defender,3);
+  m.interact(defender,1);
+  const defuse=m.objectiveAction();
+  assert.equal(defuse.actor,defender);
+  assert.equal(defuse.label,'Defusing');
+  assert.ok(Math.abs(defuse.remaining-2)<1e-8);
+  m.interact(defender,2);
+  assert.equal(m.objectiveAction(),null);
   assert.equal(m.winner,1);
   assert.equal(m.reason,'Relay disabled');
 }
@@ -139,6 +146,19 @@ for(const draw of [false,true]) {
   m.bot(bot,1/60);
   assert.notEqual(angle,undefined);
   assert.ok(Math.abs(angle)>.1);
+}
+
+for (const opponentIsBot of [false,true]) {
+  const m=make(2);
+  const opponent=m.actors[Number(opponentIsBot)], bot=m.actors[2];
+  m.actors[1-Number(opponentIsBot)].hp=0;
+  Object.assign(opponent,{x:50,y:50,item:2});
+  Object.assign(bot,{x:50,y:400,item:0});
+  const oldY=bot.y;
+  for (let i=0;i<24;i++) m.bot(bot,1/60);
+  assert.equal(bot.enemy,opponent);
+  assert.ok(bot.y<oldY-25);
+  assert.equal(bot.ammo,gear[0].capacity);
 }
 
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

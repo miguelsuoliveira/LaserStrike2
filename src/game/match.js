@@ -13,6 +13,7 @@ const patrols = [
   [{x:250,y:355},{x:330,y:86},{x:556,y:133},{x:720,y:350},{x:550,y:594},{x:325,y:642}],
   [{x:1086,y:369},{x:980,y:120},{x:832,y:223},{x:735,y:353},{x:815,y:501},{x:1000,y:592}],
 ];
+const plantTime = 2, defuseTime = 3;
 const angleDelta = (from,to) => Math.atan2(Math.sin(to-from),Math.cos(to-from));
 const names = ['Iris','Atlas','Mica','Aster','Vale','Dune','Cove','Echo','Sol','Reef'];
 
@@ -131,6 +132,13 @@ export class Match {
     if (target) this.hit(a,target,item.damage);
   }
 
+  objectiveAction() {
+    const { actor, site, progress } = this.objective;
+    if (!actor?.hp) return null;
+    const duration = site ? defuseTime : plantTime;
+    return { actor, label:site ? 'Defusing' : 'Planting', remaining:duration*(1-progress) };
+  }
+
   interact(a, dt) {
     const o = this.objective;
     if (o.actor && o.actor!==a) return;
@@ -139,7 +147,7 @@ export class Match {
     if (!location || distance(a,location)>55 || (!activating && a.team===this.attack)) return;
     o.engaged = true;
     o.actor = a;
-    o.progress += dt / (activating ? 2 : 3);
+    o.progress += dt / (activating ? plantTime : defuseTime);
     if (o.progress < 1) return;
     o.progress = 0;
     o.actor = null;
@@ -161,25 +169,28 @@ export class Match {
       a.patrol = (a.patrol+a.patrolStep+stops.length)%stops.length;
       a.plan = 0;
     }
+    const canReach = (from,to) => distance(from,to)<gear[from.item].range;
     a.plan -= dt;
     if (a.plan <= 0) {
       a.plan = .34 + this.random()*.24;
-      const threat = this.actors.filter(b=>b.hp && b.team!==a.team && distance(a,b)<gear[a.item].range && visible(a,b))
+      const threat = this.actors.filter(b=>b.hp && b.team!==a.team && (canReach(a,b) || canReach(b,a)) && visible(a,b))
         .sort((left,right)=>distance(a,left)-distance(a,right))[0];
       if (threat!==a.enemy) a.reaction = delay + this.random()*.22;
       a.enemy = threat;
-      a.path = route(a,urgent || stops[a.patrol]);
+      const approach = threat && !canReach(a,threat) && canReach(threat,a);
+      a.path = route(a,approach ? threat : urgent || stops[a.patrol]);
     }
 
     while (a.path.length && distance(a,a.path[0])<5) a.path.shift();
     const point = a.path[0];
-    const threat = a.enemy?.hp && visible(a,a.enemy) && distance(a,a.enemy)<gear[a.item].range ? a.enemy : null;
+    const threat = a.enemy?.hp && visible(a,a.enemy) ? a.enemy : null;
+    const inRange = threat && canReach(a,threat);
     const look = threat || point;
     if (look) {
       const desired = Math.atan2(look.y-a.y,look.x-a.x);
       const maxTurn = turnRate*dt;
       a.angle += Math.max(-maxTurn,Math.min(maxTurn,angleDelta(a.angle,desired)));
-      if (threat && a.reaction<=0 && Math.abs(angleDelta(a.angle,desired))<.32) {
+      if (inRange && a.reaction<=0 && Math.abs(angleDelta(a.angle,desired))<.32) {
         this.fire(a,a.angle+(this.random()*2-1)*spread);
       }
     }
@@ -190,7 +201,7 @@ export class Match {
     }
     if (!point) return;
     const angle = Math.atan2(point.y-a.y,point.x-a.x);
-    const step = Math.min(distance(a,point),dt*speed*(threat ? .65 : 1));
+    const step = Math.min(distance(a,point),dt*speed*(inRange ? .65 : 1));
     move(a,Math.cos(angle)*step,Math.sin(angle)*step);
   }
 

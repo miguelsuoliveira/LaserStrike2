@@ -106,6 +106,16 @@ export function paint(c, match, pointer, mini=false) {
     c.fillStyle='#ffdd68';
     c.fillRect(o.dropped.x-5,o.dropped.y-5,10,10);
   }
+  const action=match.objectiveAction();
+  if (!mini && action && match.phase==='active') {
+    const x=Math.max(67,Math.min(width-67,action.actor.x));
+    const y=action.actor.y<54 ? action.actor.y+44 : action.actor.y-33;
+    c.fillStyle='#152124ef';
+    c.fillRect(x-65,y-17,130,24);
+    c.fillStyle='#ffe097';
+    c.font='bold 14px system-ui';
+    c.fillText(`${action.label} · ${action.remaining.toFixed(1)}s`,x,y);
+  }
   if (!mini && pointer && match.player.hp && match.phase==='active') {
     c.strokeStyle='#fff'; c.lineWidth=1.5;
     circle(c,pointer.x,pointer.y,8); c.stroke();

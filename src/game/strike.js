@@ -35,7 +35,7 @@ function shop() {
   return shell('Equipment',`<p class="tagline">${p.credits.toLocaleString()} credits · One purchase per round</p>
     <div class="shop">${gear.map((item,i)=>{
       const owned=i===p.item, blocked=owned||p.bought||p.credits<item.cost;
-      return `<button data-action="item-${i}" ${blocked?'disabled':''}><span><strong>${item.name}</strong><small>${item.description}</small></span><b>${owned?'OWNED':item.cost?item.cost.toLocaleString():'FREE'}</b></button>`;
+      return `<button data-action="item-${i}" ${blocked?'disabled':''}><span><strong>${item.name}</strong><small>${item.damage} HP per hit · ${item.description}</small></span><b>${owned?'OWNED':item.cost?item.cost.toLocaleString():'FREE'}</b></button>`;
     }).join('')}</div><div class="actions">${btn('Close shop · B','close-buy')}</div>`,'PREPARATION · SUPPLY DESK');
 }
 
@@ -44,7 +44,7 @@ function display() {
   if (screen==='menu') html=menu();
   if (screen==='teams') html=shell('Choose your crew',`<p class="tagline">Your crew stays together when roles switch.</p><div class="teams">${sides.map((side,i)=>`<button class="crew ${i?'b':'a'}" data-action="team-${i}"><i></i><strong>${side}</strong><small>${i?'Round 1 · Defend':'Round 1 · Activate'}</small></button>`).join('')}</div>${btn('Back','menu')}`);
   if (screen==='settings') html=shell('Settings',`<label class="settings-row">Bot difficulty<select id="difficulty">${['Relaxed','Standard','Expert'].map(x=>`<option ${level===x?'selected':''}>${x}</option>`).join('')}</select></label>
-    <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label><h2>Equipment damage per hit</h2><dl class="damage-list">${gear.map(item=>`<div><dt>${item.name}</dt><dd>${item.damage} HP</dd></div>`).join('')}</dl>${btn('Back','settings-back',true)}`);
+    <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>${btn('Back','settings-back',true)}`);
   if (screen==='match') {
     if (paused) html=shell('Paused',`<div class="actions grid">${btn('Resume','resume',true)}${btn('Restart match','restart')}${btn('Settings','settings')}${btn('Main menu','menu')}</div>`);
     else if (match.phase==='buy' && buyOpen) html=shop();

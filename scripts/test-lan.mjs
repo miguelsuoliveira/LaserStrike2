@@ -3,11 +3,17 @@ import { chromium } from 'playwright-core';
 
 const browser=await chromium.launch();
 const url=process.env.STRIKE_LAN_URL || 'http://localhost:5188/lan.html';
+const publicGame=process.env.STRIKE_PUBLIC_URL;
 const errors=[];
 async function pageAt(address=url) {
   const page=await browser.newPage();
   page.on('pageerror',error=>errors.push(error));
-  await page.goto(address);
+  if (publicGame) {
+    await page.goto(publicGame);
+    await page.getByRole('link',{name:'Play LAN Server',exact:true}).click();
+    await page.waitForURL(address);
+    assert.equal(await page.getByLabel('LAN host address').count(),0);
+  } else await page.goto(address);
   return page;
 }
 const label=(page,value)=>page.getByLabel(value);

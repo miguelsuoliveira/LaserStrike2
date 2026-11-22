@@ -1,5 +1,5 @@
 import { randomBytes, randomInt } from 'node:crypto';
-import { networkInterfaces } from 'node:os';
+import { lanAddress,lanPort } from './lib/lan-network.mjs';
 import { createServer } from 'vite';
 import { Match } from '../src/game/match.js';
 
@@ -161,12 +161,9 @@ const tick=setInterval(()=>{
 },1000/30);
 tick.unref();
 
-const port=Number(process.env.LASER_LAN_PORT || 5188);
+const port=lanPort;
 const server=await createServer({configFile:false,plugins:[lanRoutes()],server:{host:'0.0.0.0',port,strictPort:true}});
 await server.listen();
-for (const adapters of Object.values(networkInterfaces())) {
-  for (const adapter of adapters || []) {
-    if (adapter.family==='IPv4' && !adapter.internal && inLan(adapter.address)) console.log(`LAN: http://${adapter.address}:${port}/lan.html`);
-  }
-}
+const address=lanAddress();
+if (address) console.log(`LAN: http://${address}:${port}/lan.html`);
 console.log(`This computer: http://localhost:${port}/lan.html`);

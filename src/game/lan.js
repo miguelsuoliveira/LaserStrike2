@@ -10,7 +10,7 @@ const overlay=document.querySelector('#overlay'), hud=document.querySelector('#h
 const audio=createStrikeAudio();
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, error='';
-let name='', roomCode='', address='', markup='', pickupPressed=false, previousPhase;
+let name='', roomCode='', markup='', pickupPressed=false, previousPhase;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
@@ -20,7 +20,7 @@ const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E
 async function api(action, data={}) {
   const response=await fetch('/lan-api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({...session,...data}),signal:AbortSignal.timeout(4000)});
-  if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Open the LAN host address to start.');
+  if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('The LAN host is unavailable.');
   const result=await response.json();
   if (!response.ok) throw Object.assign(new Error(result.error),{status:response.status});
   return result;
@@ -61,9 +61,8 @@ function shop() {
 
 function display() {
   let html;
-  if (!online) html=panel(title,`<p class="tagline">Open the host’s LAN address on the same network, then enter a room code or create a room.</p>
-    <form id="address-form"><label class="settings-row">LAN host address <input id="address" placeholder="192.168.1.10:5188" value="${escape(address)}" required></label>
-    <div class="actions"><button class="primary">Open LAN host</button><a class="lan-link" href="http://localhost:5188/lan.html">This computer</a><a class="lan-link" href="/">Back</a></div></form>`);
+  if (!online) html=panel(title,`<p class="tagline">The LAN host couldn’t be reached. Connect to the host’s Wi‑Fi and try again.</p>
+    <div class="actions">${button('Try again','retry','primary')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
     <button class="primary">Join room</button></form>
@@ -130,7 +129,6 @@ async function act(action,data) {
 overlay.addEventListener('input',event=>{
   if (event.target.id==='player-name') name=event.target.value;
   if (event.target.id==='room-code') roomCode=event.target.value;
-  if (event.target.id==='address') address=event.target.value;
 });
 overlay.addEventListener('change',event=>{
   if (event.target.closest('#room-settings')) {
@@ -140,18 +138,11 @@ overlay.addEventListener('change',event=>{
 overlay.addEventListener('submit',event=>{
   event.preventDefault();
   if (event.target.id==='join-form') act('join',{code:roomCode,name});
-  if (event.target.id==='address-form') {
-    try {
-      const target=new URL(address.includes('://')?address:'http://'+address);
-      if (target.protocol!=='http:' || !target.hostname || target.username || target.password) throw new Error();
-      if (!target.port) target.port='5188';
-      location.href=new URL('/lan.html',target.origin);
-    } catch {error='Enter the LAN address shown on the host computer.';display();}
-  }
 });
 overlay.addEventListener('click',event=>{
   const action=event.target.closest('button')?.dataset.action;
   if (!action) return;
+  if (action==='retry') location.reload();
   if (action==='create') act('create',{name});
   if (action==='start' || action==='leave') act(action);
   if (action.startsWith('buy-')) {
@@ -180,7 +171,18 @@ function frame() {
   paint(context,view,view?.phase==='active'?pointer:null);
   requestAnimationFrame(frame);
 }
-try {await api('info');online=true;} catch {}
+try {
+  await api('info');
+  online=true;
+} catch {
+  try {
+    const response=await fetch('/lan-host',{signal:AbortSignal.timeout(2500)});
+    if (response.ok) {
+      const {url}=await response.json();
+      if (url && new URL(url).origin!==location.origin) location.replace(url);
+    }
+  } catch {}
+}
 display();
 setInterval(poll,65);
 requestAnimationFrame(frame);

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { lanAddress,lanPort } from './scripts/lib/lan-network.mjs';
 
 const TUNING_FILE = path.resolve('src/tuning.json');
 const LOG_FILE = path.resolve('logs/browser.log');
@@ -59,6 +60,24 @@ function gameJamTools() {
           return res.end();
         }
         next();
+      });
+      server.middlewares.use('/lan-host',async (req,res)=>{
+        if (req.method!=='GET') {res.statusCode=405;res.end();return;}
+        const address=lanAddress();
+        let available=false;
+        if (address) {
+          const origin=`http://127.0.0.1:${lanPort}`;
+          try {
+            const response=await fetch(origin+'/lan-api/info',{
+              method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},
+              body:'{}',signal:AbortSignal.timeout(800),
+            });
+            available=response.ok && (await response.json()).available===true;
+          } catch {}
+        }
+        res.setHeader('Content-Type','application/json');
+        res.setHeader('Cache-Control','no-store');
+        res.end(JSON.stringify({url:available ? `http://${address}:${lanPort}/lan.html` : null}));
       });
       server.middlewares.use('/__id', (req, res) => res.end(serverId));
 

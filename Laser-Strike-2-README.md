@@ -15,7 +15,7 @@ Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build
 
 ## LAN edition
 
-Run `npm run lan` on the host computer and open the LAN address printed by the server. Other players on the same network open that same address, choose a display name, and enter the host’s room code. The host sets team size and bot difficulty before starting. Rooms stay in memory while the host is running.
+Run `npm run lan` on the same computer hosting the public game. Players on the host’s Wi‑Fi open the public game and choose **Play LAN Server** to connect automatically. The host creates a room, and the other players choose display names and enter the room code. The host sets team size and bot difficulty before starting. Rooms stay in memory while the host is running.
 
 ## Play
 

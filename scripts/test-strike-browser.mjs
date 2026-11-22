@@ -72,6 +72,7 @@ try {
   await page.getByRole('button',{name:'Resume'}).click();
   await page.clock.runFor(10200);
   await expect('ACTIVE');
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('w');
   await page.clock.runFor(400);
   await page.keyboard.up('w');
@@ -147,7 +148,6 @@ try {
     m.hit(m.player,m.actors[10],100);
   });
   await page.getByText(/E · Pick up Prism/).waitFor();
-  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('e');
   await page.clock.runFor(400);
   await page.keyboard.up('e');

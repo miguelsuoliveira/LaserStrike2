@@ -1,3 +1,4 @@
+import { paintTacticalCharacter } from './tactical-art.js';
 import { gear } from './match.js';
 import { width,height,walls,sites,spawn,colors } from './arena.js';
 
@@ -87,13 +88,7 @@ export function paint(c, match, pointer, mini=false) {
       c.fillStyle=colors[a.team]; circle(c,0,0,a===match.player?19:12); c.fill();
       c.restore(); continue;
     }
-    c.rotate(a.angle);
-    c.fillStyle='#222b33'; circle(c,2,3,14); c.fill();
-    c.fillStyle=colors[a.team];
-    if (a.team===0) {circle(c,0,0,12); c.fill();}
-    else c.fillRect(-10,-10,20,20);
-    c.fillStyle='#26313e'; c.fillRect(-2,-7,8,14);
-    c.fillStyle='#e6f9ff'; c.fillRect(5,-3,15,6);
+    paintTacticalCharacter(c,a);
     c.restore();
     if (a===match.player || a===o.carrier) {
       c.strokeStyle=a===match.player?'white':'#ffdf78'; c.lineWidth=2;

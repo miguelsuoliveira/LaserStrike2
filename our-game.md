@@ -20,3 +20,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] Details 6: Original synth music, gameplay sound cues, and bot names.
 - [x] Details 7: Team-relative elimination messages and a damage-ranked winners’ stage.
 - [x] Mechanics: Eliminated characters drop weapons. Players and bots can swap with drops.
+- [x] Details 8: Original top-down tactical characters with team uniforms and walking poses.

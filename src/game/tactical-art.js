@@ -1,0 +1,73 @@
+import { colors } from './arena.js';
+
+const size = 56;
+const uniforms = [
+  { cloth:'#756043', armor:'#403d33', helmet:'#9b7850', trim:'#dcab76' },
+  { cloth:'#465d76', armor:'#29384e', helmet:'#577695', trim:'#8fbbda' },
+];
+
+function makeSprite(team, stride) {
+  const sprite=document.createElement('canvas');
+  sprite.width=sprite.height=size*2;
+  const c=sprite.getContext('2d');
+  c.setTransform(2,0,0,2,size,size);
+  const uniform=uniforms[team];
+
+  function shape(color,points,outline=false) {
+    c.beginPath();
+    c.moveTo(...points[0]);
+    for (const point of points.slice(1)) c.lineTo(...point);
+    c.closePath();
+    c.fillStyle=color;
+    c.fill();
+    if (outline) {
+      c.lineJoin='round';
+      c.lineWidth=1.1;
+      c.strokeStyle='#151b21';
+      c.stroke();
+    }
+  }
+
+  c.fillStyle='#130e1063';
+  c.beginPath();
+  c.ellipse(-1,2,14,13,0,0,Math.PI*2);
+  c.fill();
+
+  for (const side of [-1,1]) {
+    const boot=-11+side*stride;
+    shape('#293039',[[boot-5,side*8],[boot+4,side*8],[boot+4,side*3],[boot-5,side*3]],true);
+    shape(uniform.cloth,[[-9,side*5],[-5,side*6],[-3,side*12],[1,side*14],
+      [6,side*10],[3,side*7],[1,side*4]],true);
+    shape(colors[team],[[-1,side*13],[3,side*13],[5,side*10],[1,side*10]]);
+  }
+  shape(uniform.armor,[[-12,-7],[-8,-10],[3,-8],[6,-4],[5,7],[-6,10],[-12,7]],true);
+  shape('#626866',[[-11,-6],[-7,-7],[-7,7],[-11,6]]);
+  shape('#252a2e',[[-11,-5],[-8,-5],[-8,-2],[-11,-2]]);
+  shape('#252a2e',[[-11,1],[-8,1],[-8,4],[-11,4]]);
+  shape('#c4d1d8',[[9,4],[14,3],[15,6],[11,8]],true);
+  shape('#9ca9ad',[[12,2],[22,2],[22,4],[12,5]],true);
+  shape('#77868d',[[6,2],[16,2],[16,7],[9,7],[6,6]],true);
+  shape('#d2dbe0',[[9,2],[15,2],[15,3],[9,3]]);
+  if (team===0) {
+    shape(uniform.helmet,[[-5,-3],[-2,-7],[4,-7],[8,-4],[9,1],[7,5],[3,7],[-3,5]],true);
+  } else {
+    shape(uniform.helmet,[[-5,-4],[-2,-7],[5,-7],[9,-4],[9,4],[5,7],[-2,7],[-5,4]],true);
+  }
+  shape(uniform.trim,[[-2,-5],[4,-6],[7,-4],[5,-3],[-1,-3]]);
+  shape('#18212a',[[6,-4],[8,-3],[9,0],[8,3],[6,4],[7,0]]);
+  shape(colors[team],[[-4,-2],[-2,-2],[-2,2],[-4,2]]);
+  return sprite;
+}
+
+const sprites=uniforms.map((_,team)=>[0,3,-3].map(stride=>makeSprite(team,stride)));
+const motion=new WeakMap();
+
+export function paintTacticalCharacter(context, actor) {
+  const previous=motion.get(actor);
+  const moved=previous ? Math.hypot(actor.x-previous.x,actor.y-previous.y) : 0;
+  const step=moved<45 ? (previous?.step || 0)+moved : 0;
+  motion.set(actor,{x:actor.x,y:actor.y,step});
+  const pose=moved>.15 && moved<45 ? 1+Math.floor(step/9)%2 : 0;
+  context.rotate(actor.angle);
+  context.drawImage(sprites[actor.team][pose],-size/2,-size/2,size,size);
+}

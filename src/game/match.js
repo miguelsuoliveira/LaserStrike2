@@ -284,6 +284,12 @@ export class Match {
     return this.actors.reduce((count,a)=>{ if (a.hp) count[a.team]++; return count; },[0,0]);
   }
 
+  winningRoster() {
+    if (this.phase!=='results' || this.score[0]===this.score[1]) return [];
+    return this.actors.filter(actor=>actor.team===this.winner)
+      .sort((a,b)=>b.damage-a.damage || b.kills-a.kills || a.slot-b.slot);
+  }
+
   standings() {
     return [...this.actors].sort((a,b)=>b.kills-a.kills || b.damage-a.damage || a.deaths-b.deaths);
   }

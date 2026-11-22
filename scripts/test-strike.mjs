@@ -109,6 +109,7 @@ for(const draw of [false,true]) {
   }
   assert.equal(m.phase,'results');
   assert.deepEqual(m.score,draw?[8,8]:[9,0]);
+  assert.equal(m.winningRoster().length,draw ? 0 : 1);
 }
 
 {
@@ -197,6 +198,22 @@ for (const opponentIsBot of [false,true]) {
   m.reload(m.player);
   m.hit(m.player,m.actors[1],100);
   assert.deepEqual(cues,['shot','hit','reload','eliminate']);
+}
+
+for(let n=1;n<=10;n++) {
+  const m=make(n);
+  assert.deepEqual(m.winningRoster(),[]);
+  for (let i=0;i<n;i++) {
+    m.actors[n+i].damage=i*50;
+    m.actors[i].damage=10000;
+  }
+  m.score=[3,8];
+  active(m);
+  m.finish(1,'Test');
+  const lineup=m.winningRoster();
+  assert.equal(lineup.length,n);
+  assert.ok(lineup.every(a=>a.team===1));
+  assert.deepEqual(lineup.map(a=>a.damage),Array.from({length:n},(_,i)=>(n-1-i)*50));
 }
 
 console.log('AK-Strike rules passed for both teams and all ten match sizes.');

@@ -3,6 +3,7 @@ import { Match, gear } from './match.js';
 import { width,height,sides,colors,distance,sites } from './arena.js';
 import { paint } from './arena-art.js';
 import { createStrikeAudio } from './strike-audio.js';
+import { winnersStage } from './winners-stage.js';
 
 document.documentElement.style.setProperty('--liberals',colors[0]);
 document.documentElement.style.setProperty('--counter-liberals',colors[1]);
@@ -15,8 +16,8 @@ let musicOn=true, effectsOn=true;
 const keys=new Set(), pointer={x:600,y:360};
 let size=5, level='Standard', motion=true, match, paused=false, buyOpen=true, fire=false;
 let screen='menu', previousPhase, lastOverlay='', lastHud='', lastBoard='';
-const shell=(title,body,kicker='PORT MERIDIAN · ARCADE LEAGUE') =>
-  `<section class="panel"><div class="kicker">${kicker}</div><h1>${title}</h1>${body}</section>`;
+const shell=(title,body,kicker='PORT MERIDIAN · ARCADE LEAGUE', extraClass='') =>
+  `<section class="panel${extraClass?' '+extraClass:''}"><div class="kicker">${kicker}</div><h1>${title}</h1>${body}</section>`;
 const btn=(label,action,primary=false)=>`<button data-action="${action}" ${primary?'class="primary"':''}>${label}</button>`;
 const score=()=>`<span class="a">${match.score[0]}</span> <span class="divider">:</span> <span class="b">${match.score[1]}</span>`;
 const controls=[
@@ -56,17 +57,23 @@ function display() {
   if (screen==='match') {
     if (paused) html=shell('Paused',`<div class="actions grid">${btn('Resume','resume',true)}${btn('Restart match','restart')}${btn('Settings','settings')}${btn('Main menu','menu')}</div>`);
     else if (match.phase==='buy' && buyOpen) html=shop();
-    else if (match.phase==='halftime' || match.phase==='result') html=`<section class="notice"><div class="kicker">${match.phase==='halftime'?'HALFTIME · ROLES SWITCH':'ROUND COMPLETE'}</div><h2>${sides[match.winner]} win the round</h2><p>${match.reason} · ${score()}</p></section>`;
+    else if (match.phase==='halftime' || match.phase==='result') {
+      const elimination = match.reason==='Opposing team eliminated';
+      const heading = elimination ? (match.winner===match.player.team ? 'Your team won' : 'Opposing team won') : `${sides[match.winner]} win the round`;
+      html=`<section class="notice"><div class="kicker">${match.phase==='halftime'?'HALFTIME · ROLES SWITCH':'ROUND COMPLETE'}</div><h2>${heading}</h2><p>${elimination?'':match.reason+' · '}${score()}</p></section>`;
+    }
     else if (match.phase==='results' && !match.announcement.time) {
       const [a,b]=match.score;
-      html=shell(a===b?'Match drawn':`${sides[Number(b>a)]} win`,`<p class="tagline">${score()} · MVP ${match.standings()[0].name} <span class="muted">(${sides[match.standings()[0].team]})</span></p>${table()}<div class="actions">${btn('Play again','restart',true)}${btn('Main menu','menu')}</div>`,'FINAL SCORE · PORT MERIDIAN');
+      const roster=match.winningRoster();
+      const mvp=roster[0] || match.standings()[0];
+      html=shell(a===b?'Match drawn':`${sides[Number(b>a)]} win`,`<p class="tagline">${score()} · MVP ${mvp.name} <span class="muted">(${sides[mvp.team]})</span></p>${roster.length?winnersStage(match.winner,roster):''}<details class="results-stats"><summary>Match statistics</summary>${table()}</details><div class="actions">${btn('Play again','restart',true)}${btn('Main menu','menu')}</div>`,'FINAL SCORE · PORT MERIDIAN','results-panel');
     }
   }
   if (html!==lastOverlay) { overlay.innerHTML=html; lastOverlay=html; }
 }
 
 function drawHud() {
-  hud.hidden=map.hidden=screen!=='match';
+  hud.hidden=map.hidden=screen!=='match' || match.phase==='results';
   if (hud.hidden) return;
   const p=match.player,o=match.objective,alive=match.alive(),item=gear[p.item];
   const time=Math.ceil(o.site && match.phase==='active'?o.clock:match.time);

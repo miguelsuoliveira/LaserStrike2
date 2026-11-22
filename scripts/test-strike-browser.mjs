@@ -17,6 +17,11 @@ try {
       return start.apply(this,args);
     };
   });
+  await page.route(/\/src\/game\/strike\.js(?:\?|$)/,async route=>{
+    const response=await route.fetch();
+    const source=await response.text();
+    await route.fulfill({response,body:source+'\nwindow.testCurrentMatch = () => match;'});
+  });
   await page.clock.install();
   await page.goto(url);
   await expect('5v5');
@@ -67,7 +72,6 @@ try {
   await page.getByRole('button',{name:'Resume'}).click();
   await page.clock.runFor(10200);
   await expect('ACTIVE');
-  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('w');
   await page.clock.runFor(400);
   await page.keyboard.up('w');
@@ -93,6 +97,46 @@ try {
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await page.getByRole('button',{name:/^Liberals/}).click();
   await expect('Equipment');
+  await page.evaluate(()=>{
+    const m=window.testCurrentMatch();
+    m.phase='active';
+    m.finish(1,'Opposing team eliminated');
+  });
+  await expect('Opposing team won');
+  await page.clock.runFor(3100);
+  await page.evaluate(()=>{
+    const m=window.testCurrentMatch();
+    m.phase='active';
+    m.finish(0,'Opposing team eliminated');
+  });
+  await expect('Your team won');
+  await page.clock.runFor(3100);
+  await page.evaluate(()=>{
+    const m=window.testCurrentMatch();
+    m.phase='active';
+    m.score=[1,8];
+    m.actors.filter(a=>a.team===1).forEach((a,i)=>{a.damage=100*i;});
+    m.finish(1,'Opposing team eliminated');
+  });
+  await expect('Counter Liberals win');
+  const stage=page.getByRole('region',{name:'Counter Liberals ranked by damage'});
+  assert.equal(await stage.locator('li').count(),10);
+  assert.deepEqual(await stage.locator('.stage-rank').allTextContents(),['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th']);
+  assert.equal(await stage.locator('.stage-damage').first().textContent(),'900 DMG');
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
+  const wideFigure=await stage.locator('.stage-figure').first().evaluate(el=>el.getBoundingClientRect().width);
+  await page.getByText('Match statistics',{exact:true}).click();
+  assert.equal(await page.locator('.results-stats tbody tr').count(),20);
+  await page.evaluate(()=>{
+    const m=window.testCurrentMatch();
+    m.actors=m.actors.filter(a=>a.slot===0);
+  });
+  await page.locator('.winners-stage.close').waitFor();
+  assert.equal(await stage.locator('li').count(),1);
+  assert.ok(await stage.locator('.stage-figure').first().evaluate(el=>el.getBoundingClientRect().width)>wideFigure);
+  await page.evaluate(()=>{window.testCurrentMatch().score=[8,8];});
+  await expect('Match drawn');
+  assert.equal(await page.locator('.winners-stage').count(),0);
   const feedback = await page.evaluate(async () => {
     const [{ Match },{ paint }] = await Promise.all([
       import('/src/game/match.js'), import('/src/game/arena-art.js'),

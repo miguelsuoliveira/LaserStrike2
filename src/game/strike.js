@@ -1,7 +1,10 @@
 import './strike.css';
 import { Match, gear } from './match.js';
-import { width,height,sides,distance,sites } from './arena.js';
+import { width,height,sides,colors,distance,sites } from './arena.js';
 import { paint } from './arena-art.js';
+
+document.documentElement.style.setProperty('--liberals',colors[0]);
+document.documentElement.style.setProperty('--counter-liberals',colors[1]);
 
 const $ = id => document.getElementById(id);
 const canvas=$('arena'), hud=$('hud'), map=$('map'), overlay=$('overlay'), board=$('board');

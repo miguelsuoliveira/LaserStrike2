@@ -23,6 +23,8 @@ try {
   assert.equal(await page.getByText(/HP per hit/).count(),0);
   await page.getByRole('button',{name:'Back'}).click();
   await page.getByRole('button',{name:'Play',exact:true}).click();
+  const crewColors=await page.locator('.crew').evaluateAll(crews=>crews.map(crew=>getComputedStyle(crew).color));
+  assert.deepEqual(crewColors,['rgb(255, 164, 101)','rgb(109, 182, 255)']);
   await page.getByRole('button',{name:/Counter Liberals/}).click();
   await expect('Equipment');
   await expect('CL · 10 LIVE');
@@ -48,6 +50,7 @@ try {
   await page.getByRole('button',{name:'Resume'}).click();
   await page.clock.runFor(10200);
   await expect('ACTIVE');
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   await page.keyboard.down('w');
   await page.clock.runFor(400);
   await page.keyboard.up('w');
@@ -110,7 +113,6 @@ try {
   assert.ok(feedback.labels.includes('Defusing · 2.0s'));
   assert.ok(feedback.labels.includes('FIRST BLOOD'));
   assert.deepEqual(feedback.redX,[255,70,79,255]);
-  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
   assert.deepEqual(errors,[]);
   console.log('Browser flow passed at '+url+' using '+(channel || 'Chromium')+'.');
 } finally {

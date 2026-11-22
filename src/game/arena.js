@@ -1,6 +1,6 @@
 export const width = 1200, height = 720, radius = 13;
 export const sides = ['Liberals', 'Counter Liberals'];
-export const colors = ['#4fe5cf', '#ffa465'];
+export const colors = ['#ffa465', '#6db6ff'];
 export const sites = [{ x: 894, y: 147, name: 'A' }, { x: 894, y: 569, name: 'B' }];
 export const walls = [
   [180,115,180,115], [180,490,180,115], [405,0,130,105], [405,615,130,105],

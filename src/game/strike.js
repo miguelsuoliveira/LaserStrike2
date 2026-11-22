@@ -3,7 +3,7 @@ import { Match, gear, defaultRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { graphicsPresets } from './arena-quality.js';
 import { paint } from './arena-art.js';
-import { mountAudioToggles,roundStepper } from './match-controls.js';
+import { mountAudioToggles,roundStepper,scoreboardTable } from './match-controls.js';
 import { createStrikeAudio } from './strike-audio.js';
 import { winnersStage } from './winners-stage.js';
 
@@ -36,12 +36,6 @@ const controls=[
   ['W A S D','Move'],['Mouse','Aim'],['Left click','Pulse'],['R','Reload'],['E','Pick up / hold for relay'],
   ['Tab','Hold scoreboard'],['Esc','Pause'],
 ].map(([key,label])=>`<div><kbd>${key}</kbd><span>${label}</span></div>`).join('');
-
-function table() {
-  return `<div class="table-wrap"><table><thead><tr><th>Character</th><th>Team</th><th>Elims</th><th>Deaths</th><th>Assists</th><th>Damage</th></tr></thead><tbody>${
-    match.standings().map(a=>`<tr><td>${a.name}</td><td class="${a.team?'b':'a'}">${sides[a.team]}</td><td>${a.kills}</td><td>${a.deaths}</td><td>${a.assists}</td><td>${a.damage}</td></tr>`).join('')
-  }</tbody></table></div>`;
-}
 
 function menu() {
   return shell('LASER <span>STRIKE 2</span>',`<p class="tagline">Two crews. One relay. Take the harbor. Based off Counter-Strike 2.</p>
@@ -81,7 +75,7 @@ function display() {
       const [a,b]=match.score;
       const roster=match.winningRoster();
       const mvp=roster[0] || match.standings()[0];
-      html=shell(a===b?'Match drawn':`${sides[Number(b>a)]} win`,`<p class="tagline">${score()} · MVP ${mvp.name} <span class="muted">(${sides[mvp.team]})</span></p>${roster.length?winnersStage(match.winner,roster):''}<details class="results-stats"><summary>Match statistics</summary>${table()}</details><div class="actions">${btn('Play again','restart',true)}${btn('Main menu','menu')}</div>`,'FINAL SCORE · PORT MERIDIAN','results-panel');
+      html=shell(a===b?'Match drawn':`${sides[Number(b>a)]} win`,`<p class="tagline">${score()} · MVP ${mvp.name} <span class="muted">(${sides[mvp.team]})</span></p>${roster.length?winnersStage(match.winner,roster):''}<details class="results-stats"><summary>Match statistics</summary>${scoreboardTable(match)}</details><div class="actions">${btn('Play again','restart',true)}${btn('Main menu','menu')}</div>`,'FINAL SCORE · PORT MERIDIAN','results-panel');
     }
   }
   if (html!==lastOverlay) { overlay.innerHTML=html; lastOverlay=html; }
@@ -178,7 +172,7 @@ function frame(now) {
   display();
   board.hidden=!(match && screen==='match' && !paused && keys.has('Tab') && match.phase!=='results');
   if (!board.hidden) {
-    const html=shell('Scoreboard',`<p>${score()}</p>${table()}`);
+    const html=shell('Scoreboard',`<p>${score()}</p>${scoreboardTable(match)}`);
     if (html!==lastBoard) {board.innerHTML=html;lastBoard=html;}
   }
   requestAnimationFrame(frame);

@@ -129,6 +129,13 @@ async function lanRoom() {
   assert.equal(before.match.actors.length,6);
   assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);
   const guestSlot=before.seats[0];
+  await guest.getByRole('button',{name:'Music off',exact:true}).focus();
+  await guest.keyboard.down('Tab');
+  await guest.getByRole('heading',{name:'Scoreboard',exact:true}).waitFor();
+  assert.equal(await guest.locator('#board tbody tr').count(),6);
+  assert.equal(await guest.evaluate(()=>document.activeElement.textContent),'Music off');
+  await guest.keyboard.up('Tab');
+  await guest.locator('#board').waitFor({state:'hidden'});
   await guest.getByText(/Ammo 9\/9/).waitFor();
   const soundCount=await guest.evaluate(()=>window.lanSoundStarts);
   await guest.locator('#arena').click({position:{x:300,y:200}});

@@ -4,11 +4,15 @@ import { Match,gear } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { paint } from './arena-art.js';
 import { createLanMotion } from './lan-motion.js';
-import { mountAudioToggles,roundStepper } from './match-controls.js';
+import { mountAudioToggles,roundStepper,scoreboardTable } from './match-controls.js';
 import { createStrikeAudio } from './strike-audio.js';
 
 const canvas=document.querySelector('#arena'), context=canvas.getContext('2d');
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
+const board=document.querySelector('#board');
+let lastBoard='';
+document.documentElement.style.setProperty('--liberals',colors[0]);
+document.documentElement.style.setProperty('--counter-liberals',colors[1]);
 const notices=document.querySelector('#lan-notices');
 const audio=createStrikeAudio();
 const audioToggles=mountAudioToggles(audio);
@@ -25,7 +29,7 @@ const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;'
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
 const title = 'LASER <span>STRIKE 2</span>';
-const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E interact</p>';
+const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E interact, hold Tab for scoreboard</p>';
 
 async function api(action, data={}) {
   const response=await fetch('/lan-api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -122,7 +126,19 @@ function shop() {
   }).join('')}<div class="actions">${state.isReady?'':button('Ready','ready','primary')}</div>`);
 }
 
+function canShowScoreboard() {
+  return view && view.phase!=='results' && !state?.pausedBy && !ending;
+}
+
+function displayScoreboard() {
+  board.hidden=!(canShowScoreboard() && keys.has('Tab'));
+  if (board.hidden) return;
+  const next=`<section class="panel"><h1>Scoreboard</h1><p>${view.score.join(' : ')}</p>${scoreboardTable(view,escape)}</section>`;
+  if (lastBoard!==next) {board.innerHTML=next;lastBoard=next;}
+}
+
 function display() {
+  displayScoreboard();
   audioToggles.show(Boolean(view && !ending));
   let html;
   if (ending) html=panel('Host has left the match',`<a class="lan-link" href="${mainMenu.href}">Main menu</a>`);
@@ -245,6 +261,12 @@ overlay.addEventListener('click',event=>{
 });
 const gameplayKeys=new Set(['KeyW','KeyA','KeyS','KeyD','KeyR','KeyE']);
 addEventListener('keydown',event=>{
+  if (event.code==='Tab' && canShowScoreboard()) {
+    event.preventDefault();
+    keys.add(event.code);
+    displayScoreboard();
+    return;
+  }
   if (event.code==='Escape' && view && view.phase!=='results' && !ending) {
     event.preventDefault();
     if (!event.repeat) act('pause');
@@ -256,8 +278,12 @@ addEventListener('keydown',event=>{
   if (!event.repeat && event.code==='KeyE') pickupPressed=true;
   if (!event.repeat) schedulePoll(0);
 });
-addEventListener('keyup',event=>{if (keys.delete(event.code)) schedulePoll(0);});
-addEventListener('blur',()=>{keys.clear();held=false;firePressed=false;schedulePoll(0);});
+addEventListener('keyup',event=>{
+  if (!keys.delete(event.code)) return;
+  if (event.code==='Tab') displayScoreboard();
+  else schedulePoll(0);
+});
+addEventListener('blur',()=>{keys.clear();held=false;firePressed=false;displayScoreboard();schedulePoll(0);});
 canvas.addEventListener('pointermove',event=>{
   const rect=canvas.getBoundingClientRect();
   pointer.x=(event.clientX-rect.left)*width/rect.width;

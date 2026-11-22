@@ -80,8 +80,8 @@ function snapshot(room, client) {
   base.ready=[...m.humans].filter(actor=>actor.ready).length;
   base.isReady=m.actors[slot].ready;
   base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
-    actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})=>
-      ({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,damage})),
+    actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})=>
+      ({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})),
     traces:m.traces, weaponDrops:m.weaponDrops,
     objective:{site:o.site,carrier:actorIndex(o.carrier),actor:actorIndex(o.actor),dropped:o.dropped,progress:o.progress,clock:o.clock}};
   return base;

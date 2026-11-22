@@ -1,4 +1,11 @@
 import { roundOptions } from './match.js';
+import { sides } from './arena.js';
+
+export function scoreboardTable(match, escapeName=String) {
+  return `<div class="table-wrap"><table><thead><tr><th>Character</th><th>Team</th><th>Elims</th><th>Deaths</th><th>Assists</th><th>Damage</th></tr></thead><tbody>${
+    match.standings().map(a=>`<tr><td>${escapeName(a.name)}</td><td class="${a.team?'b':'a'}">${sides[a.team]}</td><td>${a.kills}</td><td>${a.deaths}</td><td>${a.assists}</td><td>${a.damage}</td></tr>`).join('')
+  }</tbody></table></div>`;
+}
 
 export function roundStepper(rounds) {
   return `<div class="settings-row"><span>Rounds</span><div class="stepper">

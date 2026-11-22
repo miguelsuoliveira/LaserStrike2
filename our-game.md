@@ -1,20 +1,15 @@
-# Our game: (name it later)
+# AK-Strike
 
-**Theme:** ?
+**Theme:** Fictional crews contest a relay in Port Meridian.
 
-## Stages (✅ done · 🔨 now · ⬜ not yet)
-- 🔨 **World:** ?
-- ⬜ **Player** (and the view): ?
-- ⬜ **Goal** (win / lose): ?
-- ⬜ **Mechanics** (what you do again and again, the weird rule): ?
-- ⬜ **Details** (sounds, name, our own art): ?
+- ✅ **World** Original Mediterranean-inspired arena with two relay sites.
+- ✅ **Player** Top-down 2D, WASD and mouse. Choose either crew.
+- ✅ **Goal** Win nine rounds. Eight each is a draw.
+- ✅ **Mechanics** Activate or disable the relay, earn credits, buy pulse equipment, and switch roles at halftime.
+- ✅ **Details** Main menu, HUD, minimap, scoreboard, pause and results.
 
-## Game map (how the parts connect; from the Goal on)
-- **Core loop:** ?
-- **Places:** ?
-- **Progress:** ?
-- **Extras:** ?
+## Game map
+Supply desk → courtyards and relay sites → round rewards → next supply desk.
 
-## Rounds (one line per thing built, newest last: "- [x] World 2: fog and lanterns")
-
-## Later (ideas saved for after)
+## Rounds
+- [x] Built AK-Strike from the supplied brief.

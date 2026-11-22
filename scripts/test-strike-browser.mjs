@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright-core';
+
+const channel = process.env.STRIKE_BROWSER_CHANNEL;
+const browser = await chromium.launch(channel ? { channel } : {});
+const page = await browser.newPage({ viewport:{ width:1280,height:800 } });
+const errors = [];
+page.on('pageerror', error => errors.push(error));
+const url = process.env.STRIKE_TEST_URL || 'http://localhost:5173/';
+const expect = (text) => page.getByText(text,{exact:true}).waitFor();
+try {
+  await page.clock.install();
+  await page.goto(url);
+  await expect('5v5');
+  for (let n=6;n<=10;n++) {
+    await page.getByRole('button',{name:'More players'}).click();
+    await expect(n+'v'+n);
+  }
+  assert.ok(await page.getByRole('button',{name:'More players'}).isDisabled());
+  await page.getByRole('button',{name:'Settings'}).click();
+  await page.locator('#difficulty').selectOption('Relaxed');
+  await page.getByRole('button',{name:'Back'}).click();
+  await page.getByRole('button',{name:'Play',exact:true}).click();
+  await page.getByRole('button',{name:/Counter Liberals/}).click();
+  await expect('Equipment');
+  await expect('CL · 10 LIVE');
+  assert.ok(await page.locator('[data-action="item-0"]').isDisabled());
+  assert.ok(await page.locator('[data-action="item-1"]').isDisabled());
+  await expect('OWNED');
+  await page.keyboard.press('b');
+  await page.getByText('Equipment',{exact:true}).waitFor({state:'hidden'});
+  await page.keyboard.press('b');
+  await expect('Equipment');
+  await page.keyboard.down('Tab');
+  await expect('Scoreboard');
+  assert.equal(await page.locator('#board tbody tr').count(),20);
+  await page.keyboard.up('Tab');
+  await page.locator('#board').waitFor({state:'hidden'});
+  await page.keyboard.press('Escape');
+  await expect('Paused');
+  const before=await page.locator('#hud .topbar').textContent();
+  await page.clock.runFor(12000);
+  assert.equal(await page.locator('#hud .topbar').textContent(),before);
+  await page.getByRole('button',{name:'Resume'}).click();
+  await page.clock.runFor(10200);
+  await expect('ACTIVE');
+  if (process.env.STRIKE_SCREENSHOT) await page.screenshot({path:process.env.STRIKE_SCREENSHOT});
+  await page.keyboard.down('w');
+  await page.clock.runFor(400);
+  await page.keyboard.up('w');
+  await page.mouse.move(600,390);
+  await page.mouse.down();
+  await page.clock.runFor(400);
+  await page.mouse.up();
+  assert.match(await page.locator('#hud .bottom').textContent(), /Spark · [78] \/ 9/);
+  await page.keyboard.down('r');
+  await page.clock.runFor(30);
+  await page.keyboard.up('r');
+  await expect('Spark · Reloading');
+  await page.clock.runFor(1300);
+  await expect('Spark · 9 / 9');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Restart match'}).click();
+  await expect('Equipment');
+  await expect('ROUND 1 / 16');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Main menu'}).click();
+  await page.getByRole('button',{name:'Play',exact:true}).click();
+  await page.getByRole('button',{name:/^Liberals/}).click();
+  await expect('Equipment');
+  assert.deepEqual(errors,[]);
+  console.log('Browser flow passed at '+url+' using '+(channel || 'Chromium')+'.');
+} finally {
+  await browser.close();
+}

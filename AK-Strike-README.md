@@ -1,0 +1,34 @@
+# AK-Strike
+
+AK-Strike is a single-player, top-down Canvas arcade game set in Port Meridian. The map, interface, and animated crew designs are drawn by the source. They require no external asset downloads.
+
+## Launch locally
+
+From the repository root, use Node.js 22 and run:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build for static hosting. The starter's `npm run status` starts or checks the competition sharing tunnel.
+
+## Play
+
+Pick 1v1 through 10v10 and join a crew. Bots fill the other positions. Move with WASD, aim with the mouse, click to pulse, and press R to reload. Hold E at an eligible relay site, B toggles the shop during preparation, Tab shows team statistics while held, and Esc pauses.
+
+Win nine rounds. An 8–8 score ends in a draw. The crews keep their scores, roster, and statistics when activation and defense swap after round eight. Surviving characters carry equipment forward, and all roster members receive the same round reward for their team.
+
+## Source
+
+- `src/game/match.js` implements rules, combat, bot decisions, objectives and credits.
+- `src/game/arena.js` defines geometry, collision and navigation.
+- `src/game/arena-art.js` draws the original map, crews and gameplay effects.
+- `src/game/strike.js` and `src/game/strike.css` provide input and menus.
+
+
+## Verify
+
+Run `node scripts/test-strike.mjs` to verify match rules, spawning and navigation across all roster sizes. With the development server running and Playwright Chromium installed, run `node scripts/test-strike-browser.mjs` to exercise the menu, shop, scoreboard, active controls and pause flow. Set `STRIKE_BROWSER_CHANNEL` to `chrome` or `msedge` to use an installed browser.
+
+The public link uses the starter's Cloudflare tunnel and stays available while the host computer and game server stay online.

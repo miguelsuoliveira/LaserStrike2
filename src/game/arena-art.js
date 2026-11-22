@@ -129,12 +129,17 @@ export function paint(c, match, pointer, mini=false) {
     }
   }
   if (!mini) {
-    const selected=match.player.hp && match.phase==='active' && !match.relaySite(match.player) &&
-      match.nearbyWeapon(match.player);
+    const canInspect=match.player.hp && match.phase==='active';
+    const selected=canInspect && !match.relaySite(match.player) && match.nearbyWeapon(match.player);
     const labels=[];
     c.font='700 12px system-ui';
     c.textAlign='center';
     for (const drop of match.weaponDrops) {
+      c.fillStyle='#17242a';
+      c.fillRect(drop.x-11,drop.y-5,22,10);
+      c.fillStyle=drop===selected ? '#ffe097' : '#cadbdd';
+      c.fillRect(drop.x-8,drop.y-2,16,4);
+      if (!canInspect || !match.weaponInReach(match.player,drop)) continue;
       const item=gear[drop.item];
       const text=`${item.name} · ${item.cost.toLocaleString()} CR`;
       const halfWidth=c.measureText(text).width/2+6;
@@ -149,10 +154,6 @@ export function paint(c, match, pointer, mini=false) {
         break;
       }
       labels.push({x,y,halfWidth});
-      c.fillStyle='#17242a';
-      c.fillRect(drop.x-11,drop.y-5,22,10);
-      c.fillStyle=drop===selected ? '#ffe097' : '#cadbdd';
-      c.fillRect(drop.x-8,drop.y-2,16,4);
       c.fillStyle='#152124ef';
       c.fillRect(x-halfWidth,y-12,halfWidth*2,16);
       c.fillStyle=drop===selected ? '#ffe097' : '#ecf2f3';

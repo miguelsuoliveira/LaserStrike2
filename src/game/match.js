@@ -175,9 +175,13 @@ export class Match {
     return closest;
   }
 
+  weaponInReach(actor,drop) {
+    return distance(actor,drop)<pickupRange && visible(actor,drop);
+  }
+
   pickUpWeapon(actor, drop=this.nearbyWeapon(actor)) {
     if (!drop || this.phase!=='active' || !actor.hp ||
-        distance(actor,drop)>=pickupRange || !visible(actor,drop)) return false;
+        !this.weaponInReach(actor,drop)) return false;
     const index=this.weaponDrops.indexOf(drop);
     if (index<0) return false;
     this.weaponDrops[index]=this.droppedWeapon(actor);

@@ -23,11 +23,11 @@ let lastNotice=0, ending=false;
 const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
-let inviteBase;
+let inviteBase, internetMode=false;
 let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
-const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · LAN EDITION</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
+const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · ${internetMode?'ONLINE':'LAN EDITION'}</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
 const title = 'LASER <span>STRIKE 2</span>';
 const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E interact, hold Tab for scoreboard</p>';
 
@@ -111,7 +111,7 @@ function lobby() {
     ${roundStepper(state.rounds)}
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host · ${state.rounds} rounds</p>`;
-  return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · Share the room link with players on the same Wi‑Fi.</p>
+  return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · ${internetMode?'Share the room link with your friends.':'Share the room link with players on the same Wi‑Fi.'}</p>
     <label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
     <div class="actions">${button('Copy room link','copy-invite')}</div>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
@@ -309,7 +309,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 try {
-  ({inviteBase}=await api('info'));
+  ({inviteBase,internetMode}=await api('info'));
   online=true;
 } catch {
   try {

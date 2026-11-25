@@ -13,6 +13,12 @@ npm run dev
 
 Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build for static hosting. The starter's `npm run status` starts or checks the competition sharing tunnel.
 
+## Online edition
+
+Run `npm ci` and `npm run build`, then run `npm start` and open `http://localhost:8080` to test. Choose **Play Online**, create a room, and share its link or code.
+
+To deploy on Render, connect your GitHub repository as a Node **Web Service**. Use `npm ci --include=dev && npm run build` as the build command, `npm start` as the start command, and `/healthz` as the health check path. The server reads Render’s `PORT` and `RENDER_EXTERNAL_URL`. On other hosts, set `ONLINE_ORIGIN` to the public HTTPS URL. Use one instance because room state lives in memory.
+
 ## LAN edition
 
 Run `npm run lan` on the same computer hosting the public game. Players on the host’s Wi‑Fi open the public game and choose **Play LAN Server** to connect automatically. The host creates a room, and the other players choose display names and enter the room code. The host sets team size and bot difficulty before starting. Players choose either team with space available, and bots fill the remaining slots when the host starts the match. Esc pauses the match for the room. If the host leaves, the remaining players return to the normal main menu. Rooms stay in memory while the host is running. On a static host such as Netlify, start `npm run lan` on the laptop, open the LAN page it prints, create a room, and share **Copy room link**. The link opens the host directly and fills in the room code.

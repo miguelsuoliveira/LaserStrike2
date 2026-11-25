@@ -1,6 +1,10 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import { lanAddress,lanPort } from './lib/lan-network.mjs';
-import { createServer } from 'vite';
+import { serveOnline } from './lib/serve-online.mjs';
+
+const internetMode=process.argv.includes('--online');
+const port=internetMode ? Number(process.env.PORT || 8080) : lanPort;
+const publicOrigin=internetMode ? new URL(process.env.ONLINE_ORIGIN || process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`).origin : null;
 import { Match,defaultRounds,roundOptions } from '../src/game/match.js';
 
 const rooms = new Map();
@@ -89,8 +93,8 @@ function snapshot(room, client) {
 
 function api(path, data) {
   if (path==='info') {
-    const address=lanAddress();
-    return {available:true,inviteBase:address ? `http://${address}:${lanPort}/lan.html` : null};
+    const address=internetMode ? null : lanAddress();
+    return {available:true,internetMode,inviteBase:internetMode ? publicOrigin+'/lan.html' : address ? `http://${address}:${lanPort}/lan.html` : null};
   }
   if (path==='create') {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
@@ -163,34 +167,27 @@ function api(path, data) {
   return snapshot(room,client);
 }
 
-function lanRoutes() {
-  return {
-    name:'laser-strike-lan',
-    configureServer(server) {
-      server.middlewares.use('/lan-api',async (req,res)=>{
-        res.setHeader('Content-Type','application/json');
-        res.setHeader('Cache-Control','no-store');
-        try {
-          if (!inLan(req.socket.remoteAddress || '') || req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']) fail('Use the LAN address on the same network.',403);
-          if (req.method!=='POST' || req.headers.origin!==`http://${req.headers.host}` ||
-              !req.headers['content-type']?.startsWith('application/json')) fail('Invalid room request.',400);
-          let body='';
-          for await (const piece of req) {
-            body+=piece;
-            if (body.length>4096) fail('Request too large.',413);
-          }
-          let data;
-          try { data=JSON.parse(body); } catch { fail('Invalid room request.'); }
-          if (!data || typeof data!=='object') fail('Invalid room request.');
-          const result=api(req.url.slice(1),data);
-          res.end(JSON.stringify(result));
-        } catch(error) {
-          res.statusCode=error.status || 500;
-          res.end(JSON.stringify({error:error.status ? error.message : 'The LAN server could not complete that request.'}));
-        }
-      });
-    },
-  };
+async function roomRequest(req,res) {
+  res.setHeader('Content-Type','application/json');
+  res.setHeader('Cache-Control','no-store');
+  try {
+    if (!internetMode && (!inLan(req.socket.remoteAddress || '') || req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'])) fail('Use the LAN address on the same network.',403);
+    if (req.method!=='POST' || req.headers.origin!==(publicOrigin || `http://${req.headers.host}`) ||
+        !req.headers['content-type']?.startsWith('application/json')) fail('Invalid room request.',400);
+    let body='';
+    for await (const piece of req) {
+      body+=piece;
+      if (body.length>4096) fail('Request too large.',413);
+    }
+    let data;
+    try { data=JSON.parse(body); } catch { fail('Invalid room request.'); }
+    if (!data || typeof data!=='object') fail('Invalid room request.');
+    const result=api(req.url.slice(1),data);
+    res.end(JSON.stringify(result));
+  } catch(error) {
+    res.statusCode=error.status || 500;
+    res.end(JSON.stringify({error:error.status ? error.message : 'The game server could not complete that request.'}));
+  }
 }
 
 const tick=setInterval(()=>{
@@ -222,9 +219,14 @@ const tick=setInterval(()=>{
 },1000/30);
 tick.unref();
 
-const port=lanPort;
-const server=await createServer({configFile:false,plugins:[lanRoutes()],server:{host:'0.0.0.0',port,strictPort:true}});
-await server.listen();
-const address=lanAddress();
-if (address) console.log(`LAN: http://${address}:${port}/lan.html`);
-console.log(`This computer: http://localhost:${port}/lan.html`);
+if (internetMode) {
+  await serveOnline(port,roomRequest);
+} else {
+  const {createServer}=await import('vite');
+  const plugin={name:'laser-strike-lan',configureServer(server){server.middlewares.use('/lan-api',roomRequest);}};
+  const server=await createServer({configFile:false,plugins:[plugin],server:{host:'0.0.0.0',port,strictPort:true}});
+  await server.listen();
+  const address=lanAddress();
+  if (address) console.log(`LAN: http://${address}:${port}/lan.html`);
+  console.log(`This computer: http://localhost:${port}/lan.html`);
+}

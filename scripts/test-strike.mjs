@@ -305,4 +305,26 @@ for(let n=1;n<=10;n++) {
   assert.equal(enemy.hp,100-gear[0].damage);
 }
 
+{
+  const m=make(3);
+  active(m);
+  const [planter,guard,patroller,defender]=m.actors;
+  const site=sites[0];
+  Object.assign(planter,site);
+  Object.assign(guard,{x:site.x+36,y:site.y,enemy:defender});
+  Object.assign(defender,{x:site.x-30,y:site.y,enemy:guard});
+  Object.assign(patroller,{x:site.x,y:site.y+100});
+  m.objective.carrier=planter;
+  m.interact(planter,2);
+  assert.equal(m.objective.site,site);
+  m.bot(defender,.1);
+  assert.equal(defender.plantDuel,guard);
+  assert.equal(m.objective.progress,0);
+  m.bot(patroller,.1);
+  assert.ok(Math.hypot(patroller.path.at(-1).x-site.x,patroller.path.at(-1).y-site.y)<=69);
+  guard.hp=0;
+  m.bot(defender,.1);
+  assert.equal(defender.plantDuel,null);
+  assert.ok(m.objective.progress>0);
+}
 console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

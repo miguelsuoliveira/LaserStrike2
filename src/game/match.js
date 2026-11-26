@@ -1,4 +1,4 @@
-import { spawn, sites, move, distance, wallDistance, visible, route } from './arena.js';
+import { spawn, sites, clear, move, distance, wallDistance, visible, route } from './arena.js';
 
 export const gear = [
   ['Spark',0,22,9,.36,315,'Reliable short-range pulse'],
@@ -59,7 +59,7 @@ export class Match {
         x:x+(a.slot%2)*31, y:y+Math.floor(a.slot/2)*30-60, hp:100,
         bought:false, ready:false, feedback:{damage:0,time:0,marker:0}, ammo:gear[a.item].capacity, reload:0, cooldown:0,
         angle:a.team===this.attack?0:Math.PI, speed:0, path:[], plan:0, reaction:0,
-        enemy:null, hits:new Map(), patrol:a.slot%patrols[0].length, patrolStep:a.slot%2 ? -1 : 1,
+        enemy:null, plantDuel:null, hits:new Map(), patrol:a.slot%patrols[0].length, patrolStep:a.slot%2 ? -1 : 1,
       });
       if (!this.humans.has(a)) {
         const options = gear.map((_,i)=>i).filter(i=>i>a.item && gear[i].cost<=a.credits);
@@ -251,6 +251,11 @@ export class Match {
       this.onSound?.('plant');
       this.onNetworkSound?.('plant');
       o.carrier = null;
+      for (const actor of this.actors) {
+        actor.plantDuel=actor.enemy?.hp && visible(actor,actor.enemy) &&
+          distance(actor,actor.enemy)<Math.max(gear[actor.item].range,gear[actor.enemy.item].range) ? actor.enemy : null;
+        actor.plan=0;
+      }
     } else this.finish(a.team,'Relay disabled');
   }
 
@@ -259,23 +264,36 @@ export class Match {
     const o = this.objective;
     const carrying = o.carrier===a;
     const defending = a.team!==this.attack;
-    const urgent = carrying ? this.target : defending ? o.site : o.dropped;
+    let guard=null;
+    if (o.site && !defending) {
+      const angle=a.slot*Math.PI*.76;
+      const post={x:o.site.x+68*Math.cos(angle),y:o.site.y+68*Math.sin(angle)};
+      guard=clear(post.x,post.y) ? post : o.site;
+    }
+    const urgent = o.site ? guard || o.site : carrying ? this.target : o.dropped;
     const stops = patrols[Number(defending)];
     if (!urgent && distance(a,stops[a.patrol])<20) {
       a.patrol = (a.patrol+a.patrolStep+stops.length)%stops.length;
       a.plan = 0;
     }
     const canReach = (from,to) => distance(from,to)<gear[from.item].range;
+    if (a.plantDuel && (!a.plantDuel.hp || !visible(a,a.plantDuel) ||
+        (!canReach(a,a.plantDuel) && !canReach(a.plantDuel,a)))) {
+      a.plantDuel=null;
+      a.plan=0;
+    }
     a.plan -= dt;
     if (a.plan <= 0) {
       a.plan = .34 + this.random()*.24;
-      const threat = this.actors.filter(b=>b.hp && b.team!==a.team && (canReach(a,b) || canReach(b,a)) && visible(a,b))
+      const threat = a.plantDuel || this.actors.filter(b=>b.hp && b.team!==a.team && (canReach(a,b) || canReach(b,a)) && visible(a,b))
         .sort((left,right)=>distance(a,left)-distance(a,right))[0];
       if (threat!==a.enemy) a.reaction = delay + this.random()*.22;
       a.enemy = threat;
       const approach = threat && !canReach(a,threat) && canReach(threat,a);
       const loot = !threat && !urgent && this.nearbyWeapon(a,lootSearchRange,true);
-      a.path = route(a,approach ? threat : urgent || loot || stops[a.patrol]);
+      const destination=a.plantDuel ? (approach ? threat : null) :
+        o.site ? urgent : approach ? threat : urgent || loot || stops[a.patrol];
+      a.path=destination && distance(a,destination)>8 ? route(a,destination) : [];
     }
 
     while (a.path.length && distance(a,a.path[0])<5) a.path.shift();
@@ -292,11 +310,11 @@ export class Match {
       }
     }
     if ((carrying && sites.some(site=>distance(a,site)<43)) ||
-        (defending && o.site && distance(a,o.site)<44)) {
+        (defending && o.site && !a.plantDuel && distance(a,o.site)<44)) {
       this.interact(a,dt);
       return;
     }
-    const upgrade=this.nearbyWeapon(a,pickupRange,true);
+    const upgrade=!o.site && this.nearbyWeapon(a,pickupRange,true);
     if (upgrade && this.pickUpWeapon(a,upgrade)) a.plan=0;
     if (!point) return;
     const angle = Math.atan2(point.y-a.y,point.x-a.x);

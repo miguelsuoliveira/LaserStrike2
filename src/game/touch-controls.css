@@ -3,6 +3,7 @@
 .touch-stick{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));width:clamp(74px,22vmin,120px);aspect-ratio:1;display:grid;place-items:center;border:1px solid #8eacad;border-radius:50%;background:#17262bc9;color:#f0fffb;font-size:.72rem;font-weight:700}
 .touch-stick::after{content:'';position:absolute;inset:29%;border:1px solid #bce8e1;border-radius:50%;background:#73c8bf40;transform:translate(var(--stick-x,0),var(--stick-y,0));pointer-events:none}
 .touch-move{left:max(12px,env(safe-area-inset-left))}
+.touch-aim{right:max(12px,env(safe-area-inset-right))}
 .touch-match #arena{touch-action:none}
 .touch-actions{position:absolute;top:126px;right:max(8px,env(safe-area-inset-right));display:grid;grid-template-columns:repeat(2,auto);gap:5px}
 .touch-fullscreen{grid-column:1/-1}

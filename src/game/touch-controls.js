@@ -5,10 +5,14 @@ export function mountTouchControls(canvas,wake=()=>{}) {
   const preference=new URLSearchParams(location.search).get('mobile');
   const coarse=matchMedia('(pointer: coarse)');
   const enabled=()=>preference==='1' || preference!=='0' && coarse.matches;
+  const aimPreference='laser-strike-mobile-aim';
+  let aimMode='joystick';
+  try {if (localStorage.getItem(aimPreference)==='tap') aimMode='tap';} catch {}
   const root=document.createElement('div');
   root.className='touch-controls';
   root.hidden=true;
   root.innerHTML=`<div class="touch-stick touch-move" role="group" aria-label="Move joystick"><span>Move</span></div>
+    <div class="touch-stick touch-aim" role="group" aria-label="Aim and fire joystick"><span>Aim + fire</span></div>
     <div class="touch-actions">
       <button type="button" data-key="KeyE">Use</button><button type="button" data-key="KeyR">Reload</button>
       <button type="button" data-key="Tab">Score</button><button type="button" data-key="Escape">Pause</button>
@@ -31,12 +35,14 @@ export function mountTouchControls(canvas,wake=()=>{}) {
   const indicator=root.querySelector('.touch-objective');
   const arrow=indicator.querySelector('span');
   const objectiveLabel=indicator.querySelector('strong');
-  const move={x:0,y:0};
+  const move={x:0,y:0}, aim={x:0,y:0}, lastAim={x:0,y:0};
+  const aimStick=root.querySelector('.touch-aim');
+  aimStick.hidden=aimMode!=='joystick';
   let firePointer, tapPosition, fireTap=false, visible=false;
   const actions=new Map();
   function key(code,down) {window.dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{code,cancelable:true}));}
 
-  function stick(element,vector) {
+  function stick(element,vector,onChange) {
     let pointerId;
     const update=event=>{
       if (pointerId!==event.pointerId) return;
@@ -48,6 +54,7 @@ export function mountTouchControls(canvas,wake=()=>{}) {
       vector.y=length<.12 ? 0 : y/Math.max(1,length);
       element.style.setProperty('--stick-x',vector.x*22+'px');
       element.style.setProperty('--stick-y',vector.y*22+'px');
+      onChange?.(vector);
       wake();
     };
     const end=event=>{
@@ -76,9 +83,14 @@ export function mountTouchControls(canvas,wake=()=>{}) {
   }
 
   const resetMove=stick(root.querySelector('.touch-move'),move);
+  const resetAim=stick(aimStick,aim,vector=>{
+    if (!vector.x && !vector.y) return;
+    Object.assign(lastAim,vector);
+    fireTap=true;
+  });
   const point=event=>({clientX:event.clientX,clientY:event.clientY});
   canvas.addEventListener('pointerdown',event=>{
-    if (!visible || event.pointerType!=='touch' || firePointer!==undefined) return;
+    if (!visible || aimMode!=='tap' || event.pointerType!=='touch' || firePointer!==undefined) return;
     event.preventDefault();
     firePointer=event.pointerId;
     tapPosition=point(event);
@@ -115,6 +127,8 @@ export function mountTouchControls(canvas,wake=()=>{}) {
 
   function reset() {
     resetMove();
+    resetAim();
+    aim.x=aim.y=lastAim.x=lastAim.y=0;
     if (firePointer!==undefined && canvas.hasPointerCapture(firePointer)) canvas.releasePointerCapture(firePointer);
     firePointer=undefined;
     tapPosition=undefined;
@@ -127,6 +141,16 @@ export function mountTouchControls(canvas,wake=()=>{}) {
   return {
     move,
     enterFullscreen,
+    settingsMarkup() {
+      return enabled() ? `<label class="settings-row">Shooting controls <select id="mobile-aim"><option value="joystick" ${aimMode==='joystick'?'selected':''}>Joystick</option><option value="tap" ${aimMode==='tap'?'selected':''}>Tap to shoot</option></select></label>` : '';
+    },
+    setAimMode(mode) {
+      if (mode!=='joystick' && mode!=='tap') return;
+      reset();
+      aimMode=mode;
+      aimStick.hidden=mode!=='joystick';
+      try {localStorage.setItem(aimPreference,mode);} catch {}
+    },
     camera(canvas,player,objective) {
       const zoomed=Boolean(visible && player?.hp>0);
       canvas.classList.toggle('mobile-zoomed',zoomed);
@@ -142,12 +166,15 @@ export function mountTouchControls(canvas,wake=()=>{}) {
       }
       return camera;
     },
-    aimAt(pointer,camera) {
-      if (visible && tapPosition && (firePointer!==undefined || fireTap)) {
+    aimAt(pointer,camera,actor) {
+      if (visible && aimMode==='joystick' && actor && (lastAim.x || lastAim.y)) {
+        pointer.x=actor.x+lastAim.x*80;
+        pointer.y=actor.y+lastAim.y*80;
+      } else if (visible && tapPosition && (firePointer!==undefined || fireTap)) {
         Object.assign(pointer,mapPointer(canvas,tapPosition,camera));
       }
     },
-    firing:()=>firePointer!==undefined || fireTap,
+    firing:()=>firePointer!==undefined || Boolean(aim.x || aim.y) || fireTap,
     consumeFire:()=>{fireTap=false;},
     show(active) {
       const show=active && enabled();

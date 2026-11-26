@@ -62,6 +62,7 @@ function display() {
   if (screen==='teams') html=shell('Choose your crew',`<p class="tagline">Your crew stays together when roles switch.</p><div class="teams">${sides.map((side,i)=>`<button class="crew ${i?'b':'a'}" data-action="team-${i}"><i></i><strong>${side}</strong><small>${i?'Round 1 · Defend':'Round 1 · Activate'}</small></button>`).join('')}</div>${btn('Back','menu')}`);
   if (screen==='settings') html=shell('Settings',`<label class="settings-row">Bot difficulty<select id="difficulty">${['Relaxed','Standard','Expert'].map(x=>`<option ${level===x?'selected':''}>${x}</option>`).join('')}</select></label>
     <label class="settings-row">Graphics<select id="graphics">${Object.entries(graphicsPresets).map(([key,preset])=>`<option value="${key}" ${graphics===key?'selected':''}>${preset.label}</option>`).join('')}</select></label>
+${touch.settingsMarkup()}
     <label class="settings-row">Pulse trails<input type="checkbox" id="motion" ${motion?'checked':''}></label>
     <label class="settings-row">Music<input type="checkbox" id="music" ${audioToggles.enabled('music')?'checked':''}></label>
     <label class="settings-row">Sound effects<input type="checkbox" id="effects" ${audioToggles.enabled('effects')?'checked':''}></label>${btn('Back','settings-back',true)}`);
@@ -128,6 +129,7 @@ overlay.addEventListener('click',event=>{
   display();
 });
 overlay.addEventListener('change',event=>{
+  if (event.target.id==='mobile-aim') touch.setAimMode(event.target.value);
   if (event.target.id==='difficulty') {
     level=event.target.value;
     if (match) match.level=level;
@@ -166,7 +168,7 @@ function frame(now) {
   last=now;
   audio.update();
   touch.show(screen==='match' && !paused && match?.phase==='active');
-  touch.aimAt(pointer,camera);
+  touch.aimAt(pointer,camera,match?.player);
   if (match && screen==='match' && !paused) {
     match.step(dt,{...pointer,dx:touch.move.x || Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
       dy:touch.move.y || Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire:fire||touch.firing(),reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});

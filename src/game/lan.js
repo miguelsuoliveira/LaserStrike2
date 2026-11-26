@@ -152,7 +152,7 @@ function lobby() {
   return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · ${internetMode?'Share the room link with your friends.':'Share the room link with players on the same Wi‑Fi.'}</p>
     <label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
     <div class="actions">${button('Copy room link','copy-invite')}</div>
-    <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
+    <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${touch.settingsMarkup()}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Customize character','customize')}${button('Leave room','leave')}</div>`);
 }
 
@@ -196,9 +196,9 @@ function display() {
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
     <div class="actions"><button class="primary">Join room</button>${button('Customize character','customize')}</div></form>
-    <div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
+    ${touch.settingsMarkup()}<div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!view) html=lobby();
-  else if (state.pausedBy) html=panel('Match paused',`<p class="tagline">Paused by ${escape(state.pausedBy)}</p><div class="actions">${button('Resume match','pause','primary')}${button('Leave match','leave')}</div>`);
+  else if (state.pausedBy) html=panel('Match paused',`<p class="tagline">Paused by ${escape(state.pausedBy)}</p>${touch.settingsMarkup()}<div class="actions">${button('Resume match','pause','primary')}${button('Leave match','leave')}</div>`);
   else if (view.phase==='buy') html=shop();
   else if (view.phase==='results') html=panel(view.score[0]===view.score[1]?'Match drawn':sides[view.winner]+' win',
     `<p class="tagline">${view.score.join(' : ')}</p><div class="actions">${state.host?button('Play again','start','primary'):''}${button('Customize character','customize')}${button('Leave room','leave')}</div>`);
@@ -222,7 +222,7 @@ const touch=mountTouchControls(canvas,()=>schedulePoll(0));
 let camera=null;
 
 function controlsNow() {
-  touch.aimAt(pointer,camera);
+  touch.aimAt(pointer,camera,view?.player);
   return {...pointer,dx:touch.move.x || +keys.has('KeyD')-+keys.has('KeyA'),dy:touch.move.y || +keys.has('KeyS')-+keys.has('KeyW'),
     fire:!internetMode&&(held||firePressed||touch.firing()),reload:keys.has('KeyR') || Boolean(internetMode && held && view?.player.ammo===0),use:keys.has('KeyE'),pickup:pickupPressed};
 }
@@ -294,6 +294,7 @@ overlay.addEventListener('input',event=>{
   if (event.target.id==='room-code') roomCode=event.target.value;
 });
 overlay.addEventListener('change',event=>{
+  if (event.target.id==='mobile-aim') {touch.setAimMode(event.target.value);display();return;}
   if (event.target.id==='look-shade' || event.target.id==='look-pattern') {
     const key=event.target.id==='look-shade'?'shade':'pattern';
     look=characterLook({...look,[key]:Number(event.target.value)});

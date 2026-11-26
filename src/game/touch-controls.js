@@ -1,4 +1,5 @@
 import './touch-controls.css';
+import { mobileCamera,offscreenBomb } from './mobile-camera.js';
 
 export function mountTouchControls(wake=()=>{}) {
   const preference=new URLSearchParams(location.search).get('mobile');
@@ -12,8 +13,10 @@ export function mountTouchControls(wake=()=>{}) {
     <div class="touch-actions">
       <button type="button" data-key="KeyE">Use</button><button type="button" data-key="KeyR">Reload</button>
       <button type="button" data-key="Tab">Score</button><button type="button" data-key="Escape">Pause</button>
-    </div>`;
+    </div><div class="touch-objective" hidden><span aria-hidden="true">➜</span><strong>Bomb has been planted</strong></div>`;
   document.body.append(root);
+  const indicator=root.querySelector('.touch-objective');
+  const arrow=indicator.querySelector('span');
   const move={x:0,y:0}, aim={x:0,y:0};
   let firing=false, fireTap=false, visible=false;
   const actions=new Map();
@@ -91,10 +94,22 @@ export function mountTouchControls(wake=()=>{}) {
   addEventListener('blur',reset);
   return {
     move,
+    camera(canvas,player,site) {
+      const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
+      const camera=visible && player ? mobileCamera(player,aspect) : null;
+      const direction=offscreenBomb(camera,site);
+      indicator.hidden=!direction;
+      if (direction) {
+        indicator.style.left=direction.x*100+'%';
+        indicator.style.top=direction.y*100+'%';
+        arrow.style.transform=`rotate(${direction.angle}rad)`;
+      }
+      return camera;
+    },
     aimAt(actor,pointer) {
       if (visible && actor?.hp && (aim.x || aim.y)) {
-        pointer.x=actor.x+aim.x*180;
-        pointer.y=actor.y+aim.y*180;
+        pointer.x=actor.x+aim.x*80;
+        pointer.y=actor.y+aim.y*80;
       }
     },
     firing:()=>firing || fireTap,

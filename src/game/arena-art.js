@@ -63,8 +63,10 @@ for (const [x,y,w,h] of walls) {
 
 const labelWidths=new WeakMap();
 const circle = (c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);};
-export function paint(c, match, pointer, mini=false, quality='low') {
-  c.setTransform(c.canvas.width/width,0,0,c.canvas.height/height,0,0);
+export function paint(c, match, pointer, mini=false, quality='low', camera=null) {
+  const view=camera || {x:0,y:0,w:width,h:height};
+  const sx=c.canvas.width/view.w, sy=c.canvas.height/view.h;
+  c.setTransform(sx,0,0,sy,-view.x*sx,-view.y*sy);
   c.drawImage(backdrop,0,0);
   const detail=mini ? null : arenaDetail(quality);
   const high=!mini && quality==='high';
@@ -197,13 +199,13 @@ export function paint(c, match, pointer, mini=false, quality='low') {
     c.save();
     c.globalAlpha=Math.min(1,time*6);
     c.textAlign='center';
-    c.font='900 62px system-ui';
+    c.font=`900 ${camera ? 26 : 62}px system-ui`;
     c.lineJoin='round';
     c.lineWidth=9;
     c.strokeStyle='#291218';
     c.fillStyle=label==='FIRST BLOOD' ? '#ff5e69' : '#ffe097';
-    c.strokeText(label,width/2,height*.48);
-    c.fillText(label,width/2,height*.48);
+    c.strokeText(label,view.x+view.w/2,view.y+view.h*.48);
+    c.fillText(label,view.x+view.w/2,view.y+view.h*.48);
     c.restore();
   }
   const action=match.objectiveAction();
@@ -232,8 +234,8 @@ export function paint(c, match, pointer, mini=false, quality='low') {
     }
     if (feedback.time>0) {
       const text=`−${feedback.damage} HP`;
-      const x=Math.min(width-40,Math.max(40,pointer.x));
-      const y=pointer.y<36 ? pointer.y+34 : pointer.y-21;
+      const x=Math.min(view.x+view.w-40,Math.max(view.x+40,pointer.x));
+      const y=Math.min(view.y+view.h-15,Math.max(view.y+25,pointer.y-21));
       c.font='bold 18px system-ui';
       c.lineWidth=4;
       c.strokeStyle='#1b1416';

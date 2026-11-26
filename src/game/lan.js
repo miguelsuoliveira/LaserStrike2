@@ -1,6 +1,7 @@
 import './strike.css';
 import './lan.css';
 import { characterFigure,characterLook,shades,patterns } from './character-look.js';
+import { mapPointer } from './mobile-camera.js';
 import { mountTouchControls } from './touch-controls.js';
 import { Match,gear } from './match.js';
 import { width,height,sides,colors,wallDistance } from './arena.js';
@@ -218,6 +219,7 @@ function display() {
 }
 
 const touch=mountTouchControls(()=>schedulePoll(0));
+let camera=null;
 
 function controlsNow() {
   touch.aimAt(view?.player,pointer);
@@ -354,9 +356,7 @@ addEventListener('keyup',event=>{
 });
 addEventListener('blur',()=>{keys.clear();held=false;firePressed=false;displayScoreboard();schedulePoll(0);});
 canvas.addEventListener('pointermove',event=>{
-  const rect=canvas.getBoundingClientRect();
-  pointer.x=(event.clientX-rect.left)*width/rect.width;
-  pointer.y=(event.clientY-rect.top)*height/rect.height;
+  Object.assign(pointer,mapPointer(canvas,event,camera));
 });
 canvas.addEventListener('pointerdown',event=>{if(event.button===0 && view?.phase==='active' && !state?.pausedBy && !ending) {held=true;firePressed=true;schedulePoll(0);}});
 addEventListener('pointerup',()=>{if (held) {held=false;schedulePoll(0);}});
@@ -396,14 +396,15 @@ function frame(now) {
   lastFrame=now;
   audio.update();
   const active=view?.phase==='active' && !state?.pausedBy && !ending;
-  touch.show(Boolean(active && view.player.hp));
+  touch.show(Boolean(active));
   if (active || needsPaint) {
     const scene=motion.frame(now,dt,controlsNow());
     if (active && internetMode && scene) {
       predictShot(now,scene.player,scene.shotTime);
       if (localBeam && now<localBeam.until) scene.traces=[...scene.traces,{...localBeam,life:(localBeam.until-now)/1000}];
     }
-    paint(context,scene,active?pointer:null);
+    camera=touch.camera(canvas,scene?.player,scene?.objective.site);
+    paint(context,scene,active?pointer:null,false,'low',camera);
     needsPaint=false;
   }
   requestAnimationFrame(frame);

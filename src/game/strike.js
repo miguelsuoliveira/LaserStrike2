@@ -1,4 +1,5 @@
 import './strike.css';
+import { mapPointer } from './mobile-camera.js';
 import { mountTouchControls } from './touch-controls.js';
 import { Match, gear, defaultRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
@@ -149,20 +150,19 @@ window.addEventListener('keydown',event=>{
 window.addEventListener('keyup',event=>keys.delete(event.code));
 window.addEventListener('blur',()=>{keys.clear();fire=false;pickupPressed=false;});
 canvas.addEventListener('pointermove',event=>{
-  const rect=canvas.getBoundingClientRect();
-  pointer.x=(event.clientX-rect.left)*width/rect.width;
-  pointer.y=(event.clientY-rect.top)*height/rect.height;
+  Object.assign(pointer,mapPointer(canvas,event,camera));
 });
 canvas.addEventListener('pointerdown',event=>{if (event.button===0) fire=true;});
 window.addEventListener('pointerup',()=>{fire=false;});
 
 const touch=mountTouchControls();
+let camera=null;
 let last=performance.now();
 function frame(now) {
   const dt=Math.min(.05,(now-last)/1000);
   last=now;
   audio.update();
-  touch.show(screen==='match' && !paused && match?.phase==='active' && match.player.hp>0);
+  touch.show(screen==='match' && !paused && match?.phase==='active');
   touch.aimAt(match?.player,pointer);
   if (match && screen==='match' && !paused) {
     match.step(dt,{...pointer,dx:touch.move.x || Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
@@ -171,7 +171,8 @@ function frame(now) {
     touch.consumeFire();
     if (!motion) match.traces.length=0;
   }
-  paint(context,match,match && !paused?pointer:null,false,graphics);
+  camera=touch.camera(canvas,match?.player,match?.objective.site);
+  paint(context,match,match && !paused?pointer:null,false,graphics,camera);
   if (match && screen==='match') paint(minimap,match,null,true);
   drawHud();
   display();

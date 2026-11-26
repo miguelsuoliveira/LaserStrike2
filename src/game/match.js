@@ -184,6 +184,7 @@ export class Match {
       if (contact < limit) this.hit(a,b,item.damage);
     }
     this.traces.push({x:a.x,y:a.y,bx:a.x+dx*limit,by:a.y+dy*limit,team:a.team,shooter:this.actors.indexOf(a),life:.12});
+    if (!a.ammo) this.reload(a);
   }
 
   droppedWeapon(actor) {

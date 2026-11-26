@@ -210,7 +210,7 @@ function display() {
     const clock=Math.ceil(view.objective.site && view.phase==='active' ? view.objective.clock : view.time);
     const players=state.seats.map(id=>{
       const a=view.actors[id], drop=a.hp && view.nearbyWeapon(a);
-      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${internetMode ? predictedAmmo(a) : a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
+      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${internetMode ? predictedAmmo(a) : a.ammo}/${gear[a.item].capacity}${a.reload?' · Reloading':''}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
     const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s · Room ${escape(state.code)}</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;

@@ -327,4 +327,18 @@ for(let n=1;n<=10;n++) {
   assert.equal(defender.plantDuel,null);
   assert.ok(m.objective.progress>0);
 }
+{
+  const m=make(1);
+  active(m);
+  const p=m.player;
+  p.ammo=1;
+  m.fire(p,0);
+  assert.equal(p.ammo,0);
+  assert.ok(p.reload>0);
+  advance(m,.5);
+  assert.equal(p.ammo,0);
+  advance(m,.7);
+  assert.equal(p.ammo,gear[p.item].capacity);
+  assert.equal(p.reload,0);
+}
 console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

@@ -86,7 +86,7 @@ function snapshot(room, client) {
   base.sounds=room.sounds.filter(sound=>Date.now()-sound.at<650 && (sound.name==='shot' || sound.actor<0 || sound.actor===slot));
   base.ready=[...m.humans].filter(actor=>actor.ready).length;
   base.isReady=m.actors[slot].ready;
-  base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
+  base.match={serverTime:internetMode ? performance.now() : undefined,phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
     actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})=>
       ({x:internetMode?Math.round(x*4)/4:x,y:internetMode?Math.round(y*4)/4:y,hp,
         angle:internetMode?Math.round(angle*1000)/1000:angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})),

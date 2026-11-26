@@ -181,6 +181,16 @@ try {
   assert.ok(interpolated.actors[1].x>70 && interpolated.actors[1].x<95);
   motion.receive({...match,round:2,actors:[player,movedRival]},83);
   assert.equal(motion.frame(99,1/60,movement).actors[1].x,95);
+  const onlineMotion=createLanMotion();
+  const sample=(serverTime,x)=>({...match,serverTime,actors:[player,{...rival,x}]});
+  onlineMotion.receive(sample(0,70),10);
+  onlineMotion.frame(26,1/60,movement);
+  onlineMotion.receive(sample(40,74),58);
+  onlineMotion.receive(sample(90,79),116);
+  onlineMotion.receive(sample(135,83.5),164);
+  const rendered1=onlineMotion.frame(170,1/60,movement).actors[1].x;
+  const rendered2=onlineMotion.frame(186,1/60,movement).actors[1].x;
+  assert.ok(rendered1>70 && rendered2>rendered1 && rendered2<83.5);
   await capacity();
   await lanRoom();
   assert.deepEqual(errors,[]);

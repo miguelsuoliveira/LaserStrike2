@@ -1,4 +1,5 @@
 import './strike.css';
+import { mountTouchControls } from './touch-controls.js';
 import { Match, gear, defaultRounds } from './match.js';
 import { width,height,sides,colors } from './arena.js';
 import { graphicsPresets } from './arena-quality.js';
@@ -155,15 +156,19 @@ canvas.addEventListener('pointermove',event=>{
 canvas.addEventListener('pointerdown',event=>{if (event.button===0) fire=true;});
 window.addEventListener('pointerup',()=>{fire=false;});
 
+const touch=mountTouchControls();
 let last=performance.now();
 function frame(now) {
   const dt=Math.min(.05,(now-last)/1000);
   last=now;
   audio.update();
+  touch.show(screen==='match' && !paused && match?.phase==='active' && match.player.hp>0);
+  touch.aimAt(match?.player,pointer);
   if (match && screen==='match' && !paused) {
-    match.step(dt,{...pointer,dx:Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
-      dy:Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});
+    match.step(dt,{...pointer,dx:touch.move.x || Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
+      dy:touch.move.y || Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire:fire||touch.firing(),reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});
     pickupPressed=false;
+    touch.consumeFire();
     if (!motion) match.traces.length=0;
   }
   paint(context,match,match && !paused?pointer:null,false,graphics);

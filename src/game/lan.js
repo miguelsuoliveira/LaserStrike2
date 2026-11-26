@@ -1,6 +1,7 @@
 import './strike.css';
 import './lan.css';
 import { characterFigure,characterLook,shades,patterns } from './character-look.js';
+import { mountTouchControls } from './touch-controls.js';
 import { Match,gear } from './match.js';
 import { width,height,sides,colors,wallDistance } from './arena.js';
 import { paint } from './arena-art.js';
@@ -216,9 +217,12 @@ function display() {
   }
 }
 
+const touch=mountTouchControls(()=>schedulePoll(0));
+
 function controlsNow() {
-  return {...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
-    fire:!internetMode&&(held||firePressed),reload:keys.has('KeyR') || Boolean(internetMode && held && view?.player.ammo===0),use:keys.has('KeyE'),pickup:pickupPressed};
+  touch.aimAt(view?.player,pointer);
+  return {...pointer,dx:touch.move.x || +keys.has('KeyD')-+keys.has('KeyA'),dy:touch.move.y || +keys.has('KeyS')-+keys.has('KeyW'),
+    fire:!internetMode&&(held||firePressed||touch.firing()),reload:keys.has('KeyR') || Boolean(internetMode && held && view?.player.ammo===0),use:keys.has('KeyE'),pickup:pickupPressed};
 }
 
 function schedulePoll(delay) {
@@ -234,7 +238,7 @@ async function poll() {
   try {
     const commands=view?.phase==='active' && !state.pausedBy ? [controlsNow()] : [];
     pickupPressed=false;
-    if (!internetMode) firePressed=false;
+    if (!internetMode) {firePressed=false;touch.consumeFire();}
     const next=await api('sync',{commands});
     if (session===current) {
       accept(next);
@@ -370,11 +374,12 @@ function predictedAmmo(actor) {
 
 function predictShot(now, pose, seenTime) {
   const actor=view.player;
-  if (!(held || firePressed) || !actor.hp || actor.reload || keys.has('KeyR') ||
+  if (!(held || firePressed || touch.firing()) || !actor.hp || actor.reload || keys.has('KeyR') ||
       !predictedAmmo(actor) || now<nextShotAt) return;
   const item=gear[actor.item];
   nextShotAt=now+item.interval*1000;
   firePressed=false;
+  touch.consumeFire();
   const sequence=++shotSequence;
   pendingShots.set(sequence,actor.item);
   const angle=Math.atan2(pointer.y-pose.y,pointer.x-pose.x);
@@ -391,6 +396,7 @@ function frame(now) {
   lastFrame=now;
   audio.update();
   const active=view?.phase==='active' && !state?.pausedBy && !ending;
+  touch.show(Boolean(active && view.player.hp));
   if (active || needsPaint) {
     const scene=motion.frame(now,dt,controlsNow());
     if (active && internetMode && scene) {

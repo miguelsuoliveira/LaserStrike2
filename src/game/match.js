@@ -182,7 +182,7 @@ export class Match {
       const contact = Math.max(0,along-Math.sqrt(169-cross*cross));
       if (contact < limit) this.hit(a,b,item.damage);
     }
-    this.traces.push({x:a.x,y:a.y,bx:a.x+dx*limit,by:a.y+dy*limit,team:a.team,life:.12});
+    this.traces.push({x:a.x,y:a.y,bx:a.x+dx*limit,by:a.y+dy*limit,team:a.team,shooter:this.actors.indexOf(a),life:.12});
   }
 
   droppedWeapon(actor) {

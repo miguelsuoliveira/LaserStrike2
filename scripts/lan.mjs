@@ -65,6 +65,7 @@ function start(room) {
   room.match=new Match(room.size,seats[0].team,room.level,Math.random,seats.map(seat=>seat.slot),room.rounds);
   for (const seat of seats) room.match.actors[seat.slot].name=seat.name;
   room.sounds=[];
+  for (const client of room.clients.values()) client.shots=[];
   room.match.onNetworkSound=(name,actor)=>{
     room.sounds.push({id:++room.soundId,name,actor:actor ? room.match.actors.indexOf(actor) : -1,x:actor?.x,y:actor?.y,at:Date.now()});
     if (room.sounds.length>48) room.sounds.shift();
@@ -86,6 +87,7 @@ function snapshot(room, client) {
   base.sounds=room.sounds.filter(sound=>Date.now()-sound.at<650 && (sound.name==='shot' || sound.actor<0 || sound.actor===slot));
   base.ready=[...m.humans].filter(actor=>actor.ready).length;
   base.isReady=m.actors[slot].ready;
+  base.shotAck=client.shotAck || 0;
   base.match={serverTime:internetMode ? performance.now() : undefined,phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
     actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})=>
       ({x:internetMode?Math.round(x*4)/4:x,y:internetMode?Math.round(y*4)/4:y,hp,
@@ -131,7 +133,7 @@ function api(path, data) {
     if (!room.match || room.match.phase==='results') fail('There is no active match to pause.',409);
     room.pausedBy=room.pausedBy ? null : client.seats[0].name;
     room.clock=performance.now();
-    for (const peer of room.clients.values()) peer.commands=[];
+    for (const peer of room.clients.values()) {peer.commands=[];peer.shots=[];}
   } else if (path==='team') {
     if (room.match) fail('Teams are locked once the match starts.',409);
     if (data.team!==0 && data.team!==1) fail('Choose a valid team.');
@@ -154,9 +156,20 @@ function api(path, data) {
       room.level=data.level;
       room.match=null;
     }
+  } else if (path==='fire' && internetMode) {
+    const {sequence,round,x,y}=data;
+    if (!Number.isSafeInteger(sequence) || sequence<=0 || !Number.isFinite(x) || !Number.isFinite(y)) fail('Invalid shot.');
+    if (room.pausedBy || room.match?.phase!=='active' || round!==room.match.round) fail('The round is closed.',409);
+    if (sequence>(client.shotAck || 0) && !client.shots.some(shot=>shot.sequence===sequence)) {
+      if (client.shots.length>=8) fail('Too many pending shots.',429);
+      client.shots.push({sequence,round,x:safeNumber(x,0,1200),y:safeNumber(y,0,720),at:Date.now()});
+      client.shots.sort((a,b)=>a.sequence-b.sequence);
+    }
+    return {};
   } else if (path==='sync') {
     client.commands=client.seats.map((_,i)=>{
       const next=command(data.commands?.[i]);
+      if (internetMode) next.fire=false;
       next.pickup ||= Boolean(client.commands[i]?.pickup);
       return next;
     });
@@ -214,16 +227,29 @@ const tick=setInterval(()=>{
     }
     if (room.endedAt || room.pausedBy || !room.match || room.match.phase==='results') continue;
     const m=room.match;
+    const dt=Math.min(.05,(time-room.clock)/1000);
     const commands=new Map();
     for (const client of room.clients.values()) {
       client.seats.forEach((seat,i)=>{
+        const actor=m.actors[seat.slot];
         const input=now-client.seen<450 ? client.commands[i] : undefined;
-        if (!input) return;
-        commands.set(m.actors[seat.slot],{...input});
-        input.pickup=false;
+        const shot=internetMode ? client.shots[0] : undefined;
+        if (shot && (shot.round!==m.round || m.phase!=='active' || now-shot.at>400 || !actor.hp || actor.reload || actor.cooldown<=dt)) {
+          client.shots.shift();
+          client.shotAck=shot.sequence;
+          if (shot.round===m.round && m.phase==='active' && now-shot.at<=400 && actor.hp && !actor.reload) {
+            commands.set(actor,{...command(input),x:shot.x,y:shot.y,fire:true,reload:false});
+            if (input) input.pickup=false;
+            return;
+          }
+        }
+        if (input) {
+          commands.set(actor,{...input});
+          input.pickup=false;
+        }
       });
     }
-    m.step(Math.min(.05,(time-room.clock)/1000),commands.get(m.player),commands);
+    m.step(dt,commands.get(m.player),commands);
     room.clock=time;
   }
 },1000/30);

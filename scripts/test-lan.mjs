@@ -138,9 +138,26 @@ async function lanRoom() {
   await guest.locator('#board').waitFor({state:'hidden'});
   await guest.getByText(/Ammo 9\/9/).waitFor();
   const soundCount=await guest.evaluate(()=>window.lanSoundStarts);
+  const internetMode=await guest.evaluate(async()=>{
+    const response=await fetch('/lan-api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    return (await response.json()).internetMode;
+  });
+  let releaseShot;
+  if (internetMode) await guest.route('**/lan-api/fire',async route=>{
+    await new Promise(resolve=>{releaseShot=resolve;});
+    await route.continue();
+  });
   await guest.locator('#arena').click({position:{x:300,y:200}});
   await guest.getByText(/Ammo 8\/9/).waitFor();
   await guest.waitForFunction(count=>window.lanSoundStarts>count,soundCount);
+  if (internetMode) {
+    assert.equal((await snapshot(host)).match.actors[guestSlot].ammo,9);
+    assert.ok(releaseShot);
+    const serverConfirm=guest.waitForResponse(async response=>response.url().endsWith('/lan-api/sync') && response.ok() && (await response.json()).shotAck>0);
+    releaseShot();
+    const confirmed=await serverConfirm;
+    assert.equal((await confirmed.json()).match.actors[guestSlot].ammo,8);
+  }
   await guest.keyboard.down('a');
   await guest.waitForTimeout(450);
   await guest.keyboard.up('a');

@@ -1,7 +1,7 @@
 import './strike.css';
 import './lan.css';
 import { Match,gear } from './match.js';
-import { width,height,sides,colors } from './arena.js';
+import { width,height,sides,colors,wallDistance } from './arena.js';
 import { paint } from './arena-art.js';
 import { createLanMotion } from './lan-motion.js';
 import { mountAudioToggles,roundStepper,scoreboardTable } from './match-controls.js';
@@ -16,7 +16,8 @@ document.documentElement.style.setProperty('--counter-liberals',colors[1]);
 const notices=document.querySelector('#lan-notices');
 const audio=createStrikeAudio();
 const audioToggles=mountAudioToggles(audio);
-let lastSound=0;
+let lastSound=0, shotSequence=0, nextShotAt=0, localBeam;
+const pendingShots=new Map();
 const motion=createLanMotion();
 let needsPaint=true, lastFrame=performance.now(), pollTimer;
 let lastNotice=0, ending=false;
@@ -45,6 +46,8 @@ function stopInput() {
   held=false;
   firePressed=false;
   pickupPressed=false;
+  localBeam=null;
+  pendingShots.clear();
 }
 
 function announce(message) {
@@ -77,17 +80,24 @@ function accept(next) {
   }
   if (!next.match) {view=null;motion.receive(null);needsPaint=true;return;}
   const snapshot=next.match;
+  if (view?.round!==snapshot.round || snapshot.phase!=='active') {
+    pendingShots.clear();
+    nextShotAt=0;
+    localBeam=null;
+  }
+  for (const [sequence] of pendingShots) if (sequence<=(next.shotAck || 0)) pendingShots.delete(sequence);
   const {actors,objective}=snapshot;
   const id=next.seats[0];
   for (const sound of next.sounds || []) {
     if (sound.id<=lastSound) continue;
     lastSound=sound.id;
+    if (internetMode && sound.name==='shot' && sound.actor===id) continue;
     const remoteShot=sound.name==='shot' && sound.actor!==id;
     const gap=remoteShot ? Math.hypot(sound.x-actors[id].x,sound.y-actors[id].y) : 0;
     audio.play(sound.name,{bot:remoteShot,volume:remoteShot ? Math.max(0,.55-gap/1100) : 1});
   }
   view=Object.assign(Object.create(Match.prototype),snapshot,{
-    player:actors[id],feedback:snapshot.feedback,announcement:{time:0},
+    player:actors[id],traces:internetMode ? snapshot.traces.filter(trace=>trace.shooter!==id) : snapshot.traces,feedback:snapshot.feedback,announcement:{time:0},
     objective:{...objective,actor:actors[objective.actor],carrier:actors[objective.carrier]},
   });
   motion.receive(view);
@@ -161,7 +171,7 @@ function display() {
     const clock=Math.ceil(view.objective.site && view.phase==='active' ? view.objective.clock : view.time);
     const players=state.seats.map(id=>{
       const a=view.actors[id], drop=a.hp && view.nearbyWeapon(a);
-      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
+      return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${internetMode ? predictedAmmo(a) : a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
     const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
@@ -171,7 +181,7 @@ function display() {
 
 function controlsNow() {
   return {...pointer,dx:+keys.has('KeyD')-+keys.has('KeyA'),dy:+keys.has('KeyS')-+keys.has('KeyW'),
-    fire:held||firePressed,reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed};
+    fire:!internetMode&&(held||firePressed),reload:keys.has('KeyR') || Boolean(internetMode && held && view?.player.ammo===0),use:keys.has('KeyE'),pickup:pickupPressed};
 }
 
 function schedulePoll(delay) {
@@ -187,7 +197,7 @@ async function poll() {
   try {
     const commands=view?.phase==='active' && !state.pausedBy ? [controlsNow()] : [];
     pickupPressed=false;
-    firePressed=false;
+    if (!internetMode) firePressed=false;
     const next=await api('sync',{commands});
     if (session===current) {
       accept(next);
@@ -215,6 +225,8 @@ async function act(action,data) {
     if (result.token) {
       lastNotice=0;
       lastSound=0;
+      pendingShots.clear();
+      nextShotAt=0;
       session={token:result.token,code:result.code};
     }
     if (action==='leave' && !result.ended) {
@@ -300,13 +312,42 @@ addEventListener('pagehide',()=>{
     body:JSON.stringify(session),keepalive:true}).catch(()=>{});
 });
 
+function predictedAmmo(actor) {
+  let reserved=0;
+  for (const item of pendingShots.values()) if (item===actor.item) reserved++;
+  return Math.max(0,actor.ammo-reserved);
+}
+
+function predictShot(now, pose) {
+  const actor=view.player;
+  if (!(held || firePressed) || !actor.hp || actor.reload || keys.has('KeyR') ||
+      !predictedAmmo(actor) || now<nextShotAt) return;
+  const item=gear[actor.item];
+  nextShotAt=now+item.interval*1000;
+  firePressed=false;
+  const sequence=++shotSequence;
+  pendingShots.set(sequence,actor.item);
+  const angle=Math.atan2(pointer.y-pose.y,pointer.x-pose.x);
+  const dx=Math.cos(angle),dy=Math.sin(angle);
+  const limit=wallDistance(pose.x,pose.y,dx,dy,item.range);
+  localBeam={x:pose.x,y:pose.y,bx:pose.x+dx*limit,by:pose.y+dy*limit,team:pose.team,until:now+120};
+  audio.play('shot');
+  api('fire',{sequence,round:view.round,x:pointer.x,y:pointer.y}).catch(()=>{pendingShots.delete(sequence);display();});
+  display();
+}
+
 function frame(now) {
   const dt=Math.min(.05,(now-lastFrame)/1000);
   lastFrame=now;
   audio.update();
   const active=view?.phase==='active' && !state?.pausedBy && !ending;
   if (active || needsPaint) {
-    paint(context,motion.frame(now,dt,controlsNow()),active?pointer:null);
+    const scene=motion.frame(now,dt,controlsNow());
+    if (active && internetMode && scene) {
+      predictShot(now,scene.player);
+      if (localBeam && now<localBeam.until) scene.traces=[...scene.traces,{...localBeam,life:(localBeam.until-now)/1000}];
+    }
+    paint(context,scene,active?pointer:null);
     needsPaint=false;
   }
   requestAnimationFrame(frame);

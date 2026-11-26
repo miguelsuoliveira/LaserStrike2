@@ -322,6 +322,7 @@ overlay.addEventListener('click',event=>{
   if (action==='save-look') {customizing=false;if (state) act('look',{look});else display();}
   if (action==='rejoin') act('rejoin',storedSession);
   if (action==='skip-rejoin') {rejoinOffer=null;rememberRoom(null);display();}
+  if (action==='ready') touch.enterFullscreen();
   if (action==='start' || action==='leave' || action==='pause' || action==='ready') act(action);
   if (action==='round-minus' || action==='round-plus') act('settings',{size:state.size,level:state.level,rounds:state.rounds+(action==='round-plus'?1:-1)});
   if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});

@@ -117,7 +117,10 @@ overlay.addEventListener('click',event=>{
   if (action==='settings-back') screen=settingsFrom;
   if (action==='resume') paused=false;
   if (action==='restart') start(match.player.team);
-  if (action==='ready') match.markReady(match.player);
+  if (action==='ready') {
+    touch.enterFullscreen();
+    match.markReady(match.player);
+  }
   if (action==='round-minus') rounds--;
   if (action==='round-plus') rounds++;
   if (action.startsWith('team-')) start(Number(action.at(-1)));

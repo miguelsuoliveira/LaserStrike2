@@ -13,8 +13,22 @@ export function mountTouchControls(wake=()=>{}) {
     <div class="touch-actions">
       <button type="button" data-key="KeyE">Use</button><button type="button" data-key="KeyR">Reload</button>
       <button type="button" data-key="Tab">Score</button><button type="button" data-key="Escape">Pause</button>
+      <button type="button" class="touch-fullscreen" hidden>Fullscreen</button>
     </div><div class="touch-objective" hidden><span aria-hidden="true">➜</span><strong>Bomb has been planted</strong></div>`;
   document.body.append(root);
+  const fullscreen=root.querySelector('.touch-fullscreen');
+  const page=document.documentElement;
+  const requestFullscreen=page.requestFullscreen || page.webkitRequestFullscreen;
+  const isFullscreen=()=>Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  const updateFullscreen=()=>{fullscreen.hidden=!requestFullscreen || isFullscreen();};
+  function enterFullscreen() {
+    if (!enabled() || !requestFullscreen || isFullscreen()) return;
+    try {requestFullscreen.call(page)?.catch(()=>{});} catch {}
+  }
+  fullscreen.addEventListener('click',enterFullscreen);
+  document.addEventListener('fullscreenchange',updateFullscreen);
+  document.addEventListener('webkitfullscreenchange',updateFullscreen);
+  updateFullscreen();
   const indicator=root.querySelector('.touch-objective');
   const arrow=indicator.querySelector('span');
   const move={x:0,y:0}, aim={x:0,y:0};
@@ -67,7 +81,7 @@ export function mountTouchControls(wake=()=>{}) {
 
   const resetMove=stick(root.querySelector('.touch-move'),move);
   const resetAim=stick(root.querySelector('.touch-aim'),aim,true);
-  for (const button of root.querySelectorAll('button')) {
+  for (const button of root.querySelectorAll('[data-key]')) {
     const code=button.dataset.key;
     button.addEventListener('pointerdown',event=>{
       if (actions.has(code)) return;
@@ -94,6 +108,7 @@ export function mountTouchControls(wake=()=>{}) {
   addEventListener('blur',reset);
   return {
     move,
+    enterFullscreen,
     camera(canvas,player,site) {
       const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
       const camera=visible && player ? mobileCamera(player,aspect) : null;

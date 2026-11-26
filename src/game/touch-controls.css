@@ -5,6 +5,7 @@
 .touch-move{left:max(12px,env(safe-area-inset-left))}
 .touch-aim{right:max(12px,env(safe-area-inset-right))}
 .touch-actions{position:absolute;top:126px;right:max(8px,env(safe-area-inset-right));display:grid;grid-template-columns:repeat(2,auto);gap:5px}
+.touch-fullscreen{grid-column:1/-1}
 .touch-actions button{font-size:.72rem;padding:8px;min-height:34px}
 .touch-match #hud .bottom{bottom:auto;top:88px;font-size:.68rem}
 .touch-match #arena{width:100vw;height:100dvh;max-height:none}

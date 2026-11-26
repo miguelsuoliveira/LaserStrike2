@@ -182,6 +182,7 @@ function schedulePoll(delay) {
 async function poll() {
   if (!session || requestInFlight) return;
   const current=session;
+  const startedAt=performance.now();
   requestInFlight=true;
   try {
     const commands=view?.phase==='active' && !state.pausedBy ? [controlsNow()] : [];
@@ -200,7 +201,9 @@ async function poll() {
     }
   } finally {
     requestInFlight=false;
-    schedulePoll(view?.phase==='active' && !state?.pausedBy ? 40 : 125);
+    const active=view?.phase==='active' && !state?.pausedBy;
+    const delay=internetMode && active ? Math.max(8,40-(performance.now()-startedAt)) : active ? 40 : 125;
+    schedulePoll(delay);
   }
 }
 

@@ -1,7 +1,10 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import { lanAddress,lanPort } from './lib/lan-network.mjs';
+import { gzip } from 'node:zlib';
+import { promisify } from 'node:util';
 import { serveOnline } from './lib/serve-online.mjs';
 
+const compress=promisify(gzip);
 const internetMode=process.argv.includes('--online');
 const port=internetMode ? Number(process.env.PORT || 8080) : lanPort;
 const publicOrigin=internetMode ? new URL(process.env.ONLINE_ORIGIN || process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`).origin : null;
@@ -85,7 +88,8 @@ function snapshot(room, client) {
   base.isReady=m.actors[slot].ready;
   base.match={phase:m.phase,time:m.time,round:m.round,roundLimit:m.roundLimit,readyCountdown:m.readyCountdown,feedback:m.actors[slot].feedback,score:m.score,attack:m.attack,winner:m.winner,reason:m.reason,
     actors:m.actors.map(({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})=>
-      ({x,y,hp,angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})),
+      ({x:internetMode?Math.round(x*4)/4:x,y:internetMode?Math.round(y*4)/4:y,hp,
+        angle:internetMode?Math.round(angle*1000)/1000:angle,name,team,slot,ammo,item,credits,reload,bought,kills,deaths,assists,damage})),
     traces:m.traces, weaponDrops:m.weaponDrops,
     objective:{site:o.site,carrier:actorIndex(o.carrier),actor:actorIndex(o.actor),dropped:o.dropped,progress:o.progress,clock:o.clock}};
   return base;
@@ -183,7 +187,13 @@ async function roomRequest(req,res) {
     try { data=JSON.parse(body); } catch { fail('Invalid room request.'); }
     if (!data || typeof data!=='object') fail('Invalid room request.');
     const result=api(req.url.slice(1),data);
-    res.end(JSON.stringify(result));
+    const json=JSON.stringify(result);
+    if (internetMode && json.length>=1024 && /(?:^|,)\s*gzip\s*(?:,|$)/i.test(req.headers['accept-encoding'] || '')) {
+      const compressed=await compress(json,{level:1});
+      res.setHeader('Content-Encoding','gzip');
+      res.setHeader('Vary','Accept-Encoding');
+      res.end(compressed);
+    } else res.end(json);
   } catch(error) {
     res.statusCode=error.status || 500;
     res.end(JSON.stringify({error:error.status ? error.message : 'The game server could not complete that request.'}));

@@ -44,7 +44,7 @@ export class Match {
   begin() {
     this.attack = Number(this.round > this.roundsBeforeSwitch);
     this.phase = 'buy';
-    this.time = 0;
+    this.time = 10;
     this.readyCountdown = false;
     this.traces.length = 0;
     this.weaponDrops = [];
@@ -80,7 +80,7 @@ export class Match {
   checkReady() {
     if (this.phase==='buy' && !this.readyCountdown && [...this.humans].every(actor=>actor.ready)) {
       this.readyCountdown=true;
-      this.time=1;
+      this.time=0;
     }
   }
 
@@ -164,7 +164,7 @@ export class Match {
     }
   }
 
-  fire(a, angle) {
+  fire(a, angle, rewind) {
     if (a.cooldown || a.reload) return;
     if (!a.ammo) return this.reload(a);
     const item = gear[a.item];
@@ -177,7 +177,8 @@ export class Match {
     const limit = wallDistance(a.x,a.y,dx,dy,item.range);
     for (const b of this.actors) {
       if (b===a || !b.hp || a.team===b.team) continue;
-      const x=b.x-a.x,y=b.y-a.y, along=x*dx+y*dy, cross=x*dy-y*dx;
+      const pose=rewind?.[this.actors.indexOf(b)] || b;
+      const x=pose.x-a.x,y=pose.y-a.y, along=x*dx+y*dy, cross=x*dy-y*dx;
       if (along < 0 || Math.abs(cross) > 13) continue;
       const contact = Math.max(0,along-Math.sqrt(169-cross*cross));
       if (contact < limit) this.hit(a,b,item.damage);
@@ -306,7 +307,7 @@ export class Match {
   step(dt, command, extraCommands = new Map()) {
     this.announcement.time = Math.max(0,this.announcement.time-dt);
     this.announcement.flash = Math.max(0,this.announcement.flash-dt);
-    if (this.phase==='results' || (this.phase==='buy' && !this.readyCountdown)) return;
+    if (this.phase==='results') return;
     this.time = Math.max(0,this.time-dt);
     if (this.phase!=='active') {
       if (!this.time) {
@@ -343,7 +344,7 @@ export class Match {
         move(a,inputCommand.dx/length*a.speed*dt,inputCommand.dy/length*a.speed*dt);
         a.angle = Math.atan2(inputCommand.y-a.y,inputCommand.x-a.x);
         if (inputCommand.reload) this.reload(a);
-        if (inputCommand.fire) this.fire(a,a.angle);
+        if (inputCommand.fire) this.fire(a,a.angle,inputCommand.rewind);
         if (inputCommand.use && this.relaySite(a)) this.interact(a,dt);
         else if (inputCommand.pickup) this.pickUpWeapon(a);
       } else this.bot(a,dt);

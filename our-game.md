@@ -34,3 +34,4 @@ Supply desk → courtyards and relay sites → round rewards → next supply des
 - [x] LAN shared pause, player departure notices, and return to the main menu when the host leaves.
 - [x] LAN rooms show and enforce the current total player limit.
 - [x] Shared ready flow, round steppers, in-match audio controls, and LAN hit feedback.
+- [x] Ten-second shop, character customization, online reconnect, and shooter-side hit timing.

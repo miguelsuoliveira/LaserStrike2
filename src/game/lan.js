@@ -1,5 +1,6 @@
 import './strike.css';
 import './lan.css';
+import { characterFigure,characterLook,shades,patterns } from './character-look.js';
 import { Match,gear } from './match.js';
 import { width,height,sides,colors,wallDistance } from './arena.js';
 import { paint } from './arena-art.js';
@@ -25,9 +26,11 @@ const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
 let inviteBase, internetMode=false;
+let customizing=false, look=characterLook(), rejoinOffer=null, storedSession=null;
+const resumeKey='laser-strike-online-room';
 let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-const button = (text,action,primary='') => `<button class="${primary}" data-action="${action}">${text}</button>`;
+const button = (text,action,primary='') => `<button type="button" class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · ${internetMode?'ONLINE':'LAN EDITION'}</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
 const title = 'LASER <span>STRIKE 2</span>';
 const controls = '<p class="tagline">WASD move, mouse aim and shoot, R reload, E interact, hold Tab for scoreboard</p>';
@@ -39,6 +42,26 @@ async function api(action, data={}) {
   const result=await response.json();
   if (!response.ok) throw Object.assign(new Error(result.error),{status:response.status});
   return result;
+}
+
+function rememberRoom(value) {
+  storedSession=value;
+  try {
+    if (value) localStorage.setItem(resumeKey,JSON.stringify(value));
+    else localStorage.removeItem(resumeKey);
+  } catch {}
+}
+
+async function checkRejoin() {
+  if (!internetMode) return;
+  try {
+    const saved=storedSession || JSON.parse(localStorage.getItem(resumeKey) || 'null');
+    if (!saved) return;
+    storedSession=saved;
+    rejoinOffer=await api('rejoin-info',saved);
+  } catch(error) {
+    if (error.status===404) rememberRoom(null);
+  }
 }
 
 function stopInput() {
@@ -60,6 +83,7 @@ function announce(message) {
 function hostLeft() {
   if (ending) return;
   ending=true;
+  if (internetMode) rememberRoom(null);
   session=null;
   clearTimeout(pollTimer);
   stopInput();
@@ -73,6 +97,8 @@ function accept(next) {
   if (state?.code===next.code && next.serial<state.serial) return;
   if (next.pausedBy!==state?.pausedBy) stopInput();
   state=next;
+  if (next.look && !customizing) look=characterLook(next.look);
+  if (internetMode && next.match?.phase==='results') rememberRoom(null);
   for (const note of next.notices || []) {
     if (note.id<=lastNotice) continue;
     announce(note.message);
@@ -112,7 +138,7 @@ function lobby() {
     const current=team===state.team, full=players.length>=state.size;
     return `<section class="lan-team" style="--team-color:${colors[team]}">
       <h2>${side} <span>${players.length} / ${state.size}</span></h2>
-      <ul class="lan-roster">${players.map(player=>`<li>${escape(player.name)} · ${side}</li>`).join('')}</ul>
+      <ul class="lan-roster">${players.map(player=>`<li>${characterFigure(team,player.look)}<span>${escape(player.name)} · ${side}</span></li>`).join('')}</ul>
       <button data-action="team-${team}" aria-pressed="${current}" ${current||full?'disabled':''}>${current?'Your team':full?'Team full':'Join '+side}</button>
     </section>`;
   }).join('');
@@ -125,11 +151,11 @@ function lobby() {
     <label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
     <div class="actions">${button('Copy room link','copy-invite')}</div>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${controls}
-    <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Leave room','leave')}</div>`);
+    <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Customize character','customize')}${button('Leave room','leave')}</div>`);
 }
 
 function shop() {
-  return panel('Preparation',`<p class="tagline">${state.ready} / ${state.players.length} ready · ${view.readyCountdown?'Round starts in 1 second…':'Waiting for all players'}</p>${state.seats.map((slot,index)=>{
+  return panel('Preparation',`<p class="tagline">${state.ready} / ${state.players.length} ready · ${Math.ceil(view.time)}s remaining</p>${state.seats.map((slot,index)=>{
     const actor=view.actors[slot];
     return `<h2>${escape(actor.name)} · ${actor.credits} CR</h2><div class="lan-equipment">${gear.map((item,i)=>`
       <button data-action="buy-${index}-${i}" ${i===actor.item||actor.bought||actor.credits<item.cost||state.isReady?'disabled':''}>${item.name} · ${i===actor.item?'Owned':item.cost+' CR'} · ${item.damage} HP</button>`).join('')}</div>`;
@@ -147,6 +173,15 @@ function displayScoreboard() {
   if (lastBoard!==next) {board.innerHTML=next;lastBoard=next;}
 }
 
+function customizePanel() {
+  const teams=state ? [state.team] : [0,1];
+  const options=(values,current)=>values.map((label,i)=>`<option value="${i}" ${current===i?'selected':''}>${label}</option>`).join('');
+  return panel('Customize character',`<div class="character-preview">${teams.map(team=>characterFigure(team,look)).join('')}</div>
+    <label class="settings-row">Team shade <select id="look-shade">${options(shades,look.shade)}</select></label>
+    <label class="settings-row">Pattern <select id="look-pattern">${options(patterns,look.pattern)}</select></label>
+    <div class="actions">${button('Done','save-look','primary')}</div>`);
+}
+
 function display() {
   displayScoreboard();
   audioToggles.show(Boolean(view && !ending));
@@ -154,15 +189,17 @@ function display() {
   if (ending) html=panel('Host has left the match',`<a class="lan-link" href="${mainMenu.href}">Main menu</a>`);
   else if (!online) html=panel(title,`<p class="tagline">LAN rooms run on the host laptop. Ask the host to start the LAN server and share the room link. Open that link while connected to the same Wi‑Fi.</p>
     <div class="actions">${button('Try again','retry','primary')}<a class="lan-link" href="/">Back</a></div>`);
+  else if (customizing) html=customizePanel();
+  else if (rejoinOffer && !state) html=panel('Rejoin your match?',`<p class="tagline">Return to room ${escape(rejoinOffer.code)} as ${escape(rejoinOffer.name)}.</p><div class="actions">${button('Rejoin','rejoin','primary')}${button('Not now','skip-rejoin')}</div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
-    <button class="primary">Join room</button></form>
+    <div class="actions"><button class="primary">Join room</button>${button('Customize character','customize')}</div></form>
     <div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!view) html=lobby();
   else if (state.pausedBy) html=panel('Match paused',`<p class="tagline">Paused by ${escape(state.pausedBy)}</p><div class="actions">${button('Resume match','pause','primary')}${button('Leave match','leave')}</div>`);
   else if (view.phase==='buy') html=shop();
   else if (view.phase==='results') html=panel(view.score[0]===view.score[1]?'Match drawn':sides[view.winner]+' win',
-    `<p class="tagline">${view.score.join(' : ')}</p><div class="actions">${state.host?button('Play again','start','primary'):''}${button('Leave room','leave')}</div>`);
+    `<p class="tagline">${view.score.join(' : ')}</p><div class="actions">${state.host?button('Play again','start','primary'):''}${button('Customize character','customize')}${button('Leave room','leave')}</div>`);
   else if (view.phase==='result' || view.phase==='halftime') html=`<section class="notice">${view.phase==='halftime'?'<div class="kicker">HALFTIME · ROLES SWITCH</div>':''}<h2>${sides[view.winner]} win the round</h2><p>${view.score.join(' : ')} · ${escape(view.reason)}</p></section>`;
   else html='';
   if (html!==markup) {overlay.innerHTML=html;markup=html;}
@@ -174,7 +211,7 @@ function display() {
       return `<b>${escape(a.name)} · ${a.hp} HP · ${gear[a.item].name} · Ammo ${internetMode ? predictedAmmo(a) : a.ammo}/${gear[a.item].capacity}${drop?' · Pick up '+gear[drop.item].name:''}</b>`;
     }).join('');
     const status=view.objective.site ? 'Relay active at '+view.objective.site.name : view.objective.dropped ? 'Relay dropped' : 'Relay carried by '+(view.objective.carrier?.name || sides[view.attack]);
-    const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
+    const next=`<div class="topbar">Round ${view.round} / ${view.roundLimit} · ${view.score.join(' : ')} · ${clock}s · Room ${escape(state.code)}</div><div class="objective">${escape(status)}</div><div class="bottom">${players}</div>`;
     if(hud.dataset.render!==next){hud.innerHTML=next;hud.dataset.render=next;}
   }
 }
@@ -206,7 +243,7 @@ async function poll() {
   } catch(e) {
     if (session===current) {
       error=e.message;
-      if (e.status===403 || e.status===404) {session=null;state=null;view=null;motion.receive(null);needsPaint=true;}
+      if (e.status===403 || e.status===404) {session=null;state=null;view=null;motion.receive(null);needsPaint=true;await checkRejoin();}
       display();
     }
   } finally {
@@ -227,10 +264,14 @@ async function act(action,data) {
       lastSound=0;
       pendingShots.clear();
       nextShotAt=0;
-      session={token:result.token,code:result.code};
+      session={token:result.token,code:result.code,epoch:result.epoch || 0};
+      if (internetMode) rememberRoom(session);
+      shotSequence=Math.max(shotSequence,result.shotAck || 0);
+      rejoinOffer=null;
     }
     if (action==='leave' && !result.ended) {
       const wasHost=state.host;
+      if (internetMode) rememberRoom(null);
       session=null;state=null;view=null;motion.receive(null);needsPaint=true;
       notices.replaceChildren();
       stopInput();
@@ -247,13 +288,18 @@ overlay.addEventListener('input',event=>{
   if (event.target.id==='room-code') roomCode=event.target.value;
 });
 overlay.addEventListener('change',event=>{
+  if (event.target.id==='look-shade' || event.target.id==='look-pattern') {
+    const key=event.target.id==='look-shade'?'shade':'pattern';
+    look=characterLook({...look,[key]:Number(event.target.value)});
+    display();
+  }
   if (event.target.closest('#room-settings')) {
     act('settings',{size:Number(document.querySelector('#roster-size').value),rounds:state.rounds,level:document.querySelector('#bot-level').value});
   }
 });
 overlay.addEventListener('submit',event=>{
   event.preventDefault();
-  if (event.target.id==='join-form') act('join',{code:roomCode,name});
+  if (event.target.id==='join-form') act('join',{code:roomCode,name,look});
 });
 overlay.addEventListener('click',event=>{
   const action=event.target.closest('button')?.dataset.action;
@@ -265,7 +311,11 @@ overlay.addEventListener('click',event=>{
     if (navigator.clipboard) navigator.clipboard.writeText(field.value).then(()=>announce('Room link copied.')).catch(()=>{});
     else if (document.execCommand('copy')) announce('Room link copied.');
   }
-  if (action==='create') act('create',{name});
+  if (action==='create') act('create',{name,look});
+  if (action==='customize') {customizing=true;display();}
+  if (action==='save-look') {customizing=false;if (state) act('look',{look});else display();}
+  if (action==='rejoin') act('rejoin',storedSession);
+  if (action==='skip-rejoin') {rejoinOffer=null;rememberRoom(null);display();}
   if (action==='start' || action==='leave' || action==='pause' || action==='ready') act(action);
   if (action==='round-minus' || action==='round-plus') act('settings',{size:state.size,level:state.level,rounds:state.rounds+(action==='round-plus'?1:-1)});
   if (action.startsWith('team-')) act('team',{team:Number(action.at(-1))});
@@ -308,7 +358,7 @@ canvas.addEventListener('pointerdown',event=>{if(event.button===0 && view?.phase
 addEventListener('pointerup',()=>{if (held) {held=false;schedulePoll(0);}});
 addEventListener('pagehide',()=>{
   if (!session) return;
-  fetch('/lan-api/leave',{method:'POST',headers:{'Content-Type':'application/json'},
+  fetch(internetMode?'/lan-api/disconnect':'/lan-api/leave',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(session),keepalive:true}).catch(()=>{});
 });
 
@@ -318,7 +368,7 @@ function predictedAmmo(actor) {
   return Math.max(0,actor.ammo-reserved);
 }
 
-function predictShot(now, pose) {
+function predictShot(now, pose, seenTime) {
   const actor=view.player;
   if (!(held || firePressed) || !actor.hp || actor.reload || keys.has('KeyR') ||
       !predictedAmmo(actor) || now<nextShotAt) return;
@@ -332,7 +382,7 @@ function predictShot(now, pose) {
   const limit=wallDistance(pose.x,pose.y,dx,dy,item.range);
   localBeam={x:pose.x,y:pose.y,bx:pose.x+dx*limit,by:pose.y+dy*limit,team:pose.team,until:now+120};
   audio.play('shot');
-  api('fire',{sequence,round:view.round,x:pointer.x,y:pointer.y}).catch(()=>{pendingShots.delete(sequence);display();});
+  api('fire',{sequence,round:view.round,x:pointer.x,y:pointer.y,seenTime}).catch(()=>{pendingShots.delete(sequence);display();});
   display();
 }
 
@@ -344,7 +394,7 @@ function frame(now) {
   if (active || needsPaint) {
     const scene=motion.frame(now,dt,controlsNow());
     if (active && internetMode && scene) {
-      predictShot(now,scene.player);
+      predictShot(now,scene.player,scene.shotTime);
       if (localBeam && now<localBeam.until) scene.traces=[...scene.traces,{...localBeam,life:(localBeam.until-now)/1000}];
     }
     paint(context,scene,active?pointer:null);
@@ -355,6 +405,7 @@ function frame(now) {
 try {
   ({inviteBase,internetMode}=await api('info'));
   online=true;
+  await checkRejoin();
 } catch {
   try {
     const response=await fetch('/lan-host',{signal:AbortSignal.timeout(2500)});

@@ -5,6 +5,14 @@
 .lan-team{display:flex;flex-direction:column;border:1px solid #546463;border-top:2px solid var(--team-color);padding:8px;min-width:0}
 .lan-team h2{color:var(--team-color);margin:0;display:flex;justify-content:space-between;gap:4px;font-size:.9rem}
 .lan-team h2 span{white-space:nowrap}
+.custom-figure{--figure:46px;flex:none}
+.lan-roster li{display:flex;align-items:center;gap:6px}
+.lan-roster .custom-figure{--figure:25px}
+.character-preview{display:flex;justify-content:center;gap:24px;padding:12px}
+.character-preview .custom-figure{--figure:72px}
+.custom-figure[data-pattern="1"] .stage-body{background:repeating-linear-gradient(0deg,currentColor 0 4px,#26333d 4px 6px)}
+.custom-figure[data-pattern="2"] .stage-body{background:linear-gradient(135deg,currentColor 0 34%,#26333d 34% 54%,currentColor 54%)}
+.custom-figure[data-pattern="3"] .stage-body{background:radial-gradient(circle at 2px 2px,#26333d 0 1px,transparent 1.5px) 0 0/5px 5px,currentColor}
 .lan-roster{flex:1;padding-left:18px;overflow-wrap:anywhere}
 .lan-team button{align-self:flex-start;font-size:.8rem}
 #lan-notices{position:fixed;top:82px;right:12px;max-width:calc(100vw - 24px);pointer-events:none;z-index:4}

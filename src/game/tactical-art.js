@@ -1,4 +1,4 @@
-import { colors } from './arena.js';
+import { characterLook,uniformColor } from './character-look.js';
 
 const size = 56;
 const uniforms = [
@@ -6,12 +6,13 @@ const uniforms = [
   { cloth:'#465d76', armor:'#29384e', helmet:'#577695', trim:'#8fbbda' },
 ];
 
-function makeSprite(team, stride) {
+function makeSprite(team, stride, shade, pattern) {
   const sprite=document.createElement('canvas');
   sprite.width=sprite.height=size*2;
   const c=sprite.getContext('2d');
   c.setTransform(2,0,0,2,size,size);
   const uniform=uniforms[team];
+  const accent=uniformColor(team,shade);
 
   function shape(color,points,outline=false) {
     c.beginPath();
@@ -38,9 +39,12 @@ function makeSprite(team, stride) {
     shape('#293039',[[boot-5,side*8],[boot+4,side*8],[boot+4,side*3],[boot-5,side*3]],true);
     shape(uniform.cloth,[[-9,side*5],[-5,side*6],[-3,side*12],[1,side*14],
       [6,side*10],[3,side*7],[1,side*4]],true);
-    shape(colors[team],[[-1,side*13],[3,side*13],[5,side*10],[1,side*10]]);
+    shape(accent,[[-1,side*13],[3,side*13],[5,side*10],[1,side*10]]);
   }
   shape(uniform.armor,[[-12,-7],[-8,-10],[3,-8],[6,-4],[5,7],[-6,10],[-12,7]],true);
+  if (pattern===1) {c.fillStyle=accent;c.fillRect(-7,-6,2,12);}
+  if (pattern===2) shape(accent,[[-9,-5],[-5,0],[-9,5],[-7,5],[-3,0],[-7,-5]]);
+  if (pattern===3) {c.fillStyle=accent;for (const y of [-5,0,5]) c.fillRect(-7,y,2,2);}
   shape('#626866',[[-11,-6],[-7,-7],[-7,7],[-11,6]]);
   shape('#252a2e',[[-11,-5],[-8,-5],[-8,-2],[-11,-2]]);
   shape('#252a2e',[[-11,1],[-8,1],[-8,4],[-11,4]]);
@@ -55,11 +59,11 @@ function makeSprite(team, stride) {
   }
   shape(uniform.trim,[[-2,-5],[4,-6],[7,-4],[5,-3],[-1,-3]]);
   shape('#18212a',[[6,-4],[8,-3],[9,0],[8,3],[6,4],[7,0]]);
-  shape(colors[team],[[-4,-2],[-2,-2],[-2,2],[-4,2]]);
+  shape(accent,[[-4,-2],[-2,-2],[-2,2],[-4,2]]);
   return sprite;
 }
 
-const sprites=uniforms.map((_,team)=>[0,3,-3].map(stride=>makeSprite(team,stride)));
+const sprites=new Map();
 const motion=new WeakMap();
 
 export function paintTacticalCharacter(context, actor) {
@@ -69,5 +73,8 @@ export function paintTacticalCharacter(context, actor) {
   motion.set(actor,{x:actor.x,y:actor.y,step});
   const pose=moved>.15 && moved<45 ? 1+Math.floor(step/9)%2 : 0;
   context.rotate(actor.angle);
-  context.drawImage(sprites[actor.team][pose],-size/2,-size/2,size,size);
+  const {shade,pattern}=characterLook(actor.look);
+  const key=(actor.team*3+shade)*12+pattern*3+pose;
+  if (!sprites.has(key)) sprites.set(key,makeSprite(actor.team,[0,3,-3][pose],shade,pattern));
+  context.drawImage(sprites.get(key),-size/2,-size/2,size,size);
 }

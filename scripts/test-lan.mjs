@@ -77,6 +77,9 @@ async function lanRoom() {
   await label(guest,'Your name').fill('Rowan <LAN>');
   await label(guest,'Room code').fill(code.toLowerCase());
   const joinResponse=guest.waitForResponse(res=>res.url().endsWith('/lan-api/join') && res.ok());
+  await button(guest,'Customize character').click();
+  await label(guest,'Pattern').selectOption('2');
+  await button(guest,'Done').click();
   await button(guest,'Join room').click();
   const {token}=await (await joinResponse).json();
   await guest.getByText('Ada · Liberals',{exact:true}).waitFor();
@@ -122,13 +125,13 @@ async function lanRoom() {
   await button(guest,'Ready').click();
   await remaining.getByText(/2 \/ 3 ready/).waitFor();
   await button(remaining,'Ready').click();
-  await host.getByText(/3 \/ 3 ready/).waitFor();
   await guest.getByRole('heading',{name:'Preparation'}).waitFor({state:'hidden',timeout:8000});
   await guest.getByText(/^Round 1 \/ 10/).waitFor();
   const before=await snapshot(guest);
   assert.equal(before.match.actors.length,6);
   assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);
   const guestSlot=before.seats[0];
+  assert.equal(before.match.actors[guestSlot].look.pattern,2);
   await guest.getByRole('button',{name:'Music off',exact:true}).focus();
   await guest.keyboard.down('Tab');
   await guest.getByRole('heading',{name:'Scoreboard',exact:true}).waitFor();
@@ -157,6 +160,13 @@ async function lanRoom() {
     releaseShot();
     const confirmed=await serverConfirm;
     assert.equal((await confirmed.json()).match.actors[guestSlot].ammo,8);
+    await guest.reload();
+    await guest.getByRole('heading',{name:'Rejoin your match?'}).waitFor();
+    await button(guest,'Rejoin').click();
+    const restored=await snapshot(guest);
+    assert.equal(restored.seats[0],guestSlot);
+    assert.equal(restored.match.actors[guestSlot].look.pattern,2);
+    await button(guest,'Music on').click();
   }
   await guest.keyboard.down('a');
   await guest.waitForTimeout(450);

@@ -75,6 +75,10 @@ export function createLanMotion() {
         if (from.hp && to.hp && distance(from,to)<65) {
           pose.x=from.x+(to.x-from.x)*fraction;
           pose.y=from.y+(to.y-from.y)*fraction;
+          if (newer && renderTime>newer.time) {
+            const extra=Math.min(45,renderTime-newer.time)/(newer.time-older.time);
+            move(pose,(to.x-from.x)*extra,(to.y-from.y)*extra);
+          }
           pose.angle=from.angle+turnDelta(from.angle,to.angle)*fraction;
           continue;
         }
@@ -95,6 +99,7 @@ export function createLanMotion() {
     }
     const actor = reference => reference ? rendered[actors.indexOf(reference)] : undefined;
     return Object.assign(Object.create(Object.getPrototypeOf(target)),target,{
+      shotTime:buffered ? Math.max(older.time,Math.min(renderTime,newer?.time ?? older.time)) : undefined,
       actors:rendered,
       player:rendered[playerIndex],
       objective:{...target.objective,actor:actor(target.objective.actor),carrier:actor(target.objective.carrier)},

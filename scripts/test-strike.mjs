@@ -282,16 +282,27 @@ for(let n=1;n<=10;n++) {
   const m=new Match(2,0,'Standard',()=>.2,[2]);
   const guest=m.actors[2];
   m.markReady(m.player);
-  advance(m,20);
+  advance(m,9);
   assert.equal(m.phase,'buy');
   m.markReady(guest);
-  advance(m,.5);
-  assert.equal(m.phase,'buy');
-  advance(m,.5);
+  advance(m,0);
   assert.equal(m.phase,'active');
   m.hit(guest,m.player,22);
   assert.equal(guest.feedback.damage,22);
   assert.equal(m.player.feedback.damage,0);
+}
+
+{
+  const m=make(1);
+  advance(m,9.9);
+  assert.equal(m.phase,'buy');
+  advance(m,.2);
+  assert.equal(m.phase,'active');
+  const p=m.player, enemy=m.actors[1];
+  Object.assign(p,{x:50,y:350});
+  Object.assign(enemy,{x:250,y:390});
+  m.fire(p,0,[p,{x:250,y:350}]);
+  assert.equal(enemy.hp,100-gear[0].damage);
 }
 
 console.log('Laser Strike 2 rules passed for both teams and all ten match sizes.');

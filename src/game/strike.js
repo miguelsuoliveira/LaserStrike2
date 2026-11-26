@@ -50,7 +50,7 @@ function shop() {
     <div class="shop">${gear.map((item,i)=>{
       const owned=i===p.item, blocked=owned||p.bought||p.credits<item.cost||p.ready;
       return `<button data-action="item-${i}" ${blocked?'disabled':''}><span><strong>${item.name}</strong><small>${item.damage} HP per hit · ${item.description}</small></span><b>${owned?'OWNED':item.cost?item.cost.toLocaleString():'FREE'}</b></button>`;
-    }).join('')}</div><div class="actions">${match.readyCountdown?'<strong>Round starts in 1 second…</strong>':btn('Ready','ready',true)}</div>`,'PREPARATION · SUPPLY DESK');
+    }).join('')}</div><div class="actions">${match.readyCountdown?'<strong>Round starting…</strong>':btn('Ready','ready',true)}</div>`,'PREPARATION · SUPPLY DESK');
 }
 
 function display() {

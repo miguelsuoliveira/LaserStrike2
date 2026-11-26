@@ -110,8 +110,10 @@ export function mountTouchControls(wake=()=>{}) {
     move,
     enterFullscreen,
     camera(canvas,player,site) {
+      const zoomed=Boolean(visible && player?.hp>0);
+      canvas.classList.toggle('mobile-zoomed',zoomed);
       const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
-      const camera=visible && player ? mobileCamera(player,aspect) : null;
+      const camera=zoomed ? mobileCamera(player,aspect) : null;
       const direction=offscreenBomb(camera,site);
       indicator.hidden=!direction;
       if (direction) {

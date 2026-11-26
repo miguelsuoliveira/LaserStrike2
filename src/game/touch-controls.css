@@ -8,7 +8,7 @@
 .touch-fullscreen{grid-column:1/-1}
 .touch-actions button{font-size:.72rem;padding:8px;min-height:34px}
 .touch-match #hud .bottom{bottom:auto;top:88px;font-size:.68rem}
-.touch-match #arena{width:100vw;height:100dvh;max-height:none}
+#arena.mobile-zoomed{width:100vw;height:100dvh;max-height:none}
 .touch-match #map{display:none}
 .touch-match .match-audio{top:88px;right:max(8px,env(safe-area-inset-right));flex-direction:row}
 .touch-objective{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;text-align:center;color:#ff626d;text-shadow:0 2px 3px #1b0d10;background:#221617d9;padding:5px 8px;border:1px solid #a93c47;border-radius:5px;line-height:1.1;font-size:.72rem;max-width:124px}

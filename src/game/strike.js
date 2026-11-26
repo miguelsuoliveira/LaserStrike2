@@ -153,12 +153,12 @@ window.addEventListener('keydown',event=>{
 window.addEventListener('keyup',event=>keys.delete(event.code));
 window.addEventListener('blur',()=>{keys.clear();fire=false;pickupPressed=false;});
 canvas.addEventListener('pointermove',event=>{
-  Object.assign(pointer,mapPointer(canvas,event,camera));
+  if (event.pointerType!=='touch') Object.assign(pointer,mapPointer(canvas,event,camera));
 });
-canvas.addEventListener('pointerdown',event=>{if (event.button===0) fire=true;});
+canvas.addEventListener('pointerdown',event=>{if (event.button===0 && event.pointerType!=='touch') fire=true;});
 window.addEventListener('pointerup',()=>{fire=false;});
 
-const touch=mountTouchControls();
+const touch=mountTouchControls(canvas);
 let camera=null;
 let last=performance.now();
 function frame(now) {
@@ -166,7 +166,7 @@ function frame(now) {
   last=now;
   audio.update();
   touch.show(screen==='match' && !paused && match?.phase==='active');
-  touch.aimAt(match?.player,pointer);
+  touch.aimAt(pointer,camera);
   if (match && screen==='match' && !paused) {
     match.step(dt,{...pointer,dx:touch.move.x || Number(keys.has('KeyD'))-Number(keys.has('KeyA')),
       dy:touch.move.y || Number(keys.has('KeyS'))-Number(keys.has('KeyW')),fire:fire||touch.firing(),reload:keys.has('KeyR'),use:keys.has('KeyE'),pickup:pickupPressed});

@@ -1,7 +1,7 @@
 import './touch-controls.css';
-import { mobileCamera,offscreenObjective } from './mobile-camera.js';
+import { mobileCamera,offscreenObjective,mapPointer } from './mobile-camera.js';
 
-export function mountTouchControls(wake=()=>{}) {
+export function mountTouchControls(canvas,wake=()=>{}) {
   const preference=new URLSearchParams(location.search).get('mobile');
   const coarse=matchMedia('(pointer: coarse)');
   const enabled=()=>preference==='1' || preference!=='0' && coarse.matches;
@@ -9,7 +9,6 @@ export function mountTouchControls(wake=()=>{}) {
   root.className='touch-controls';
   root.hidden=true;
   root.innerHTML=`<div class="touch-stick touch-move" role="group" aria-label="Move joystick"><span>Move</span></div>
-    <div class="touch-stick touch-aim" role="group" aria-label="Aim and fire joystick"><span>Aim + fire</span></div>
     <div class="touch-actions">
       <button type="button" data-key="KeyE">Use</button><button type="button" data-key="KeyR">Reload</button>
       <button type="button" data-key="Tab">Score</button><button type="button" data-key="Escape">Pause</button>
@@ -32,12 +31,12 @@ export function mountTouchControls(wake=()=>{}) {
   const indicator=root.querySelector('.touch-objective');
   const arrow=indicator.querySelector('span');
   const objectiveLabel=indicator.querySelector('strong');
-  const move={x:0,y:0}, aim={x:0,y:0};
-  let firing=false, fireTap=false, visible=false;
+  const move={x:0,y:0};
+  let firePointer, tapPosition, fireTap=false, visible=false;
   const actions=new Map();
   function key(code,down) {window.dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{code,cancelable:true}));}
 
-  function stick(element,vector,isAim=false) {
+  function stick(element,vector) {
     let pointerId;
     const update=event=>{
       if (pointerId!==event.pointerId) return;
@@ -47,10 +46,6 @@ export function mountTouchControls(wake=()=>{}) {
       const length=Math.hypot(x,y);
       vector.x=length<.12 ? 0 : x/Math.max(1,length);
       vector.y=length<.12 ? 0 : y/Math.max(1,length);
-      if (isAim) {
-        if (!firing && length>=.12) fireTap=true;
-        firing=length>=.12;
-      }
       element.style.setProperty('--stick-x',vector.x*22+'px');
       element.style.setProperty('--stick-y',vector.y*22+'px');
       wake();
@@ -58,7 +53,7 @@ export function mountTouchControls(wake=()=>{}) {
     const end=event=>{
       if (pointerId!==event.pointerId) return;
       pointerId=undefined;
-      if (!isAim) {vector.x=0;vector.y=0;} else firing=false;
+      vector.x=vector.y=0;
       element.style.removeProperty('--stick-x');
       element.style.removeProperty('--stick-y');
       wake();
@@ -81,7 +76,27 @@ export function mountTouchControls(wake=()=>{}) {
   }
 
   const resetMove=stick(root.querySelector('.touch-move'),move);
-  const resetAim=stick(root.querySelector('.touch-aim'),aim,true);
+  const point=event=>({clientX:event.clientX,clientY:event.clientY});
+  canvas.addEventListener('pointerdown',event=>{
+    if (!visible || event.pointerType!=='touch' || firePointer!==undefined) return;
+    event.preventDefault();
+    firePointer=event.pointerId;
+    tapPosition=point(event);
+    fireTap=true;
+    canvas.setPointerCapture(firePointer);
+    wake();
+  });
+  canvas.addEventListener('pointermove',event=>{
+    if (event.pointerId!==firePointer) return;
+    tapPosition=point(event);
+    wake();
+  });
+  for (const type of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(type,event=>{
+    if (event.pointerId!==firePointer) return;
+    firePointer=undefined;
+    if (type==='pointercancel') fireTap=false;
+    wake();
+  });
   for (const button of root.querySelectorAll('[data-key]')) {
     const code=button.dataset.key;
     button.addEventListener('pointerdown',event=>{
@@ -100,11 +115,13 @@ export function mountTouchControls(wake=()=>{}) {
 
   function reset() {
     resetMove();
-    resetAim();
+    if (firePointer!==undefined && canvas.hasPointerCapture(firePointer)) canvas.releasePointerCapture(firePointer);
+    firePointer=undefined;
+    tapPosition=undefined;
     for (const code of actions.keys()) key(code,false);
     actions.clear();
-    move.x=move.y=aim.x=aim.y=0;
-    firing=fireTap=false;
+    move.x=move.y=0;
+    fireTap=false;
   }
   addEventListener('blur',reset);
   return {
@@ -125,13 +142,12 @@ export function mountTouchControls(wake=()=>{}) {
       }
       return camera;
     },
-    aimAt(actor,pointer) {
-      if (visible && actor?.hp && (aim.x || aim.y)) {
-        pointer.x=actor.x+aim.x*80;
-        pointer.y=actor.y+aim.y*80;
+    aimAt(pointer,camera) {
+      if (visible && tapPosition && (firePointer!==undefined || fireTap)) {
+        Object.assign(pointer,mapPointer(canvas,tapPosition,camera));
       }
     },
-    firing:()=>firing || fireTap,
+    firing:()=>firePointer!==undefined || fireTap,
     consumeFire:()=>{fireTap=false;},
     show(active) {
       const show=active && enabled();

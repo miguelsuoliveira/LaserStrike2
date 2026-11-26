@@ -218,11 +218,11 @@ function display() {
   }
 }
 
-const touch=mountTouchControls(()=>schedulePoll(0));
+const touch=mountTouchControls(canvas,()=>schedulePoll(0));
 let camera=null;
 
 function controlsNow() {
-  touch.aimAt(view?.player,pointer);
+  touch.aimAt(pointer,camera);
   return {...pointer,dx:touch.move.x || +keys.has('KeyD')-+keys.has('KeyA'),dy:touch.move.y || +keys.has('KeyS')-+keys.has('KeyW'),
     fire:!internetMode&&(held||firePressed||touch.firing()),reload:keys.has('KeyR') || Boolean(internetMode && held && view?.player.ammo===0),use:keys.has('KeyE'),pickup:pickupPressed};
 }
@@ -357,9 +357,9 @@ addEventListener('keyup',event=>{
 });
 addEventListener('blur',()=>{keys.clear();held=false;firePressed=false;displayScoreboard();schedulePoll(0);});
 canvas.addEventListener('pointermove',event=>{
-  Object.assign(pointer,mapPointer(canvas,event,camera));
+  if (event.pointerType!=='touch') Object.assign(pointer,mapPointer(canvas,event,camera));
 });
-canvas.addEventListener('pointerdown',event=>{if(event.button===0 && view?.phase==='active' && !state?.pausedBy && !ending) {held=true;firePressed=true;schedulePoll(0);}});
+canvas.addEventListener('pointerdown',event=>{if(event.button===0 && event.pointerType!=='touch' && view?.phase==='active' && !state?.pausedBy && !ending) {held=true;firePressed=true;schedulePoll(0);}});
 addEventListener('pointerup',()=>{if (held) {held=false;schedulePoll(0);}});
 addEventListener('pagehide',()=>{
   if (!session) return;

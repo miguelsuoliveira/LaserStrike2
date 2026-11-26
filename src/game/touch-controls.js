@@ -1,5 +1,5 @@
 import './touch-controls.css';
-import { mobileCamera,offscreenBomb } from './mobile-camera.js';
+import { mobileCamera,offscreenObjective } from './mobile-camera.js';
 
 export function mountTouchControls(wake=()=>{}) {
   const preference=new URLSearchParams(location.search).get('mobile');
@@ -14,7 +14,7 @@ export function mountTouchControls(wake=()=>{}) {
       <button type="button" data-key="KeyE">Use</button><button type="button" data-key="KeyR">Reload</button>
       <button type="button" data-key="Tab">Score</button><button type="button" data-key="Escape">Pause</button>
       <button type="button" class="touch-fullscreen" hidden>Fullscreen</button>
-    </div><div class="touch-objective" hidden><span aria-hidden="true">➜</span><strong>Bomb has been planted</strong></div>`;
+    </div><div class="touch-objective" hidden><span aria-hidden="true">➜</span><strong></strong></div>`;
   document.body.append(root);
   const fullscreen=root.querySelector('.touch-fullscreen');
   const page=document.documentElement;
@@ -31,6 +31,7 @@ export function mountTouchControls(wake=()=>{}) {
   updateFullscreen();
   const indicator=root.querySelector('.touch-objective');
   const arrow=indicator.querySelector('span');
+  const objectiveLabel=indicator.querySelector('strong');
   const move={x:0,y:0}, aim={x:0,y:0};
   let firing=false, fireTap=false, visible=false;
   const actions=new Map();
@@ -109,14 +110,15 @@ export function mountTouchControls(wake=()=>{}) {
   return {
     move,
     enterFullscreen,
-    camera(canvas,player,site) {
+    camera(canvas,player,objective) {
       const zoomed=Boolean(visible && player?.hp>0);
       canvas.classList.toggle('mobile-zoomed',zoomed);
       const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
       const camera=zoomed ? mobileCamera(player,aspect) : null;
-      const direction=offscreenBomb(camera,site);
+      const direction=offscreenObjective(camera,objective);
       indicator.hidden=!direction;
       if (direction) {
+        if (objectiveLabel.textContent!==direction.text) objectiveLabel.textContent=direction.text;
         indicator.style.left=direction.x*100+'%';
         indicator.style.top=direction.y*100+'%';
         arrow.style.transform=`rotate(${direction.angle}rad)`;

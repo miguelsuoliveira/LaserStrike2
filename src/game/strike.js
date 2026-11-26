@@ -174,7 +174,7 @@ function frame(now) {
     touch.consumeFire();
     if (!motion) match.traces.length=0;
   }
-  camera=touch.camera(canvas,match?.player,match?.objective.site);
+  camera=touch.camera(canvas,match?.player,match?.objective);
   paint(context,match,match && !paused?pointer:null,false,graphics,camera);
   if (match && screen==='match') paint(minimap,match,null,true);
   drawHud();

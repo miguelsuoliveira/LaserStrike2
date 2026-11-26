@@ -12,13 +12,15 @@ export function mobileCamera(player, aspect) {
   };
 }
 
-export function offscreenBomb(camera, site) {
+export function offscreenObjective(camera, objective) {
+  const site=objective?.site || objective?.dropped;
   if (!camera || !site) return null;
   const x=(site.x-camera.x)/camera.w, y=(site.y-camera.y)/camera.h;
   if (x>=0 && x<=1 && y>=0 && y<=1) return null;
   const dx=x-.5, dy=y-.5;
   const scale=1/Math.max(Math.abs(dx)/.17,Math.abs(dy)/.26);
-  return {x:.5+dx*scale,y:.5+dy*scale,angle:Math.atan2(dy*camera.h,dx*camera.w)};
+  return {x:.5+dx*scale,y:.5+dy*scale,angle:Math.atan2(dy*camera.h,dx*camera.w),
+    text:objective.site?'Bomb has been planted':'Relay dropped'};
 }
 
 export function mapPointer(canvas,event,camera) {

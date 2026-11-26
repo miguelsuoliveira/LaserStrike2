@@ -404,7 +404,7 @@ function frame(now) {
       predictShot(now,scene.player,scene.shotTime);
       if (localBeam && now<localBeam.until) scene.traces=[...scene.traces,{...localBeam,life:(localBeam.until-now)/1000}];
     }
-    camera=touch.camera(canvas,scene?.player,scene?.objective.site);
+    camera=touch.camera(canvas,scene?.player,scene?.objective);
     paint(context,scene,active?pointer:null,false,'low',camera);
     needsPaint=false;
   }

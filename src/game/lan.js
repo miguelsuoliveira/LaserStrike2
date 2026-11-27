@@ -1,6 +1,6 @@
 import './strike.css';
 import './lan.css';
-import { characterFigure,characterLook,shades,patterns } from './character-look.js';
+import { characterFigure,characterLook,patterns } from './character-look.js';
 import { mapPointer } from './mobile-camera.js';
 import { mountTouchControls } from './touch-controls.js';
 import { Match,gear } from './match.js';
@@ -30,7 +30,7 @@ let session, state, view, requestInFlight=false, online=false, held=false, fireP
 let inviteBase, internetMode=false;
 let customizing=false, look=characterLook(), rejoinOffer=null, storedSession=null;
 const resumeKey='laser-strike-online-room';
-let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').slice(0,6), markup='', pickupPressed=false;
+let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').replace(/\D/g,'').slice(0,6), markup='', pickupPressed=false;
 const escape = value => String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const button = (text,action,primary='') => `<button type="button" class="${primary}" data-action="${action}">${text}</button>`;
 const panel = (title,body) => `<section class="panel lan-panel"><div class="kicker">LASER STRIKE 2 · ${internetMode?'ONLINE':'LAN EDITION'}</div><h1>${title}</h1>${error?`<p class="lan-error" role="alert">${escape(error)}</p>`:''}${body}</section>`;
@@ -179,7 +179,7 @@ function customizePanel() {
   const teams=state ? [state.team] : [0,1];
   const options=(values,current)=>values.map((label,i)=>`<option value="${i}" ${current===i?'selected':''}>${label}</option>`).join('');
   return panel('Customize character',`<div class="character-preview">${teams.map(team=>characterFigure(team,look)).join('')}</div>
-    <label class="settings-row">Team shade <select id="look-shade">${options(shades,look.shade)}</select></label>
+    <label class="settings-row">Brightness <input id="look-brightness" type="range" min="0" max="100" step="5" value="${look.brightness}"><output id="brightness-value">${look.brightness}%</output></label>
     <label class="settings-row">Pattern <select id="look-pattern">${options(patterns,look.pattern)}</select></label>
     <div class="actions">${button('Done','save-look','primary')}</div>`);
 }
@@ -194,7 +194,7 @@ function display() {
   else if (customizing) html=customizePanel();
   else if (rejoinOffer && !state) html=panel('Rejoin your match?',`<p class="tagline">Return to room ${escape(rejoinOffer.code)} as ${escape(rejoinOffer.name)}.</p><div class="actions">${button('Rejoin','rejoin','primary')}${button('Not now','skip-rejoin')}</div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
-    <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" autocomplete="off" placeholder="ABC123" value="${escape(roomCode)}" required></label>
+    <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="off" placeholder="123456" value="${escape(roomCode)}" required></label>
     <div class="actions"><button class="primary">Join room</button>${button('Customize character','customize')}</div></form>
     ${touch.settingsMarkup()}<div class="actions">${button('Create room','create')}<a class="lan-link" href="/">Back</a></div>`);
   else if (!view) html=lobby();
@@ -291,13 +291,17 @@ async function act(action,data) {
 
 overlay.addEventListener('input',event=>{
   if (event.target.id==='player-name') name=event.target.value;
-  if (event.target.id==='room-code') roomCode=event.target.value;
+  if (event.target.id==='room-code') roomCode=event.target.value=event.target.value.replace(/\D/g,'').slice(0,6);
+  if (event.target.id==='look-brightness') {
+    look=characterLook({...look,brightness:Number(event.target.value)});
+    document.querySelector('#brightness-value').textContent=look.brightness+'%';
+    document.querySelector('.character-preview').innerHTML=(state ? [state.team] : [0,1]).map(team=>characterFigure(team,look)).join('');
+  }
 });
 overlay.addEventListener('change',event=>{
   if (event.target.id==='mobile-aim') {touch.setAimMode(event.target.value);display();return;}
-  if (event.target.id==='look-shade' || event.target.id==='look-pattern') {
-    const key=event.target.id==='look-shade'?'shade':'pattern';
-    look=characterLook({...look,[key]:Number(event.target.value)});
+  if (event.target.id==='look-pattern') {
+    look=characterLook({...look,pattern:Number(event.target.value)});
     display();
   }
   if (event.target.closest('#room-settings')) {
@@ -396,7 +400,7 @@ function predictShot(now, pose, seenTime) {
 function frame(now) {
   const dt=Math.min(.05,(now-lastFrame)/1000);
   lastFrame=now;
-  audio.update();
+  audio.update(view?.phase==='active' && view.objective.site ? view.objective.clock : null,Boolean(state?.pausedBy));
   const active=view?.phase==='active' && !state?.pausedBy && !ending;
   touch.show(Boolean(active));
   if (active || needsPaint) {

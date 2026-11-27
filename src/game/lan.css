@@ -12,6 +12,11 @@
 .character-preview .custom-figure{--figure:72px}
 .custom-figure[data-pattern="1"] .stage-body{background:repeating-linear-gradient(0deg,currentColor 0 4px,#26333d 4px 6px)}
 .custom-figure[data-pattern="2"] .stage-body{background:linear-gradient(135deg,currentColor 0 34%,#26333d 34% 54%,currentColor 54%)}
+.custom-figure[data-pattern="4"] .stage-body{background:repeating-linear-gradient(173deg,currentColor 0 3px,#223442 3px 4px,#678998 4px 6px)}
+.custom-figure[data-pattern="5"] .stage-body{background:repeating-linear-gradient(0deg,#2a3644 0 2px,currentColor 2px 6px)}
+.custom-figure[data-pattern="6"] .stage-body{background:radial-gradient(circle at 25% 30%,white 0 1px,transparent 2px),radial-gradient(circle at 65% 70%,currentColor 0 2px,transparent 3px),#252c43}
+.custom-figure[data-pattern="7"] .stage-body{background:radial-gradient(ellipse at 20% 30%,#293d40 0 20%,transparent 21%),radial-gradient(ellipse at 67% 70%,#52675a 0 27%,transparent 28%),currentColor}
+.custom-figure[data-pattern="8"] .stage-body{background:repeating-linear-gradient(142deg,currentColor 0 5px,#475d75 5px 8px,#283640 8px 10px)}
 .custom-figure[data-pattern="3"] .stage-body{background:radial-gradient(circle at 2px 2px,#26333d 0 1px,transparent 1.5px) 0 0/5px 5px,currentColor}
 .lan-roster{flex:1;padding-left:18px;overflow-wrap:anywhere}
 .lan-team button{align-self:flex-start;font-size:.8rem}

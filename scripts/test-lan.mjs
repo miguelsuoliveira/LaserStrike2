@@ -71,14 +71,16 @@ async function lanRoom() {
   assert.equal(await button(host,'Play Local Co-op').count(),0);
   await label(host,'Your name').fill('Ada');
   await button(host,'Create room').click();
-  const room=host.getByRole('heading',{name:/^Room [A-Z0-9]{6}$/});
+  const room=host.getByRole('heading',{name:/^Room [0-9]{6}$/});
   await room.waitFor();
   const code=(await room.textContent()).split(' ')[1];
   await label(guest,'Your name').fill('Rowan <LAN>');
   await label(guest,'Room code').fill(code.toLowerCase());
   const joinResponse=guest.waitForResponse(res=>res.url().endsWith('/lan-api/join') && res.ok());
   await button(guest,'Customize character').click();
-  await label(guest,'Pattern').selectOption('2');
+  await label(guest,'Pattern').selectOption('8');
+  await guest.locator('#look-brightness').fill('85');
+  await guest.getByText('85%',{exact:true}).waitFor();
   await button(guest,'Done').click();
   await button(guest,'Join room').click();
   const {token}=await (await joinResponse).json();
@@ -131,7 +133,7 @@ async function lanRoom() {
   assert.equal(before.match.actors.length,6);
   assert.equal(before.match.actors.filter(actor=>!['Ada','Rowan <LAN>','Nova'].includes(actor.name)).length,3);
   const guestSlot=before.seats[0];
-  assert.equal(before.match.actors[guestSlot].look.pattern,2);
+  assert.deepEqual(before.match.actors[guestSlot].look,{pattern:8,brightness:85});
   await guest.getByRole('button',{name:'Music off',exact:true}).focus();
   await guest.keyboard.down('Tab');
   await guest.getByRole('heading',{name:'Scoreboard',exact:true}).waitFor();
@@ -165,7 +167,7 @@ async function lanRoom() {
     await button(guest,'Rejoin').click();
     const restored=await snapshot(guest);
     assert.equal(restored.seats[0],guestSlot);
-    assert.equal(restored.match.actors[guestSlot].look.pattern,2);
+    assert.equal(restored.match.actors[guestSlot].look.pattern,8);
     await button(guest,'Music on').click();
   }
   await guest.keyboard.down('a');

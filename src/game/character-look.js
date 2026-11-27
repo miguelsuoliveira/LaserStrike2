@@ -1,23 +1,30 @@
 import { colors } from './arena.js';
 
-export const defaultLook={shade:1,pattern:0};
-export const shades=['Deep','Original','Bright'];
-export const patterns=['Plain','Stripe','Chevron','Speckle'];
+export const defaultLook={brightness:50,pattern:0};
+export const patterns=['Plain','Stripe','Chevron','Speckle','Glitchy','Retro','Interstellar','Camo','Graffiti'];
 
 export function characterLook(value) {
   return {
-    shade:Number.isInteger(value?.shade) && value.shade>=0 && value.shade<shades.length ? value.shade : defaultLook.shade,
+    brightness:Number.isFinite(value?.brightness) ? Math.max(0,Math.min(100,Math.round(value.brightness/5)*5)) :
+      (Number.isInteger(value?.shade) ? [15,50,85][value.shade] : undefined) ?? defaultLook.brightness,
     pattern:Number.isInteger(value?.pattern) && value.pattern>=0 && value.pattern<patterns.length ? value.pattern : defaultLook.pattern,
   };
 }
 
-export function uniformColor(team,shade) {
-  return [['#d47d43',colors[0],'#ffc078'],['#448bce',colors[1],'#abd8ff']][team][shade];
+export function uniformColor(team,brightness) {
+  const base=colors[team];
+  const shift=(brightness-50)/50;
+  const channels=[1,3,5].map(index=>{
+    const original=parseInt(base.slice(index,index+2),16);
+    const delta=shift<0 ? original*.52*shift : (255-original)*.65*shift;
+    return Math.round(original+delta);
+  });
+  return `rgb(${channels.join(',')})`;
 }
 
 export function characterFigure(team,value) {
-  const {shade,pattern}=characterLook(value);
-  return `<span class="stage-figure custom-figure ${team?'b':'a'}" data-pattern="${pattern}" style="color:${uniformColor(team,shade)}" aria-hidden="true">
+  const {brightness,pattern}=characterLook(value);
+  return `<span class="stage-figure custom-figure ${team?'b':'a'}" data-pattern="${pattern}" style="color:${uniformColor(team,brightness)}" aria-hidden="true">
     <span class="stage-head"></span><span class="stage-body"></span><span class="stage-boots"></span>
   </span>`;
 }

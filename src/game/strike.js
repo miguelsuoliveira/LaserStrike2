@@ -166,7 +166,7 @@ let last=performance.now();
 function frame(now) {
   const dt=Math.min(.05,(now-last)/1000);
   last=now;
-  audio.update();
+  audio.update(screen==='match' && match.phase==='active' && match.objective.site ? match.objective.clock : null,paused);
   touch.show(screen==='match' && !paused && match?.phase==='active');
   touch.aimAt(pointer,camera,match?.player);
   if (match && screen==='match' && !paused) {

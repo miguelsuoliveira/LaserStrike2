@@ -12,11 +12,10 @@ import { characterLook } from '../src/game/character-look.js';
 import { Match,defaultRounds,roundOptions } from '../src/game/match.js';
 
 const rooms = new Map();
-const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const disconnectAfter=12000, closedRoomLifetime=30000;
 const levels = ['Relaxed','Standard','Expert'];
 const fail = (message,status=400) => { throw Object.assign(new Error(message),{status}); };
-const code = () => Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('');
+const code = () => String(randomInt(100000,1000000));
 const inLan = ip => /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/.test(ip.replace(/^::ffff:/,'')) || ip==='::1';
 const safeNumber = (value,min,max) => Number.isFinite(value) ? Math.min(max,Math.max(min,value)) : 0;
 const actionFields = ['fire','reload','use','pickup'];

@@ -17,8 +17,8 @@ const cues = {
 };
 
 export function createStrikeAudio() {
-  let context, music, effects, nextBeat, noteIndex=0, lastBotShot=-Infinity;
-  let musicOn=true, effectsOn=true;
+  let context, music, effects, relayBus, nextPing=0, nextBeat, noteIndex=0, lastBotShot=-Infinity;
+  let musicOn=true, effectsOn=true, planted=false;
 
   function tone(destination, start, pitch, length, type, level, endPitch=pitch) {
     const oscillator=context.createOscillator(), gain=context.createGain();
@@ -36,8 +36,9 @@ export function createStrikeAudio() {
 
   function configure() {
     if (!context) return;
-    music.gain.setTargetAtTime(musicOn ? .36 : 0,context.currentTime,.04);
-    effects.gain.setTargetAtTime(effectsOn ? .65 : 0,context.currentTime,.025);
+    music.gain.setTargetAtTime(musicOn ? (planted ? .16 : .36) : 0,context.currentTime,.04);
+    relayBus.gain.setTargetAtTime(effectsOn ? .85 : 0,context.currentTime,.025);
+    effects.gain.setTargetAtTime(effectsOn ? (planted ? .34 : .65) : 0,context.currentTime,.025);
   }
 
   return {
@@ -48,6 +49,9 @@ export function createStrikeAudio() {
         context=new Audio();
         music=context.createGain();
         effects=context.createGain();
+        relayBus=context.createGain();
+        relayBus.gain.value=0;
+        relayBus.connect(context.destination);
         music.gain.value=0;
         effects.gain.value=0;
         music.connect(context.destination);
@@ -58,9 +62,20 @@ export function createStrikeAudio() {
     },
     setMusic(value) {musicOn=value;configure();},
     setEffects(value) {effectsOn=value;configure();},
-    update() {
-      if (context?.state!=='running' || !musicOn) return;
+    update(relayTime=null,paused=false) {
+      const armed=relayTime!==null && relayTime>0;
+      if (planted!==armed) {
+        planted=armed;
+        nextPing=0;
+        configure();
+      }
+      if (context?.state!=='running') return;
       const now=context.currentTime;
+      if (planted && effectsOn && !paused && now>=nextPing) {
+        tone(relayBus,now+.006,960,.11,'sine',.24,820);
+        nextPing=now+(relayTime<5 ? .28 : relayTime<12 ? .53 : 1);
+      }
+      if (!musicOn) return;
       if (!nextBeat || nextBeat<now) nextBeat=now+.025;
       while (nextBeat<now+.12) {
         const note=notes[noteIndex];

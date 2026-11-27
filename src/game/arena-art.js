@@ -63,6 +63,45 @@ for (const [x,y,w,h] of walls) {
 
 const labelWidths=new WeakMap();
 const circle = (c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);};
+function paintDroppedWeapon(c,drop,selected) {
+  const length=[18,22,31,25,29][drop.item];
+  const edge=selected?'#ffe097':'#9aaeb4';
+  c.save();
+  c.translate(drop.x,drop.y);
+  c.rotate(-.23+drop.item*.11);
+  c.fillStyle='#0e1519';
+  c.fillRect(-length/2-2,-5,length+4,12);
+  c.fillRect(-5,4,8,8);
+  c.fillStyle='#3b505b';
+  c.fillRect(-length/2,-3,length-5,7);
+  c.fillRect(-4,3,6,7);
+  c.fillStyle=edge;
+  c.fillRect(-length/2+2,-2,Math.floor(length*.55),2);
+  c.fillRect(length/2-8,-1,8,3);
+  c.fillStyle='#61d8fa';
+  c.fillRect(-2,1,5,2);
+  c.restore();
+}
+
+function paintRelay(c,point,armed=false) {
+  c.save();
+  c.translate(point.x,point.y);
+  c.fillStyle='#15181d';
+  c.fillRect(-13,-9,26,18);
+  c.fillStyle='#5e6467';
+  c.fillRect(-11,-7,22,14);
+  c.fillStyle='#222e35';
+  c.fillRect(-8,-5,16,10);
+  c.fillStyle=armed?'#ff5164':'#ffd575';
+  c.fillRect(-5,-3,10,5);
+  c.fillStyle='#93a8ab';
+  c.fillRect(-11,-5,2,10);
+  c.fillRect(9,-5,2,10);
+  c.fillStyle='#e2e9e4';
+  for (const x of [-5,-1,3]) c.fillRect(x,4,2,1);
+  c.restore();
+}
+
 export function paint(c, match, pointer, mini=false, quality='low', camera=null) {
   const view=camera || {x:0,y:0,w:width,h:height};
   const sx=c.canvas.width/view.w, sy=c.canvas.height/view.h;
@@ -73,7 +112,7 @@ export function paint(c, match, pointer, mini=false, quality='low', camera=null)
   if (detail) c.drawImage(detail,0,0,width,height);
   const o=match?.objective;
   for (const site of sites) {
-    const armed=o?.site===site;
+    const armed=o?.site?.name===site.name;
     if (high) {
       const light=c.createRadialGradient(site.x,site.y,27,site.x,site.y,73);
       light.addColorStop(0,armed?'#ffac6075':'#65e8da55');
@@ -161,10 +200,7 @@ export function paint(c, match, pointer, mini=false, quality='low', camera=null)
     c.font='700 12px system-ui';
     c.textAlign='center';
     for (const drop of match.weaponDrops) {
-      c.fillStyle='#17242a';
-      c.fillRect(drop.x-11,drop.y-5,22,10);
-      c.fillStyle=drop===selected ? '#ffe097' : '#cadbdd';
-      c.fillRect(drop.x-8,drop.y-2,16,4);
+      paintDroppedWeapon(c,drop,drop===selected);
       if (!canInspect || !match.weaponInReach(match.player,drop)) continue;
       const item=gear[drop.item];
       const text=`${item.name} · ${item.cost.toLocaleString()} CR`;
@@ -186,10 +222,8 @@ export function paint(c, match, pointer, mini=false, quality='low', camera=null)
       c.fillText(text,x,y);
     }
   }
-  if (o.dropped) {
-    c.fillStyle='#ffdd68';
-    c.fillRect(o.dropped.x-5,o.dropped.y-5,10,10);
-  }
+  if (o.dropped) paintRelay(c,o.dropped);
+  if (o.site) paintRelay(c,o.site,true);
   if (!mini && match.announcement.time>0) {
     const {label,time,flash}=match.announcement;
     if (flash>0 && !reducedMotion.matches) {

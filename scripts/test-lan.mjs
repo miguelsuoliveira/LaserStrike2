@@ -40,10 +40,16 @@ async function capacity() {
     const {code,token}=await send('create',{name:'Host'});
     const host={code,token};
     await send('settings',{...host,size:1,level:'Standard'});
-    const first=await send('join',{code});
+    const admit=async()=>{
+      const request=await send('join',{code});
+      if (!request.pending) return request;
+      await send('join-decision',{...host,id:request.id,accept:true});
+      return send('join-status',request);
+    };
+    const first=await admit();
     const oneFull=await send('join',{code});
     await send('settings',{...host,size:2,level:'Standard'});
-    const next=await Promise.all([send('join',{code}),send('join',{code}),send('join',{code})]);
+    const next=[await admit(),await admit(),await admit()];
     const tooSmall=await send('settings',{...host,size:1,level:'Standard'});
     return {code,token,first,oneFull,next,tooSmall};
   });
@@ -76,14 +82,21 @@ async function lanRoom() {
   const code=(await room.textContent()).split(' ')[1];
   await label(guest,'Your name').fill('Rowan <LAN>');
   await label(guest,'Room code').fill(code.toLowerCase());
-  const joinResponse=guest.waitForResponse(res=>res.url().endsWith('/lan-api/join') && res.ok());
   await button(guest,'Customize character').click();
   await label(guest,'Pattern').selectOption('8');
   await guest.locator('#look-brightness').fill('85');
   await guest.getByText('85%',{exact:true}).waitFor();
   await button(guest,'Done').click();
   await button(guest,'Join room').click();
-  const {token}=await (await joinResponse).json();
+  await guest.getByRole('heading',{name:'Waiting for host'}).waitFor();
+  await host.getByText('Rowan <LAN> wants to join',{exact:true}).waitFor();
+  assert.equal(await host.locator('.lan-roster li').count(),1);
+  await button(host,'Decline').click();
+  await guest.getByRole('alert').getByText('The host declined your join request.').waitFor();
+  const accepted=guest.waitForResponse(async res=>res.url().endsWith('/lan-api/join-status') && res.ok() && Boolean((await res.json()).token));
+  await button(guest,'Join room').click();
+  await button(host,'Accept').click();
+  const {token}=await (await accepted).json();
   await guest.getByText('Ada · Liberals',{exact:true}).waitFor();
   await host.getByText('Rowan <LAN> · Counter Liberals',{exact:true}).waitFor();
   assert.equal(await host.locator('.lan-roster li').count(),2);
@@ -113,6 +126,7 @@ async function lanRoom() {
   await label(remaining,'Your name').fill('Nova');
   await label(remaining,'Room code').fill(code);
   await button(remaining,'Join room').click();
+  await button(host,'Accept').click();
   await host.getByText('Nova · Liberals',{exact:true}).waitFor();
   await button(host,'Start match').click();
   await host.getByText('Ada · 0 CR',{exact:true}).waitFor();
@@ -167,6 +181,7 @@ async function lanRoom() {
     await button(guest,'Rejoin').click();
     const restored=await snapshot(guest);
     assert.equal(restored.seats[0],guestSlot);
+    assert.deepEqual((await snapshot(host)).requests,[]);
     assert.equal(restored.match.actors[guestSlot].look.pattern,8);
     await button(guest,'Music on').click();
   }

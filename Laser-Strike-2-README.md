@@ -15,7 +15,7 @@ Open the address printed by Vite in Chrome or Edge. Use `npm run build` to build
 
 ## Online edition
 
-Run `npm ci` and `npm run build`, then run `npm start` and open `http://localhost:8080` to test. Choose **Play Online**, customize your character if you like, create a room, and share its link or code. If you accidentally disconnect, reopen the lobby in the same browser within 90 seconds to rejoin the ongoing match with your stats.
+Run `npm ci` and `npm run build`, then run `npm start` and open `http://localhost:8080` to test. Choose **Play Online**, customize your character if you like, create a room, and share its link or code. The host approves new join requests from the lobby. Returning players with a valid room session rejoin directly. If you accidentally disconnect, reopen the lobby in the same browser within 90 seconds to rejoin the ongoing match with your stats.
 
 To deploy on Render, connect your GitHub repository as a Node **Web Service**. Use `npm ci --include=dev && npm run build` as the build command, `npm start` as the start command, and `/healthz` as the health check path. The server reads Render’s `PORT` and `RENDER_EXTERNAL_URL`. On other hosts, set `ONLINE_ORIGIN` to the public HTTPS URL. Use one instance because room state lives in memory.
 

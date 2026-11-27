@@ -27,8 +27,10 @@ function command(raw) {
   };
 }
 
+const cleanName=name=>typeof name==='string' ? name.trim().replace(/[\u0000-\u001f\u007f]/g,'').slice(0,24) : '';
+
 function join(room, name, look) {
-  const displayName=typeof name==='string' ? name.trim().replace(/[\u0000-\u001f\u007f]/g,'').slice(0,24) : '';
+  const displayName=cleanName(name);
   const seats=[...room.clients.values()].flatMap(peer=>peer.seats);
   const shortTeam=Number(seats.filter(seat=>seat.team===1).length<seats.filter(seat=>seat.team===0).length);
   const token=randomBytes(24).toString('hex');
@@ -84,6 +86,7 @@ function start(room) {
 function snapshot(room, client) {
   const clients=[...room.clients.values()];
   const base={code:room.code,serial:++room.serial,epoch:client.epoch,host:room.hostToken===client.token,size:room.size,rounds:room.rounds,level:room.level,
+    requests:room.hostToken===client.token ? [...room.requests.values()].filter(request=>!request.outcome && !request.client).map(({id,name})=>({id,name})) : [],
     team:client.seats[0].team,look:client.seats[0].look,pausedBy:room.pausedBy,notices:room.notices,
     players:clients.flatMap(peer=>peer.seats.map(seat=>({name:seat.name,team:seat.team,look:seat.look}))),
     seats:client.seats.map(seat=>seat.slot),match:null};
@@ -114,7 +117,7 @@ function api(path, data) {
     if (rooms.size>=40) fail('The LAN server is full. Try again in a moment.',503);
     let id=code();
     while (rooms.has(id)) id=code();
-    const room={code:id,size:5,rounds:defaultRounds,level:'Standard',nextName:1,clients:new Map(),detached:new Map(),notices:[],noticeId:0,soundId:0,serial:0,pausedBy:null,endedAt:null};
+    const room={code:id,size:5,rounds:defaultRounds,level:'Standard',nextName:1,clients:new Map(),requests:new Map(),detached:new Map(),notices:[],noticeId:0,soundId:0,serial:0,pausedBy:null,endedAt:null};
     const client=join(room,data.name,data.look);
     room.hostToken=client.token;
     rooms.set(id,room);
@@ -126,8 +129,28 @@ function api(path, data) {
     if (room.endedAt) fail('The host has left the match.',410);
     if (room.clients.size>=room.size*2) fail('This room is full.',409);
     if (room.match) fail('This room is already playing.',409);
-    const client=join(room,data.name,data.look);
-    return {token:client.token,...snapshot(room,client)};
+    if (room.requests.size>=24) fail('Too many pending requests. Try again shortly.',429);
+    const id=randomBytes(8).toString('hex');
+    const secret=randomBytes(24).toString('hex');
+    room.requests.set(id,{id,secret,name:cleanName(data.name) || 'Unnamed player',look:characterLook(data.look),until:Date.now()+45000});
+    return {pending:true,id,secret,code:room.code};
+  }
+  if (path==='join-status' || path==='join-cancel') {
+    const request=room.requests.get(data.id);
+    if (!request || request.secret!==data.secret || request.until<Date.now()) fail('Your join request expired.',404);
+    if (path==='join-cancel') {
+      if (request.client && room.clients.has(request.client.token)) removeClient(room,request.client);
+      room.requests.delete(request.id);
+      return {};
+    }
+    if (request.outcome) fail(request.outcome,409);
+    if (room.endedAt) fail('The host has left the match.',410);
+    if (request.client && room.clients.has(request.client.token)) {
+      request.client.seen=Date.now();
+      return {token:request.client.token,...snapshot(room,request.client)};
+    }
+    if (room.match) fail('The match has already started.',409);
+    return {pending:true,code:room.code};
   }
   if ((path==='rejoin-info' || path==='rejoin') && internetMode) {
     const saved=room.detached.get(data.token);
@@ -157,7 +180,18 @@ function api(path, data) {
     removeClient(room,client,Date.now(),path==='disconnect');
     return {};
   }
-  if (path==='pause') {
+  if (path==='join-decision') {
+    if (!host) fail('Only the host can decide join requests.',403);
+    const request=room.requests.get(data.id);
+    if (!request || request.outcome || request.client || request.until<Date.now()) fail('This request is no longer pending.',409);
+    if (data.accept!==true) request.outcome='The host declined your join request.';
+    else if (room.match) request.outcome='The match has already started.';
+    else if (room.clients.size>=room.size*2) request.outcome='This room is full.';
+    else {
+      request.client=join(room,request.name,request.look);
+      request.outcome=null;
+    }
+  } else if (path==='pause') {
     if (!room.match || room.match.phase==='results') fail('There is no active match to pause.',409);
     room.pausedBy=room.pausedBy ? null : client.seats[0].name;
     room.clock=performance.now();
@@ -259,6 +293,7 @@ function rewindTargets(room, stamp, now) {
 const tick=setInterval(()=>{
   const now=Date.now(), time=performance.now();
   for (const [id,room] of rooms) {
+    for (const [key,request] of room.requests) if (request.until<=now) room.requests.delete(key);
     if (room.endedAt) {
       if (now-room.endedAt>closedRoomLifetime || !room.clients.size) rooms.delete(id);
       continue;

@@ -28,6 +28,7 @@ const mainMenu=new URL('/',location.href);
 const keys=new Set(), pointer={x:600,y:360};
 let session, state, view, requestInFlight=false, online=false, held=false, firePressed=false, error='';
 let inviteBase, internetMode=false;
+let pendingJoin=null, joinTimer;
 let customizing=false, look=characterLook(), rejoinOffer=null, storedSession=null;
 const resumeKey='laser-strike-online-room';
 let name='', roomCode=(new URLSearchParams(location.search).get('room') || '').replace(/\D/g,'').slice(0,6), markup='', pickupPressed=false;
@@ -149,8 +150,9 @@ function lobby() {
     ${roundStepper(state.rounds)}
     <label class="settings-row">Bot difficulty <select id="bot-level">${['Relaxed','Standard','Expert'].map(level=>`<option ${level===state.level?'selected':''}>${level}</option>`).join('')}</select></label>
     </form>` : `<p class="tagline">${state.size}v${state.size} · ${state.level} bots · Waiting for host · ${state.rounds} rounds</p>`;
+  const requests=state.requests?.length ? `<section class="join-requests"><h2>Join requests</h2>${state.requests.map(({id,name})=>`<div class="settings-row"><span>${escape(name)} wants to join</span><div class="stepper">${button('Accept','accept-'+id,'primary')}${button('Decline','decline-'+id)}</div></div>`).join('')}</section>` : '';
   return panel('Room '+state.code,`<p class="tagline">${state.players.length} / ${state.size*2} players · ${internetMode?'Share the room link with your friends.':'Share the room link with players on the same Wi‑Fi.'}</p>
-    <label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
+    ${requests}<label class="settings-row">Room link <input id="room-invite" readonly value="${escape(invite.href)}"></label>
     <div class="actions">${button('Copy room link','copy-invite')}</div>
     <div class="lan-teams">${teams}</div><p class="tagline">Bots fill empty slots when the match starts.</p>${fields}${touch.settingsMarkup()}${controls}
     <div class="actions">${state.host?button('Start match','start','primary'):''}${button('Customize character','customize')}${button('Leave room','leave')}</div>`);
@@ -193,6 +195,7 @@ function display() {
     <div class="actions">${button('Try again','retry','primary')}<a class="lan-link" href="/">Back</a></div>`);
   else if (customizing) html=customizePanel();
   else if (rejoinOffer && !state) html=panel('Rejoin your match?',`<p class="tagline">Return to room ${escape(rejoinOffer.code)} as ${escape(rejoinOffer.name)}.</p><div class="actions">${button('Rejoin','rejoin','primary')}${button('Not now','skip-rejoin')}</div>`);
+  else if (pendingJoin && !state) html=panel('Waiting for host',`<p class="tagline">Your request to join room ${escape(pendingJoin.code)} was sent.</p><div class="actions">${button('Cancel request','cancel-join')}</div>`);
   else if (!state) html=panel(title,`<label class="settings-row">Your name <input id="player-name" maxlength="24" placeholder="Player name" value="${escape(name)}"></label>
     <form id="join-form"><label class="settings-row">Room code <input id="room-code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="off" placeholder="123456" value="${escape(roomCode)}" required></label>
     <div class="actions"><button class="primary">Join room</button>${button('Customize character','customize')}</div></form>
@@ -265,7 +268,17 @@ async function act(action,data) {
   error='';
   try {
     const result=await api(action,data);
+    if (action==='join-status' && pendingJoin!==data) return;
+    if (result.pending) {
+      if (action==='join') pendingJoin=result;
+      clearTimeout(joinTimer);
+      joinTimer=setTimeout(()=>{if (pendingJoin) act('join-status',pendingJoin);},500);
+      display();
+      return;
+    }
     if (result.token) {
+      pendingJoin=null;
+      clearTimeout(joinTimer);
       lastNotice=0;
       lastSound=0;
       pendingShots.clear();
@@ -285,7 +298,13 @@ async function act(action,data) {
     }
     else accept(result);
     schedulePoll(0);
-  } catch(e) {error=e.message;}
+  } catch(e) {
+    if (action==='join-status') {
+      if (pendingJoin!==data) return;
+      pendingJoin=null;
+    }
+    error=e.message;
+  }
   display();
 }
 
@@ -323,6 +342,17 @@ overlay.addEventListener('click',event=>{
     else if (document.execCommand('copy')) announce('Room link copied.');
   }
   if (action==='create') act('create',{name,look});
+  if (action==='cancel-join') {
+    const request=pendingJoin;
+    pendingJoin=null;
+    clearTimeout(joinTimer);
+    if (request) api('join-cancel',request).catch(()=>{});
+    display();
+  }
+  if (action.startsWith('accept-') || action.startsWith('decline-')) {
+    const [decision,id]=action.split('-');
+    act('join-decision',{id,accept:decision==='accept'});
+  }
   if (action==='customize') {customizing=true;display();}
   if (action==='save-look') {customizing=false;if (state) act('look',{look});else display();}
   if (action==='rejoin') act('rejoin',storedSession);
